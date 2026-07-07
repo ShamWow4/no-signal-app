@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "204567994817",
+    "project_id": "nola-visual-arts-1f3cf",
+    "storage_bucket": "nola-visual-arts-1f3cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204567994817:android:4fab155fd1c4341ebd0f40",
+        "android_client_info": {
+          "package_name": "com.example.nolavisualarts"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCquh-ly2N1QfGuOFUTlimA95b7LiPW8Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204567994817:android:f900b721cc2cf51bbd0f40",
+        "android_client_info": {
+          "package_name": "com.nosignal.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCquh-ly2N1QfGuOFUTlimA95b7LiPW8Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

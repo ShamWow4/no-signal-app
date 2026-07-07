@@ -1,0 +1,267 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { collection, getDocs, query, limit } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Colors } from '../constants/theme';
+
+const FALLBACK_FEED = [
+  {
+    id: '1',
+    type: 'announcement',
+    title: 'Fall Courses Registration Open',
+    date: 'Oct 1, 2026',
+    excerpt: 'Sign up now for our upcoming Live Video Switching and Resolume Arena training modules.',
+  },
+  {
+    id: '2',
+    type: 'news',
+    title: 'NVA Supports MCCNO Tech Convention',
+    date: 'Sep 28, 2026',
+    excerpt: 'Our recent graduates successfully ran A/V for the massive 3-day tech convention at the convention center!',
+  },
+  {
+    id: '3',
+    type: 'event',
+    title: 'Upcoming Community Meetup',
+    date: 'Sep 15, 2026',
+    excerpt: 'Join us for a networking session and hands-on gear showcase this Friday.',
+  },
+];
+
+export default function HomeScreen() {
+  const [feedData, setFeedData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeed = async () => {
+      try {
+        const q = query(collection(db, 'news_feed'), limit(10));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const fetchedNews = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setFeedData(fetchedNews);
+        } else {
+          // Fallback to local data if the Firestore collection is empty
+          setFeedData(FALLBACK_FEED);
+        }
+      } catch (error) {
+        console.error("Error fetching news feed: ", error);
+        setFeedData(FALLBACK_FEED);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeed();
+  }, []);
+
+  const getIconForType = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'announcement': return 'megaphone-outline';
+      case 'event': return 'calendar-outline';
+      case 'news': return 'newspaper-outline';
+      default: return 'flash-outline';
+    }
+  };
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.heroSection}>
+        <Text style={styles.heroEyebrow}>NEW ORLEANS, LOUISIANA</Text>
+        <Text style={styles.logoText}>NO SIGNAL</Text>
+        <Text style={styles.heroSubtitle}>Workforce Development through</Text>
+        <Text style={styles.heroHeading}>Structured Courses,{'\n'}Mentorship and Training</Text>
+      </View>
+
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>100<Text style={styles.statPlus}>+</Text></Text>
+          <Text style={styles.statLabel}>Students Trained</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>25<Text style={styles.statPlus}>+</Text></Text>
+          <Text style={styles.statLabel}>Events Supported</Text>
+        </View>
+      </View>
+
+      <Text style={styles.feedHeader}>Latest Transmissions</Text>
+      {loading && (
+        <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+      )}
+    </View>
+  );
+
+  const renderFeedItem = ({ item }) => (
+    <TouchableOpacity style={styles.feedCard} activeOpacity={0.7}>
+      <View style={styles.feedCardContent}>
+        <View style={styles.feedCardHeader}>
+          <View style={styles.feedTypeContainer}>
+            <Ionicons name={getIconForType(item.type)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+            <Text style={styles.feedCardType}>
+              {item.type ? item.type.toUpperCase() : 'UPDATE'}
+            </Text>
+          </View>
+          <Text style={styles.feedCardDate}>{item.date}</Text>
+        </View>
+        <Text style={styles.feedCardTitle}>{item.title}</Text>
+        <Text style={styles.feedCardExcerpt}>{item.excerpt}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} style={styles.feedChevron} />
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={feedData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderFeedItem}
+        ListHeaderComponent={renderHeader}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  listContent: {
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  heroSection: {
+    marginBottom: 30,
+  },
+  heroEyebrow: {
+    color: Colors.light.gold,
+    fontSize: 12,
+    fontFamily: 'Poppins',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  logoText: {
+    fontSize: 42,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.text,
+    letterSpacing: 2,
+    marginBottom: 16,
+  },
+  heroSubtitle: {
+    color: Colors.light.textSecondary,
+    fontSize: 16,
+    fontFamily: 'OpenSans',
+    marginBottom: 4,
+  },
+  heroHeading: {
+    color: Colors.light.text,
+    fontSize: 24,
+    fontFamily: 'CinzelSemiBold',
+    lineHeight: 32,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: Colors.light.backgroundElement,
+    borderRadius: 16,
+    paddingVertical: 20,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: Colors.light.backgroundSelected,
+  },
+  statBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: Colors.light.backgroundSelected,
+  },
+  statNumber: {
+    fontSize: 32,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.text,
+    marginBottom: 4,
+  },
+  statPlus: {
+    color: Colors.light.gold,
+  },
+  statLabel: {
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+    fontFamily: 'Poppins',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  
+  // Feed Styles
+  feedHeader: {
+    fontSize: 20,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.text,
+    marginBottom: 16,
+  },
+  feedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.backgroundElement,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.backgroundSelected,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.light.gold,
+  },
+  feedCardContent: {
+    flex: 1,
+  },
+  feedChevron: {
+    marginLeft: 12,
+  },
+  feedCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  feedTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  feedCardType: {
+    color: Colors.light.gold,
+    fontSize: 11,
+    fontFamily: 'Poppins',
+    letterSpacing: 1,
+  },
+  feedCardDate: {
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+    fontFamily: 'OpenSans',
+  },
+  feedCardTitle: {
+    color: Colors.light.text,
+    fontSize: 18,
+    fontFamily: 'CinzelSemiBold',
+    marginBottom: 6,
+  },
+  feedCardExcerpt: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+    fontFamily: 'OpenSans',
+    lineHeight: 20,
+  },
+});

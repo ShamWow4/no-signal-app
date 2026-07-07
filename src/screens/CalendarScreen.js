@@ -1,0 +1,902 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, SafeAreaView, Dimensions } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Ionicons } from '@expo/vector-icons';
+
+const VENUES = {
+  'NOMCC':              { label: 'MCCNO',          color: '#4a90e2' },
+  'Hyatt Regency':      { label: 'Hyatt Regency',  color: '#50b86c' },
+  'Sheraton New Orleans':{ label: 'Sheraton',       color: '#e8954a' },
+  'Hilton Riverside':   { label: 'Hilton',          color: '#c0574a' },
+  'Marriott':           { label: 'Marriott',        color: '#9b6bb5' },
+};
+
+function parseDate(str) {
+  if (!str) return new Date();
+  return new Date(str.includes('T') ? str : str + 'T00:00');
+}
+
+function getDurationDays(start, end) {
+  if (!start || !end) return 1;
+  const s = parseDate(start);
+  const e = parseDate(end);
+  return Math.max(1, Math.round((e - s) / 86400000));
+}
+
+function formatGoogleDate(dateStr) {
+  if (!dateStr) return '';
+  const d = parseDate(dateStr);
+  return d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+}
+
+function generateGoogleCalendarLink(event) {
+  const text = encodeURIComponent(event.name || "Event");
+  const dates = `${formatGoogleDate(event.loadIn)}/${formatGoogleDate(event.loadOut)}`;
+  const details = encodeURIComponent(event.type || "");
+  const location = encodeURIComponent(event.venue || "");
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+}
+
+export default function CalendarScreen() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState('list'); // Default to list view
+  const [activeVenue, setActiveVenue] = useState('all');
+  
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  
+  // State for Month Grid Navigation
+  const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'calendar_events'));
+        const eventsList = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const twoWeeksAgo = new Date(today);
+        twoWeeksAgo.setDate(today.getDate() - 14);
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const endDate = parseDate(data.loadOut);
+          if (endDate >= twoWeeksAgo) {
+            eventsList.push({ id: doc.id, ...data });
+          }
+        });
+        
+        eventsList.sort((a, b) => parseDate(a.loadIn) - parseDate(b.loadIn));
+        setEvents(eventsList);
+      } catch (error) {
+        console.error("Error fetching calendar events: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const filteredEvents = activeVenue === 'all' ? events : events.filter(e => e.venue === activeVenue);
+
+  const openURL = (url) => {
+    if (url) {
+      Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    }
+  };
+
+  const renderFilters = () => (
+    <View style={styles.controlsContainer}>
+      <View style={styles.viewToggle}>
+        <TouchableOpacity 
+          style={[styles.viewBtn, activeView === 'list' && styles.viewBtnActive]} 
+          onPress={() => setActiveView('list')}
+        >
+          <Ionicons name="list" size={16} color={activeView === 'list' ? '#000' : '#888'} />
+          <Text style={[styles.viewBtnText, activeView === 'list' && styles.viewBtnTextActive]}>AGENDA</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.viewBtn, activeView === 'calendar' && styles.viewBtnActive]} 
+          onPress={() => setActiveView('calendar')}
+        >
+          <Ionicons name="calendar-outline" size={16} color={activeView === 'calendar' ? '#000' : '#888'} />
+          <Text style={[styles.viewBtnText, activeView === 'calendar' && styles.viewBtnTextActive]}>MONTH</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
+        <TouchableOpacity 
+          style={[styles.filterPill, activeVenue === 'all' && styles.filterPillActive]} 
+          onPress={() => setActiveVenue('all')}
+        >
+          <Text style={[styles.filterPillText, activeVenue === 'all' && styles.filterPillTextActive]}>All Venues</Text>
+        </TouchableOpacity>
+        {Object.entries(VENUES).map(([key, config]) => (
+          <TouchableOpacity 
+            key={key}
+            style={[styles.filterPill, activeVenue === key && styles.filterPillActive]} 
+            onPress={() => setActiveVenue(key)}
+          >
+            <View style={[styles.filterDot, { backgroundColor: config.color }]} />
+            <Text style={[styles.filterPillText, activeVenue === key && styles.filterPillTextActive]}>{config.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
+const EventCard = React.memo(({ item, onPress }) => {
+  const venueConfig = VENUES[item.venue] || { label: item.venue, color: '#888' };
+  const start = parseDate(item.loadIn);
+  const end = parseDate(item.loadOut);
+  const month = start.toLocaleString('default', { month: 'short' }).toUpperCase();
+  const day = start.getDate();
+  const duration = getDurationDays(item.loadIn, item.loadOut);
+  
+  return (
+    <TouchableOpacity 
+      style={styles.eventCard} 
+      activeOpacity={0.7}
+      onPress={() => onPress(item)}
+    >
+      <View style={styles.cardDateBlock}>
+        <Text style={styles.cardMonth}>{month}</Text>
+        <Text style={styles.cardDay}>{day}</Text>
+        <Text style={styles.cardDuration}>{duration} {duration === 1 ? 'DAY' : 'DAYS'}</Text>
+      </View>
+      
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
+        <View style={styles.cardDetailRow}>
+          <Ionicons name="location" size={12} color={venueConfig.color} />
+          <Text style={styles.cardDetailText} numberOfLines={1}>{venueConfig.label}{item.hall ? ` - ${item.hall}` : ''}</Text>
+        </View>
+        <View style={styles.cardDetailRow}>
+          <Ionicons name="calendar" size={12} color="#888" />
+          <Text style={styles.cardDetailText}>
+            {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}
+          </Text>
+        </View>
+        {item.type && (
+          <View style={[styles.typeTag, { borderColor: '#333' }]}>
+            <Text style={styles.typeTagText}>{item.type}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+  const handlePressEvent = React.useCallback((item) => {
+    setSelectedEvent(item);
+  }, []);
+
+  const renderEventItem = React.useCallback(({ item }) => (
+    <EventCard item={item} onPress={handlePressEvent} />
+  ), [handlePressEvent]);
+
+  const renderAgendaList = () => {
+    if (filteredEvents.length === 0) return <Text style={styles.emptyText}>No upcoming events found.</Text>;
+    
+    return (
+      <FlatList
+        data={filteredEvents}
+        keyExtractor={item => item.id}
+        renderItem={renderEventItem}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+      />
+    );
+  };
+
+  
+  const renderMonthGrid = () => {
+    const year = currentMonthDate.getFullYear();
+    const month = currentMonthDate.getMonth();
+    
+    // Month navigation
+    const prevMonth = () => setCurrentMonthDate(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentMonthDate(new Date(year, month + 1, 1));
+    
+    const monthName = currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Sunday
+    
+    const gridDays = [];
+    for (let i = 0; i < firstDayIndex; i++) {
+      gridDays.push(new Date(year, month, i - firstDayIndex + 1));
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      gridDays.push(new Date(year, month, i));
+    }
+    const rem = gridDays.length % 7;
+    if (rem !== 0) {
+      for (let i = 1; i <= 7 - rem; i++) {
+        gridDays.push(new Date(year, month + 1, i));
+      }
+    }
+
+    const weeks = [];
+    for (let i = 0; i < gridDays.length; i += 7) {
+      weeks.push(gridDays.slice(i, i + 7));
+    }
+    
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    return (
+      <View style={styles.gridWrapper}>
+        <View style={styles.gridHeader}>
+          <TouchableOpacity onPress={prevMonth} style={styles.gridNavBtn}>
+            <Ionicons name="chevron-back" size={20} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.gridMonthText}>{monthName}</Text>
+          <TouchableOpacity onPress={nextMonth} style={styles.gridNavBtn}>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.weekdaysRow}>
+          {weekdays.map(d => (
+            <Text key={d} style={styles.weekdayText}>{d}</Text>
+          ))}
+        </View>
+        
+        <ScrollView bounces={false} style={{ flex: 1 }}>
+          <View style={styles.gridBodyContinuous}>
+            {weeks.map((week, wIndex) => {
+              const weekStart = week[0];
+              const weekEnd = new Date(week[6]);
+              weekEnd.setHours(23, 59, 59, 999);
+
+              const weekEvents = filteredEvents.filter(e => {
+                const eStart = parseDate(e.loadIn);
+                const eEnd = parseDate(e.loadOut);
+                eStart.setHours(0,0,0,0);
+                eEnd.setHours(23,59,59,999);
+                return (eStart <= weekEnd && eEnd >= weekStart);
+              });
+
+              const eventLayouts = weekEvents.map(e => {
+                const eStart = parseDate(e.loadIn);
+                eStart.setHours(0,0,0,0);
+                const eEnd = parseDate(e.loadOut);
+                eEnd.setHours(23,59,59,999);
+                
+                const drawStart = eStart < weekStart ? weekStart : eStart;
+                const drawEnd = eEnd > weekEnd ? weekEnd : eEnd;
+                
+                // Safely calculate day difference ignoring time/DST
+                const utcWeekStart = Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+                const utcDrawStart = Date.UTC(drawStart.getFullYear(), drawStart.getMonth(), drawStart.getDate());
+                const utcDrawEnd = Date.UTC(drawEnd.getFullYear(), drawEnd.getMonth(), drawEnd.getDate());
+                
+                const startCol = Math.floor((utcDrawStart - utcWeekStart) / 86400000);
+                const endCol = Math.floor((utcDrawEnd - utcWeekStart) / 86400000);
+                const duration = endCol - startCol + 1;
+                
+                return { event: e, startCol, duration, eStart, eEnd };
+              });
+
+              eventLayouts.sort((a, b) => a.startCol - b.startCol || b.duration - a.duration);
+
+              // We have fixed height rows now (e.g. 100px) which means we can fit at most 3 levels of events (Level 0, 1, 2)
+              // We'll limit max levels and simply not render the layout if it exceeds the limit.
+              const MAX_LEVEL = 2; 
+
+              const occupiedLevels = {};
+              const visibleLayouts = [];
+              
+              eventLayouts.forEach(layout => {
+                let level = 0;
+                while (true) {
+                  let hasOverlap = false;
+                  for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
+                    if (occupiedLevels[`${level}-${c}`]) {
+                      hasOverlap = true;
+                      break;
+                    }
+                  }
+                  if (!hasOverlap) {
+                    layout.level = level;
+                    for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
+                      occupiedLevels[`${level}-${c}`] = true;
+                    }
+                    if (level <= MAX_LEVEL) {
+                       visibleLayouts.push(layout);
+                    }
+                    break;
+                  }
+                  level++;
+                }
+              });
+
+              return (
+                <View key={wIndex} style={styles.weekRowContinuous}>
+                  <View style={styles.weekCellsRow}>
+                    {week.map((dateObj, dIndex) => {
+                      const isCurrentMonth = dateObj.getMonth() === month;
+                      const isToday = dateObj.toDateString() === new Date().toDateString();
+                      
+                      // Check for overflow
+                      let overflowCount = 0;
+                      let l = MAX_LEVEL + 1;
+                      while(occupiedLevels[`${l}-${dIndex}`]) {
+                        overflowCount++;
+                        l++;
+                      }
+                      
+                      return (
+                        <View key={dIndex} style={styles.gridCellContinuous}>
+                          <View style={[styles.dateNumberWrap, isToday && styles.dateNumberWrapToday]}>
+                            <Text style={[styles.dateNumberText, isToday && styles.dateNumberTextToday, !isCurrentMonth && { opacity: 0.3 }]}>
+                              {dateObj.getDate()}
+                            </Text>
+                          </View>
+                          {overflowCount > 0 && (
+                            <View style={styles.overflowIndicator}>
+                              <Text style={styles.overflowText}>+{overflowCount} more</Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                  
+                  <View style={styles.weekEventsLayer}>
+                    {visibleLayouts.map(layout => {
+                      const venueConfig = VENUES[layout.event.venue] || { color: '#888' };
+                      const left = `${layout.startCol * (100 / 7)}%`;
+                      const width = `${layout.duration * (100 / 7)}%`;
+                      const top = layout.level * 22 + 28;
+                      
+                      const isContinuesLeft = layout.eStart < weekStart;
+                      const isContinuesRight = layout.eEnd > weekEnd;
+                      
+                      return (
+                        <TouchableOpacity 
+                          key={layout.event.id}
+                          onPress={() => setSelectedEvent(layout.event)}
+                          style={[
+                            styles.absoluteEventBar, 
+                            { 
+                              backgroundColor: venueConfig.color,
+                              left, width, top,
+                              marginLeft: isContinuesLeft ? 0 : 2,
+                              marginRight: isContinuesRight ? 0 : 2,
+                              borderTopLeftRadius: isContinuesLeft ? 0 : 4,
+                              borderBottomLeftRadius: isContinuesLeft ? 0 : 4,
+                              borderTopRightRadius: isContinuesRight ? 0 : 4,
+                              borderBottomRightRadius: isContinuesRight ? 0 : 4,
+                            }
+                          ]}
+                        >
+                          {(!isContinuesLeft || layout.startCol === 0) && (
+                            <Text style={styles.absoluteEventText} numberOfLines={1}>{layout.event.name}</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderModal = () => {
+    if (!selectedEvent) return null;
+    const venueConfig = VENUES[selectedEvent.venue] || { label: selectedEvent.venue, color: '#888' };
+    const start = parseDate(selectedEvent.loadIn);
+    const end = parseDate(selectedEvent.loadOut);
+    
+    return (
+      <Modal visible={!!selectedEvent} animationType="slide" transparent={true} onRequestClose={() => setSelectedEvent(null)}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setSelectedEvent(null)}>
+          <TouchableOpacity activeOpacity={1} style={styles.modalContainer}>
+            
+            <View style={styles.modalDragHandle} />
+            
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{selectedEvent.name}</Text>
+              <View style={[styles.badge, { backgroundColor: venueConfig.color + '1a', borderColor: venueConfig.color }]}>
+                <View style={[styles.filterDot, { backgroundColor: venueConfig.color }]} />
+                <Text style={[styles.badgeText, { color: venueConfig.color }]}>{venueConfig.label}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <View style={styles.modalInfoRow}>
+                <View style={styles.modalIconBox}>
+                  <Ionicons name="business" size={20} color="#c9a84c" />
+                </View>
+                <View style={styles.modalInfoContent}>
+                  <Text style={styles.modalLabel}>VENUE</Text>
+                  <Text style={styles.modalValue}>{selectedEvent.venue}</Text>
+                </View>
+              </View>
+              
+              {selectedEvent.hall && (
+                <View style={styles.modalInfoRow}>
+                  <View style={styles.modalIconBox}>
+                    <Ionicons name="location" size={20} color="#c9a84c" />
+                  </View>
+                  <View style={styles.modalInfoContent}>
+                    <Text style={styles.modalLabel}>HALL / LOCATION</Text>
+                    <Text style={styles.modalValue}>{selectedEvent.hall}</Text>
+                  </View>
+                </View>
+              )}
+              
+              <View style={styles.modalInfoRow}>
+                <View style={styles.modalIconBox}>
+                  <Ionicons name="calendar" size={20} color="#c9a84c" />
+                </View>
+                <View style={styles.modalInfoContent}>
+                  <Text style={styles.modalLabel}>DATES</Text>
+                  <Text style={styles.modalValue}>
+                    {start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'})} - 
+                    {"\n"}{end.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'})}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            
+            <View style={styles.modalActions}>
+              {selectedEvent.url && (
+                <TouchableOpacity style={styles.websiteBtn} onPress={() => openURL(selectedEvent.url)}>
+                  <Text style={styles.websiteBtnText}>OFFICIAL WEBSITE</Text>
+                  <Ionicons name="open-outline" size={16} color="#000" />
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity style={styles.googleCalBtn} onPress={() => openURL(generateGoogleCalendarLink(selectedEvent))}>
+                <Ionicons name="calendar-outline" size={18} color="#c9a84c" />
+                <Text style={styles.googleCalBtnText}>ADD TO CALENDAR</Text>
+              </TouchableOpacity>
+            </View>
+            
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.headerTitle}>Convention Calendar</Text>
+      
+      {renderFilters()}
+
+      {loading ? (
+        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color="#c9a84c" /></View>
+      ) : (
+        <View style={{flex: 1, paddingHorizontal: 16}}>
+          {activeView === 'list' ? renderAgendaList() : renderMonthGrid()}
+        </View>
+      )}
+
+      {renderModal()}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontFamily: 'CinzelSemiBold',
+    color: '#fff',
+    marginLeft: 16,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  controlsContainer: {
+    flexDirection: 'column',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    gap: 15,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 24,
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    padding: 4,
+  },
+  viewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    gap: 8,
+    borderRadius: 20,
+  },
+  viewBtnActive: {
+    backgroundColor: '#c9a84c',
+  },
+  viewBtnText: {
+    fontFamily: 'OpenSans',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    color: '#888',
+  },
+  viewBtnTextActive: {
+    color: '#000',
+  },
+  filtersScroll: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  filterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#333',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 8,
+    marginRight: 8,
+  },
+  filterPillActive: {
+    borderColor: '#c9a84c',
+    backgroundColor: '#c9a84c1a', // 10% opacity gold
+  },
+  filterPillText: {
+    fontFamily: 'OpenSans',
+    fontSize: 12,
+    color: '#aaa',
+  },
+  filterPillTextActive: {
+    color: '#c9a84c',
+    fontWeight: 'bold',
+  },
+  filterDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  
+  // Event Cards
+  eventCard: {
+    flexDirection: 'row',
+    backgroundColor: '#141414',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#222',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  cardDateBlock: {
+    width: 80,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRightWidth: 1,
+    borderRightColor: '#222',
+  },
+  cardMonth: {
+    fontFamily: 'OpenSans',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#c9a84c',
+    letterSpacing: 1,
+  },
+  cardDay: {
+    fontFamily: 'CinzelSemiBold',
+    fontSize: 28,
+    color: '#fff',
+    marginVertical: 4,
+  },
+  cardDuration: {
+    fontFamily: 'OpenSans',
+    fontSize: 9,
+    color: '#666',
+    letterSpacing: 1,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontFamily: 'CinzelSemiBold',
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  cardDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 6,
+  },
+  cardDetailText: {
+    fontFamily: 'OpenSans',
+    fontSize: 12,
+    color: '#aaa',
+  },
+  typeTag: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  typeTagText: {
+    fontFamily: 'OpenSans',
+    fontSize: 9,
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  emptyText: {
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 40,
+    fontFamily: 'OpenSans',
+    fontSize: 14,
+  },
+
+  
+  // Grid Month Styles
+  gridWrapper: {
+    flex: 1,
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 8,
+    overflow: 'hidden',
+    paddingBottom: 10,
+  },
+  gridHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  gridMonthText: {
+    fontFamily: 'CinzelSemiBold',
+    fontSize: 18,
+    color: '#c9a84c',
+  },
+  gridNavBtn: {
+    padding: 4,
+  },
+  weekdaysRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    backgroundColor: '#111',
+  },
+  weekdayText: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 8,
+    fontFamily: 'OpenSans',
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+    letterSpacing: 1,
+  },
+  gridBodyContinuous: {
+    flexDirection: 'column',
+  },
+  weekRowContinuous: {
+    position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+    height: 100,
+    overflow: 'hidden',
+  },
+  weekCellsRow: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+  },
+  gridCellContinuous: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: '#222',
+    padding: 2,
+  },
+  dateNumberWrap: {
+    alignSelf: 'center',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  dateNumberWrapToday: {
+    backgroundColor: '#c9a84c',
+  },
+  dateNumberText: {
+    fontFamily: 'OpenSans',
+    fontSize: 10,
+    color: '#aaa',
+  },
+  dateNumberTextToday: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  overflowIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  overflowText: {
+    fontFamily: 'OpenSans',
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#aaa',
+  },
+  weekEventsLayer: {
+    ...StyleSheet.absoluteFillObject,
+    pointerEvents: 'box-none',
+  },
+  absoluteEventBar: {
+    position: 'absolute',
+    height: 18,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+  },
+  absoluteEventText: {
+    fontFamily: 'OpenSans',
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+
+  // Modal styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#111',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40, // extra padding for bottom safe area
+    borderTopWidth: 1,
+    borderColor: '#333',
+  },
+  modalDragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+  modalHeader: {
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontFamily: 'CinzelSemiBold',
+    fontSize: 24,
+    color: '#fff',
+    marginBottom: 12,
+    lineHeight: 32,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    gap: 8,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontFamily: 'OpenSans',
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  modalBody: {
+    marginBottom: 32,
+    gap: 20,
+  },
+  modalInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  modalIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  modalInfoContent: {
+    flex: 1,
+  },
+  modalLabel: {
+    fontFamily: 'OpenSans',
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  modalValue: {
+    fontFamily: 'OpenSans',
+    fontSize: 14,
+    color: '#e0e0e0',
+    lineHeight: 20,
+  },
+  modalActions: {
+    gap: 12,
+  },
+  websiteBtn: {
+    backgroundColor: '#c9a84c',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  websiteBtnText: {
+    fontFamily: 'OpenSans',
+    fontWeight: 'bold',
+    fontSize: 13,
+    letterSpacing: 1,
+    color: '#000',
+  },
+  googleCalBtn: {
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#333',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  googleCalBtnText: {
+    fontFamily: 'OpenSans',
+    fontWeight: 'bold',
+    fontSize: 13,
+    letterSpacing: 1,
+    color: '#c9a84c',
+  }
+});
