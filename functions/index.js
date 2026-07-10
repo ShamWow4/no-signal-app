@@ -104,14 +104,24 @@ exports.dailyGigScraper = onSchedule(
                             if (messages.length > 0) {
                                 // Send the alert to the crew via Expo
                                 try {
-                                    await axios.post('https://exp.host/--/api/v2/push/send', messages, {
+                                    const expoResponse = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
                                         headers: {
                                             'Accept': 'application/json',
                                             'Accept-encoding': 'gzip, deflate',
                                             'Content-Type': 'application/json',
                                         }
                                     });
-                                    console.log(`Push notification sent for ${job.job_title} to ${messages.length} devices.`);
+                                    
+                                    const expoData = expoResponse.data;
+                                    if (expoData && expoData.data) {
+                                        expoData.data.forEach((receipt, index) => {
+                                            if (receipt.status === 'error') {
+                                                console.error(`Expo Push Error for ${messages[index].to}:`, receipt.message);
+                                            } else {
+                                                console.log(`Push notification sent for ${job.job_title} to ${messages.length} devices.`);
+                                            }
+                                        });
+                                    }
                                 } catch (expoError) {
                                     console.error(`Failed to send push notification for ${job.job_title}:`, expoError.message);
                                 }

@@ -5,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Cinzel_400Regular, Cinzel_600SemiBold } from '@expo-google-fonts/cinzel';
 import { Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { OpenSans_400Regular, OpenSans_600SemiBold } from '@expo-google-fonts/open-sans';
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -96,6 +96,18 @@ export default function RootLayout() {
           }).catch(err => console.error('Error saving push token to Firebase:', err));
         }
       });
+
+      // Handle notification tapped
+      const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+        const data = response.notification.request.content.data;
+        if (data && data.apply_link) {
+          Linking.openURL(data.apply_link).catch(err => console.error("Error opening link from notification:", err));
+        }
+      });
+
+      return () => {
+        responseListener.remove();
+      };
     }
   }, [fontsLoaded]);
 
