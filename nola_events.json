@@ -6,7 +6,7 @@
     "loadIn": "2026-07-08T08:00",
     "loadOut": "2026-07-10T18:00",
     "type": "Convention",
-    "url": "https://eventnow.encoreglobal.com"
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/?v=97c9a3d9-350b-e411-9406-00155dcfc111"
   },
   {
     "name": "BLET Regional Meetings 2026",
@@ -15,7 +15,16 @@
     "loadIn": "2026-07-13T07:00",
     "loadOut": "2026-07-16T19:00",
     "type": "Convention",
-    "url": "https://eventnow.encoreglobal.com"
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/?v=ce6e2658-340b-e411-9406-00155dcfc111"
+  },
+  {
+    "name": "NACCTFO 2026",
+    "venue": "Hilton Riverside",
+    "hall": "NEW ORLEANS, LA",
+    "loadIn": "2026-07-13T08:00",
+    "loadOut": "2026-07-15T14:00",
+    "type": "Convention",
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/?v=ce6e2658-340b-e411-9406-00155dcfc111"
   },
   {
     "name": "CSTA Annual Conference 2026",
@@ -24,16 +33,7 @@
     "loadIn": "2026-07-13T12:00",
     "loadOut": "2026-07-15T15:00",
     "type": "Convention",
-    "url": "https://eventnow.encoreglobal.com"
-  },
-  {
-    "name": "AAFP - 2026 DPC Summit",
-    "venue": "Hyatt Regency",
-    "hall": "NEW ORLEANS, LA",
-    "loadIn": "2026-07-17T07:00",
-    "loadOut": "2026-07-18T13:30",
-    "type": "Convention",
-    "url": "https://eventnow.encoreglobal.com"
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/?v=87b2eb01-2f0b-e411-9406-00155dcfc111"
   },
   {
     "name": "NSPRA 2026 - New Orleans",
@@ -42,6 +42,6 @@
     "loadIn": "2026-07-20T07:00",
     "loadOut": "2026-07-21T15:30",
     "type": "Convention",
-    "url": "https://eventnow.encoreglobal.com"
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/?v=ce6e2658-340b-e411-9406-00155dcfc111"
   }
 ]
