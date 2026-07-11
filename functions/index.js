@@ -136,3 +136,159 @@ exports.dailyGigScraper = onSchedule(
         console.log("Daily gig sweep complete.");
     }
 );
+
+// ==========================================
+// AUTOMATED NEWS SCRAPER
+// ==========================================
+
+const NEWS_TARGET_URLS = [
+    "https://mccno.com/press-releases/"
+];
+
+async function scrapeNews(targetUrl) {
+    const response = await axios.post('https://api.firecrawl.dev/v1/scrape', {
+        url: targetUrl,
+        formats: ["extract"],
+        extract: {
+            prompt: "Extract the top 5 most recent press releases, convention announcements, or tourism news articles. Focus on events, hospitality, and trade show news relevant to the New Orleans area.",
+            schema: {
+                type: "object",
+                properties: {
+                    articles: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                title: { type: "string", description: "Headline of the press release or news article" },
+                                date: { type: "string", description: "The date of the news (e.g. Oct 1, 2026)" },
+                                excerpt: { type: "string", description: "A 1-2 sentence summary of the news" },
+                                type: { type: "string", description: "Always return one of: 'news', 'announcement', or 'event'" },
+                                source_link: { type: "string", description: "The URL to read the full press release" }
+                            },
+                            required: ["title", "date", "excerpt", "type"]
+                        }
+                    }
+                },
+                required: ["articles"]
+            }
+        }
+    }, {
+        headers: {
+            'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    return response.data.data.extract.articles;
+}
+
+exports.dailyNewsScraper = onSchedule(
+    { schedule: "0 7 * * *", timeZone: "America/Chicago" },
+    async (event) => {
+        console.log("Starting daily AV news sweep...");
+
+        for (const url of NEWS_TARGET_URLS) {
+            try {
+                const scrapedArticles = await scrapeNews(url);
+                if (!scrapedArticles || scrapedArticles.length === 0) continue;
+
+                for (const article of scrapedArticles) {
+                    const articleId = Buffer.from(article.title).toString('base64url');
+                    const articleRef = db.collection('news_feed').doc(articleId);
+                    const doc = await articleRef.get();
+
+                    if (!doc.exists) {
+                        await articleRef.set({
+                            ...article,
+                            source_url: url,
+                            date_discovered: admin.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log(`New News Found: ${article.title}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to scrape news from ${url}:`, error.message);
+            }
+        }
+        console.log("Daily news sweep complete.");
+    }
+);
+
+// ==========================================
+// AUTOMATED CALENDAR SCRAPER
+// ==========================================
+
+const CALENDAR_TARGET_URLS = [
+    "https://mccno.com/events/",
+    "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/"
+];
+
+async function scrapeCalendar(targetUrl) {
+    const response = await axios.post('https://api.firecrawl.dev/v1/scrape', {
+        url: targetUrl,
+        formats: ["extract"],
+        extract: {
+            prompt: "Extract upcoming conventions, tradeshows, meetings, and events. You MUST classify the venue to strictly one of these exact strings: 'NOMCC', 'Hyatt Regency', 'Sheraton New Orleans', 'Hilton Riverside', or 'Marriott'. Format dates in ISO 8601 (YYYY-MM-DD).",
+            schema: {
+                type: "object",
+                properties: {
+                    events: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                name: { type: "string", description: "Name of the event, convention, or tradeshow" },
+                                loadIn: { type: "string", description: "The start date in YYYY-MM-DD format" },
+                                loadOut: { type: "string", description: "The end date in YYYY-MM-DD format" },
+                                venue: { type: "string", enum: ["NOMCC", "Hyatt Regency", "Sheraton New Orleans", "Hilton Riverside", "Marriott"], description: "The venue name classified perfectly." },
+                                hall: { type: "string", description: "The specific hall, room, or exhibit area (optional)" },
+                                type: { type: "string", description: "Event type (e.g., Convention, Tradeshow, Gala) (optional)" }
+                            },
+                            required: ["name", "loadIn", "loadOut", "venue"]
+                        }
+                    }
+                },
+                required: ["events"]
+            }
+        }
+    }, {
+        headers: {
+            'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    return response.data.data.extract.events;
+}
+
+exports.dailyCalendarScraper = onSchedule(
+    { schedule: "0 6 * * *", timeZone: "America/Chicago" },
+    async (event) => {
+        console.log("Starting daily AV calendar sweep...");
+
+        for (const url of CALENDAR_TARGET_URLS) {
+            try {
+                const scrapedEvents = await scrapeCalendar(url);
+                if (!scrapedEvents || scrapedEvents.length === 0) continue;
+
+                for (const ev of scrapedEvents) {
+                    const eventId = Buffer.from(`${ev.name}-${ev.venue}-${ev.loadIn}`).toString('base64url');
+                    const eventRef = db.collection('calendar_events').doc(eventId);
+                    const doc = await eventRef.get();
+
+                    if (!doc.exists) {
+                        await eventRef.set({
+                            ...ev,
+                            source_url: url,
+                            date_discovered: admin.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log(`New Calendar Event Found: ${ev.name} at ${ev.venue}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to scrape calendar from ${url}:`, error.message);
+            }
+        }
+        console.log("Daily calendar sweep complete.");
+    }
+);

@@ -11,6 +11,12 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Listening to push token changes is not yet fully supported on web',
+  '"shadow*" style props are deprecated',
+]);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +31,10 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+  
   let token;
 
   if (Platform.OS === 'android') {
@@ -98,15 +108,20 @@ export default function RootLayout() {
       });
 
       // Handle notification tapped
-      const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-        const data = response.notification.request.content.data;
-        if (data && data.apply_link) {
-          Linking.openURL(data.apply_link).catch(err => console.error("Error opening link from notification:", err));
-        }
-      });
+      let responseListener;
+      if (Platform.OS !== 'web') {
+        responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+          const data = response.notification.request.content.data;
+          if (data && data.apply_link) {
+            Linking.openURL(data.apply_link).catch(err => console.error("Error opening link from notification:", err));
+          }
+        });
+      }
 
       return () => {
-        responseListener.remove();
+        if (responseListener) {
+          responseListener.remove();
+        }
       };
     }
   }, [fontsLoaded]);

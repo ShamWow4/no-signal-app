@@ -72,10 +72,8 @@ export default function HomeScreen() {
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.heroSection}>
-        <Text style={styles.heroEyebrow}>NEW ORLEANS, LOUISIANA</Text>
-        <Text style={styles.logoText}>NO SIGNAL</Text>
-        <Text style={styles.heroSubtitle}>Workforce Development through</Text>
-        <Text style={styles.heroHeading}>Structured Courses,{'\n'}Mentorship and Training</Text>
+        <Text style={styles.logoText}>No Signal!</Text>
+        <Text style={styles.heroSubtitle}>The New Orleans AV Industry Newsletter</Text>
       </View>
 
       <View style={styles.statsRow}>
@@ -144,32 +142,22 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     marginBottom: 30,
-  },
-  heroEyebrow: {
-    color: Colors.light.gold,
-    fontSize: 12,
-    fontFamily: 'Poppins',
-    letterSpacing: 1.5,
-    marginBottom: 8,
+    alignItems: 'center',
   },
   logoText: {
-    fontSize: 42,
+    fontSize: 56,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.text,
     letterSpacing: 2,
-    marginBottom: 16,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   heroSubtitle: {
     color: Colors.light.textSecondary,
     fontSize: 16,
     fontFamily: 'OpenSans',
     marginBottom: 4,
-  },
-  heroHeading: {
-    color: Colors.light.text,
-    fontSize: 24,
-    fontFamily: 'CinzelSemiBold',
-    lineHeight: 32,
+    textAlign: 'center',
   },
   statsRow: {
     flexDirection: 'row',
