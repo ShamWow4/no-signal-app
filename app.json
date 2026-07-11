@@ -25,6 +25,9 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+    "notification": {
+      "vapidPublicKey": "PLACE_YOUR_VAPID_PUBLIC_KEY_HERE"
+    },
     "plugins": [
       "expo-router",
       [
@@ -57,7 +60,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     },
     "extra": {
       "router": {},

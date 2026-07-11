@@ -25,7 +25,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'AV News',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
           ),
@@ -52,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="education"
         options={{
-          title: 'Education',
+          title: 'Tech Support',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons name={focused ? 'book' : 'book-outline'} size={size} color={color} />
           ),
