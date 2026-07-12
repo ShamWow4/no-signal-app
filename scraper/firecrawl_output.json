@@ -1,0 +1,80 @@
+{
+  "json": {
+    "events": [
+      {
+        "title": "PBA - Family Law Section Summer",
+        "venue": "InterContinental Chicago",
+        "dates": "07/09/2026 09:00 am-07/12/2026 12:00 pm",
+        "city": "CHICAGO, IL"
+      },
+      {
+        "title": "31st Annual OCD Conference",
+        "venue": "Hyatt Regency Seattle",
+        "dates": "07/10/2026 07:00 am-07/12/2026 11:30 am",
+        "city": "SEATTLE, WA"
+      },
+      {
+        "title": "BotCon Transformers Convention 2026",
+        "venue": "Renaissance Schaumburg Convention Center Hotel",
+        "dates": "07/10/2026 08:00 am-07/12/2026 03:00 pm",
+        "city": "SCHAUMBURG, IL"
+      },
+      {
+        "title": "G-Fest 2026",
+        "venue": "Hyatt Regency O'Hare Chicago",
+        "dates": "07/10/2026 08:00 am-07/12/2026 08:00 am",
+        "city": "ROSEMONT, IL"
+      },
+      {
+        "title": "HMP Global AIBD Dallas Regional - July 2026",
+        "venue": "Dallas Marriott Downtown",
+        "dates": "07/10/2026 08:00 am-07/12/2026 01:00 pm",
+        "city": "DALLAS, TX"
+      },
+      {
+        "title": "Unity 2026 - OKC",
+        "venue": "Oklahoma City Convention Center",
+        "dates": "07/10/2026 08:00 am-07/14/2026 08:00 am",
+        "city": "Oklahoma City, OK"
+      },
+      {
+        "title": "Cards & More Expo - Fairmont Austin",
+        "venue": "Fairmont Austin",
+        "dates": "07/10/2026 12:00 pm-07/12/2026 06:00 pm",
+        "city": "AUSTIN, TX"
+      },
+      {
+        "title": "Esri Safety and Security Summit",
+        "venue": "Hilton San Diego Bayfront",
+        "dates": "07/11/2026 08:00 am-07/12/2026 02:00 pm",
+        "city": "SAN DIEGO, CA"
+      },
+      {
+        "title": "Front Row Card Show",
+        "venue": "The Greater Tacoma Convention Center",
+        "dates": "07/11/2026 10:00 am-07/12/2026 05:00 pm",
+        "city": "TACOMA, WA"
+      }
+    ]
+  },
+  "metadata": {
+    "title": "Encore EventNow | Audio Visual Solutions | Order Online",
+    "viewport": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=1",
+    "description": "Audio visual solutions for your in-person, virtual and hybrid meeting or event. Experience the convenience of ordering your complete meeting package online using EventNow by Encore.",
+    "format-detection": "telephone=no",
+    "keywords": "Plan a meeting, meeting package, audio visual solutions, web conference, boardroom meeting, small meeting package, event store, book hotel meetings.",
+    "language": "en",
+    "robots": "INDEX,FOLLOW",
+    "favicon": "https://eventnow.encoreglobal.com/media/favicon/stores/1/Favicon.png",
+    "scrapeId": "019f554e-10e4-7308-a920-618e9c6aed33",
+    "sourceURL": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/",
+    "url": "https://eventnow.encoreglobal.com/landingpage/newexhibit/index/",
+    "statusCode": 200,
+    "contentType": "text/html; charset=UTF-8",
+    "timezone": "America/New_York",
+    "proxyUsed": "basic",
+    "creditsUsed": 5,
+    "concurrencyLimited": false
+  },
+  "warning": "You're using the actions parameter. For a more reliable and flexible experience, try the /interact endpoint instead."
+}

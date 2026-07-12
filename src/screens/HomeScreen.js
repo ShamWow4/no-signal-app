@@ -36,7 +36,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        const q = query(collection(db, 'news_feed'), limit(10));
+        const q = query(collection(db, 'av_news'), limit(20));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
@@ -44,14 +44,17 @@ export default function HomeScreen() {
             id: doc.id,
             ...doc.data()
           }));
+          
+          // Sort by date manually if possible, assuming Date is a string
+          fetchedNews.sort((a, b) => new Date(b.Date || 0) - new Date(a.Date || 0));
+          
           setFeedData(fetchedNews);
         } else {
-          // Fallback to local data if the Firestore collection is empty
-          setFeedData(FALLBACK_FEED);
+          setFeedData([]);
         }
       } catch (error) {
         console.error("Error fetching news feed: ", error);
-        setFeedData(FALLBACK_FEED);
+        setFeedData([]);
       } finally {
         setLoading(false);
       }
@@ -66,6 +69,14 @@ export default function HomeScreen() {
       case 'event': return 'calendar-outline';
       case 'news': return 'newspaper-outline';
       default: return 'flash-outline';
+    }
+  };
+
+  const openLink = (url) => {
+    if (url) {
+      import('react-native').then(({ Linking }) => {
+        Linking.openURL(url).catch(() => {});
+      });
     }
   };
 
@@ -96,19 +107,19 @@ export default function HomeScreen() {
   );
 
   const renderFeedItem = ({ item }) => (
-    <TouchableOpacity style={styles.feedCard} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.feedCard} activeOpacity={0.7} onPress={() => openLink(item.Link)}>
       <View style={styles.feedCardContent}>
         <View style={styles.feedCardHeader}>
           <View style={styles.feedTypeContainer}>
-            <Ionicons name={getIconForType(item.type)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
-            <Text style={styles.feedCardType}>
-              {item.type ? item.type.toUpperCase() : 'UPDATE'}
+            <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+            <Text style={styles.feedCardType} numberOfLines={1}>
+              {item.Source ? item.Source.toUpperCase() : 'UPDATE'}
             </Text>
           </View>
-          <Text style={styles.feedCardDate}>{item.date}</Text>
+          <Text style={styles.feedCardDate}>{item.Date}</Text>
         </View>
-        <Text style={styles.feedCardTitle}>{item.title}</Text>
-        <Text style={styles.feedCardExcerpt}>{item.excerpt}</Text>
+        <Text style={styles.feedCardTitle}>{item.Title}</Text>
+        <Text style={styles.feedCardExcerpt} numberOfLines={3}>{item.Summary}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} style={styles.feedChevron} />
     </TouchableOpacity>

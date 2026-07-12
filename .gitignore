@@ -36,9 +36,13 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+
 example
 
 # generated native folders
 /ios
 /android
 serviceAccountKey.json
+Web Dev/
+functions/
+scratch*

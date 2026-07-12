@@ -1,59 +1,73 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 
-const COURSES = [
-  {
-    id: '1',
-    category: 'Audio',
-    title: 'Audio Fundamentals for Breakout Rooms',
-    instructor: 'Chris Medders',
-    description: 'This hands-on training workshop focuses on live audio setups in breakout rooms, commonly used in conferences, meetings, and corporate events.',
-    icon: 'mic-outline',
-  },
-  {
-    id: '2',
-    category: 'Video',
-    title: 'Basic Camera Operation',
-    instructor: 'Andrew Savage & JC Harris',
-    description: 'Learn the fundamentals of professional camera operation. This introductory session covers the basics of setting up and operating cameras for live events and broadcast.',
-    icon: 'videocam-outline',
-  },
-  {
-    id: '3',
-    category: 'Lighting',
-    title: 'Basic Stage Lighting',
-    instructor: 'Rin Medico',
-    description: 'This hands-on workshop introduces the core principles of stage lighting for live events. Perfect for beginners and working AV techs.',
-    icon: 'bulb-outline',
-  },
-  {
-    id: '4',
-    category: 'Networking',
-    title: 'NVA Winter Meetup',
-    instructor: 'NVA Community',
-    description: 'Kick off the new year with the Nola Visual Arts & AV Academy! Join us at the New Orleans Jazz Museum Education Center.',
-    icon: 'people-outline',
-  }
-];
-
 export default function EducationScreen() {
+  const [courses, setCourses] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchTraining = async () => {
+      try {
+        const { collection, getDocs, query, limit } = await import('firebase/firestore');
+        const { db } = await import('../firebase');
+        const q = query(collection(db, 'av_training'), limit(30));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const fetchedCourses = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setCourses(fetchedCourses);
+        } else {
+          setCourses([]);
+        }
+      } catch (error) {
+        console.error("Error fetching training: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTraining();
+  }, []);
+
+  const openLink = (url) => {
+    if (url) {
+      import('react-native').then(({ Linking }) => {
+        Linking.openURL(url).catch(() => {});
+      });
+    }
+  };
+
+  const getIconForCategory = (cat) => {
+    const lower = (cat || '').toLowerCase();
+    if (lower.includes('audio') || lower.includes('sound')) return 'mic-outline';
+    if (lower.includes('video') || lower.includes('camera')) return 'videocam-outline';
+    if (lower.includes('light')) return 'bulb-outline';
+    if (lower.includes('network') || lower.includes('it')) return 'globe-outline';
+    return 'school-outline';
+  };
+
   const renderCourse = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{item.category.toUpperCase()}</Text>
+          <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
         </View>
-        <Ionicons name={item.icon} size={24} color={Colors.light.gold} />
+        <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={24} color={Colors.light.gold} />
       </View>
-      <Text style={styles.courseTitle}>{item.title}</Text>
+      <Text style={styles.courseTitle}>{item['Course Title']}</Text>
       <View style={styles.instructorRow}>
         <Ionicons name="person" size={14} color="#888" />
-        <Text style={styles.instructorText}>w/ {item.instructor}</Text>
+        <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
       </View>
-      <Text style={styles.courseDescription}>{item.description}</Text>
-      <TouchableOpacity style={styles.actionButton}>
+      {item['Duration'] && (
+        <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
+      )}
+      <TouchableOpacity style={styles.actionButton} onPress={() => openLink(item['Link'])}>
         <Text style={styles.actionButtonText}>View Course</Text>
       </TouchableOpacity>
     </View>
@@ -65,13 +79,17 @@ export default function EducationScreen() {
       <Text style={styles.headerSubtitle}>
         Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
       </Text>
-      <FlatList
-        data={COURSES}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCourse}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color={Colors.light.gold} /></View>
+      ) : (
+        <FlatList
+          data={courses}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCourse}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }
