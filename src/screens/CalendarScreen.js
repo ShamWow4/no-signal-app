@@ -63,10 +63,33 @@ export default function CalendarScreen() {
         twoWeeksAgo.setDate(today.getDate() - 14);
 
         querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const endDate = parseDate(data.loadOut);
+          const d = doc.data();
+          let loadIn = d.loadIn;
+          let loadOut = d.loadOut;
+
+          // Parse 'Dates' field from scraper (e.g. '07/10/2026 - 07/12/2026' or '07/10/2026')
+          if (d['Dates']) {
+            const parts = d['Dates'].split('-').map(s => s.trim());
+            if (parts.length === 2) {
+              loadIn = parts[0];
+              loadOut = parts[1];
+            } else if (parts.length === 1) {
+              loadIn = parts[0];
+              loadOut = parts[0];
+            }
+          }
+
+          const endDate = parseDate(loadOut);
           if (endDate >= twoWeeksAgo) {
-            eventsList.push({ id: doc.id, ...data });
+            eventsList.push({ 
+              id: doc.id,
+              name: d['Title'] || d.name,
+              venue: d['Venue'] || d.venue,
+              location: d['City'] || d.location,
+              loadIn,
+              loadOut,
+              type: d.type || 'CONVENTION'
+            });
           }
         });
         

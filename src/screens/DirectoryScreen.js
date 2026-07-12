@@ -17,11 +17,22 @@ export default function DirectoryScreen() {
         const querySnapshot = await getDocs(collection(db, 'labor_directory'));
         const companyList = [];
         querySnapshot.forEach((doc) => {
-          companyList.push({ id: doc.id, ...doc.data() });
+          const d = doc.data();
+          companyList.push({ 
+            id: doc.id,
+            name: d['Company Name'] || d.name,
+            website: d['Company Website'] || d.website,
+            phone: d['Contact phone number'] || d.phone,
+            contact: d['Contact Name'] || d.contact,
+            position: d['Position'] || d.position,
+            type: d.type || 'COMPANY',
+            email: d.email,
+            description: d.description
+          });
         });
         
         // Sort alphabetically by name
-        companyList.sort((a, b) => a.name.localeCompare(b.name));
+        companyList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         
         setCompanies(companyList);
       } catch (error) {

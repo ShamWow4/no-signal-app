@@ -14,7 +14,7 @@ export default function GigsScreen() {
   useEffect(() => {
     const fetchGigs = async () => {
       try {
-        const q = query(collection(db, 'gig_alerts'), orderBy('date_discovered', 'desc'), limit(20));
+        const q = query(collection(db, 'av_gigs'), limit(20));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
@@ -38,7 +38,7 @@ export default function GigsScreen() {
 
   const handleApply = (url) => {
     if (url) {
-      Linking.openURL(url);
+      Linking.openURL(url).catch(() => {});
     }
   };
 
@@ -53,49 +53,33 @@ export default function GigsScreen() {
   );
 
   const renderGigItem = ({ item, index }) => {
-    // Format the date if it's a Firestore timestamp
-    let dateStr = '';
-    if (item.date_discovered && item.date_discovered.toDate) {
-      dateStr = item.date_discovered.toDate().toLocaleDateString();
-    }
-
     return (
       <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
         <TouchableOpacity 
           style={styles.gigCard} 
           activeOpacity={0.7}
-          onPress={() => handleApply(item.apply_link)}
+          onPress={() => handleApply(item['Link'])}
         >
           <View style={styles.gigCardContent}>
             <View style={styles.gigCardHeader}>
               <View style={styles.gigTypeContainer}>
                 <Ionicons name="briefcase-outline" size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
                 <Text style={styles.gigCardType}>
-                  {item.job_type ? item.job_type.toUpperCase() : 'GIG'}
+                  {item['Source'] ? item['Source'].toUpperCase() : 'GIG'}
                 </Text>
               </View>
-              <Text style={styles.gigCardDate}>{dateStr}</Text>
             </View>
-            <Text style={styles.gigCardTitle}>{item.job_title}</Text>
-            {(item.company_name || item.location) && (
+            <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
+            {(item['Company'] || item['Location']) && (
               <Text style={styles.gigCardCompany}>
-                {item.company_name}{item.company_name && item.location ? ' • ' : ''}{item.location}
+                {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
               </Text>
             )}
-            {item.salary && (
-              <View style={styles.gigSalaryBadge}>
-                <Ionicons name="cash-outline" size={14} color="#85bb65" style={{ marginRight: 4 }} />
-                <Text style={styles.gigCardSalary}>{item.salary}</Text>
-              </View>
-            )}
-            <Text style={styles.gigCardExcerpt} numberOfLines={3}>
-              {item.description}
-            </Text>
             <LinearGradient
               colors={['rgba(212, 175, 55, 0.9)', 'rgba(179, 139, 34, 0.9)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.applyContainer}
+              style={[styles.applyContainer, { marginTop: 16 }]}
             >
               <Text style={styles.applyText}>View & Apply</Text>
               <Ionicons name="arrow-forward" size={14} color="#000" />
