@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Colors } from '../constants/theme';
+import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -56,7 +56,7 @@ export default function GigsScreen() {
     return (
       <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
         <TouchableOpacity 
-          style={styles.gigCard} 
+          style={[styles.gigCard, Shadows.subtle]} 
           activeOpacity={0.7}
           onPress={() => handleApply(item['Link'])}
         >

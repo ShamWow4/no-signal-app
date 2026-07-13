@@ -27,7 +27,7 @@ export default function TabLayout() {
         options={{
           title: 'AV News',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'newspaper' : 'newspaper-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -45,7 +45,7 @@ export default function TabLayout() {
         options={{
           title: 'Directory',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'briefcase' : 'briefcase-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'business' : 'business-outline'} size={size} color={color} />
           ),
         }}
       />

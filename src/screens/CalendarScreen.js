@@ -441,7 +441,7 @@ const EventCard = React.memo(({ item, onPress }) => {
             <View style={styles.modalBody}>
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="business" size={20} color="#c9a84c" />
+                  <Ionicons name="business" size={20} color="#D3A625" />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>VENUE</Text>
@@ -452,7 +452,7 @@ const EventCard = React.memo(({ item, onPress }) => {
               {selectedEvent.hall && (
                 <View style={styles.modalInfoRow}>
                   <View style={styles.modalIconBox}>
-                    <Ionicons name="location" size={20} color="#c9a84c" />
+                    <Ionicons name="location" size={20} color="#D3A625" />
                   </View>
                   <View style={styles.modalInfoContent}>
                     <Text style={styles.modalLabel}>HALL / LOCATION</Text>
@@ -463,7 +463,7 @@ const EventCard = React.memo(({ item, onPress }) => {
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="calendar" size={20} color="#c9a84c" />
+                  <Ionicons name="calendar" size={20} color="#D3A625" />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>DATES</Text>
@@ -484,7 +484,7 @@ const EventCard = React.memo(({ item, onPress }) => {
               )}
               
               <TouchableOpacity style={styles.googleCalBtn} onPress={() => openURL(generateGoogleCalendarLink(selectedEvent))}>
-                <Ionicons name="calendar-outline" size={18} color="#c9a84c" />
+                <Ionicons name="calendar-outline" size={18} color="#D3A625" />
                 <Text style={styles.googleCalBtnText}>ADD TO CALENDAR</Text>
               </TouchableOpacity>
             </View>
@@ -502,7 +502,7 @@ const EventCard = React.memo(({ item, onPress }) => {
       {renderFilters()}
 
       {loading ? (
-        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color="#c9a84c" /></View>
+        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color="#D3A625" /></View>
       ) : (
         <View style={{flex: 1, paddingHorizontal: 16}}>
           {activeView === 'list' ? renderAgendaList() : renderMonthGrid()}
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   viewBtnActive: {
-    backgroundColor: '#c9a84c',
+    backgroundColor: '#D3A625',
   },
   viewBtnText: {
     fontFamily: 'OpenSans',
@@ -582,8 +582,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterPillActive: {
-    borderColor: '#c9a84c',
-    backgroundColor: '#c9a84c1a', // 10% opacity gold
+    borderColor: '#D3A625',
+    backgroundColor: '#D3A6251a', // 10% opacity gold
   },
   filterPillText: {
     fontFamily: 'OpenSans',
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
   },
   filterPillTextActive: {
-    color: '#c9a84c',
+    color: '#D3A625',
     fontWeight: 'bold',
   },
   filterDot: {
@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans',
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#c9a84c',
+    color: '#D3A625',
     letterSpacing: 1,
   },
   cardDay: {
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   gridMonthText: {
     fontFamily: 'CinzelSemiBold',
     fontSize: 18,
-    color: '#c9a84c',
+    color: '#D3A625',
   },
   gridNavBtn: {
     padding: 4,
@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   dateNumberWrapToday: {
-    backgroundColor: '#c9a84c',
+    backgroundColor: '#D3A625',
   },
   dateNumberText: {
     fontFamily: 'OpenSans',
@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   websiteBtn: {
-    backgroundColor: '#c9a84c',
+    backgroundColor: '#D3A625',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -921,6 +921,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
     letterSpacing: 1,
-    color: '#c9a84c',
+    color: '#D3A625',
   }
 });

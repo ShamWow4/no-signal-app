@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/theme';
+import { Colors, Shadows } from '../constants/theme';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function EducationScreen() {
   const [courses, setCourses] = React.useState([]);
@@ -51,9 +52,10 @@ export default function EducationScreen() {
     return 'school-outline';
   };
 
-  const renderCourse = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
+  const renderCourse = ({ item, index }) => (
+    <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
+      <View style={[styles.card, Shadows.subtle]}>
+        <View style={styles.cardHeader}>
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
         </View>
@@ -71,6 +73,7 @@ export default function EducationScreen() {
         <Text style={styles.actionButtonText}>View Course</Text>
       </TouchableOpacity>
     </View>
+    </Animated.View>
   );
 
   return (
