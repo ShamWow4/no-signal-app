@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Colors } from '../constants/theme';
+import { Colors, Shadows } from '../constants/theme';
 
 const FALLBACK_FEED = [
   {
@@ -106,23 +106,51 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderFeedItem = ({ item }) => (
-    <TouchableOpacity style={styles.feedCard} activeOpacity={0.7} onPress={() => openLink(item.Link)}>
-      <View style={styles.feedCardContent}>
-        <View style={styles.feedCardHeader}>
-          <View style={styles.feedTypeContainer}>
-            <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
-            <Text style={styles.feedCardType} numberOfLines={1}>
-              {item.Source ? item.Source.toUpperCase() : 'UPDATE'}
-            </Text>
+  const AnimatedFeedItem = ({ item, index }) => {
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+    const translateY = React.useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          delay: Math.min(index * 100, 1000), // Cap delay at 1s
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 400,
+          delay: Math.min(index * 100, 1000),
+          useNativeDriver: true,
+        })
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
+        <TouchableOpacity style={[styles.feedCard, Shadows.subtle]} activeOpacity={0.7} onPress={() => openLink(item.Link)}>
+          <View style={styles.feedCardContent}>
+            <View style={styles.feedCardHeader}>
+              <View style={styles.feedTypeContainer}>
+                <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+                <Text style={styles.feedCardType} numberOfLines={1}>
+                  {item.Source ? item.Source.toUpperCase() : 'UPDATE'}
+                </Text>
+              </View>
+              <Text style={styles.feedCardDate}>{item.Date}</Text>
+            </View>
+            <Text style={styles.feedCardTitle}>{item.Title}</Text>
+            <Text style={styles.feedCardExcerpt} numberOfLines={3}>{item.Summary}</Text>
           </View>
-          <Text style={styles.feedCardDate}>{item.Date}</Text>
-        </View>
-        <Text style={styles.feedCardTitle}>{item.Title}</Text>
-        <Text style={styles.feedCardExcerpt} numberOfLines={3}>{item.Summary}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} style={styles.feedChevron} />
-    </TouchableOpacity>
+          <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} style={styles.feedChevron} />
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const renderFeedItem = ({ item, index }) => (
+    <AnimatedFeedItem item={item} index={index} />
   );
 
   return (
@@ -156,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 56,
+    fontSize: 48,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.text,
     letterSpacing: 2,

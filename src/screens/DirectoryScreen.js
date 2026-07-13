@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Linking, Platform } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Colors } from '../constants/theme';
+import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -71,7 +71,7 @@ export default function DirectoryScreen() {
 
   const renderItem = ({ item, index }) => (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(500)}>
-      <View style={styles.card}>
+      <View style={[styles.card, Shadows.subtle]}>
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleContainer}>
             <Text style={styles.companyName}>{item.name}</Text>
