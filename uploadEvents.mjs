@@ -46,19 +46,31 @@ const DUMMY_EVENTS = [
   }
 ];
 
+import crypto from 'crypto';
+
+function generateId(string) {
+    return crypto.createHash('md5').update(string).digest('hex');
+}
+
 async function uploadEvents(events) {
   console.log(`Starting upload for ${events.length} events...`);
   let count = 0;
 
   for (const event of events) {
     try {
-      // If you want to avoid duplicates, you can query first or use a deterministic ID
-      // Here we just add a new document for simplicity
-      const docRef = await db.collection('calendar_events').add(event);
-      console.log(`✅ Uploaded ${event.name} with ID: ${docRef.id}`);
+      // Use deterministic ID to prevent duplicates
+      const title = event.name || event.Title || '';
+      const dateStr = event.loadIn || event.Dates || '';
+      const uniqueString = `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}|${dateStr.substring(0, 10)}`;
+      
+      const docId = generateId(uniqueString);
+      const docRef = db.collection('calendar_events').doc(docId);
+      
+      await docRef.set(event, { merge: true });
+      console.log(`✅ Uploaded ${event.name || event.Title} with ID: ${docId}`);
       count++;
     } catch (error) {
-      console.error(`❌ Failed to upload ${event.name}:`, error);
+      console.error(`❌ Failed to upload ${event.name || event.Title}:`, error);
     }
   }
 
