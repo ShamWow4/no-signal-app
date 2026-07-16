@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Linking, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
@@ -131,7 +132,11 @@ export default function DirectoryScreen() {
         end={{ x: 0.5, y: 1 }}
         style={styles.headerGradient}
       >
-        <Text style={styles.headerTitle}>INDUSTRY DIRECTORY</Text>
+        <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleLight}>INDUSTRY</Text>
+            <Text style={styles.headerTitleBold}>DIRECTORY</Text>
+          </View>
         
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
@@ -148,6 +153,7 @@ export default function DirectoryScreen() {
             </TouchableOpacity>
           )}
         </View>
+        </SafeAreaView>
       </LinearGradient>
 
       {loading ? (
@@ -178,17 +184,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
   },
   headerGradient: {
-    paddingTop: 40,
     paddingBottom: 20,
   },
-  headerTitle: {
-    fontSize: 28,
+  headerTitleContainer: {
+    marginLeft: 20,
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  headerTitleLight: {
+    fontSize: 22,
+    fontFamily: 'Cinzel',
+    color: '#aaa',
+    letterSpacing: 4,
+    marginBottom: -8,
+  },
+  headerTitleBold: {
+    fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
-    paddingHorizontal: 20,
-    paddingTop: 20, // Adjusted since gradient handles top padding
-    paddingBottom: 20,
-    letterSpacing: 1,
+    color: Colors.light.gold,
+    letterSpacing: 2,
   },
   searchContainer: {
     flexDirection: 'row',
