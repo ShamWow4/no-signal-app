@@ -84,7 +84,7 @@ export default function HomeScreen() {
     <View style={styles.headerContainer}>
       <View style={styles.heroSection}>
         <Text style={styles.logoText}>No Signal!</Text>
-        <Text style={styles.heroSubtitle}>The New Orleans AV Industry Newsletter</Text>
+        <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
       </View>
 
       <View style={styles.statsRow}>
