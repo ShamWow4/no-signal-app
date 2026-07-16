@@ -1,6 +1,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const axios = require("axios");
+const { appendRow } = require('./sheetsSync');
 
 // Initialize Firebase Admin to access Firestore and Push Notifications
 admin.initializeApp();
@@ -63,7 +64,7 @@ async function scrapeProductionHouseJobs(targetUrl) {
         url: targetUrl,
         formats: ["extract"],
         extract: {
-            prompt: "Extract all open job positions, freelance crew calls, and gig opportunities listed on this page. Focus specifically on audio visual, lighting, staging, and video roles.",
+            prompt: "Extract all open job positions, freelance crew calls, and gig opportunities listed on this page. You MUST STRICTLY ONLY include jobs that are located in the New Orleans, LA area AND are specifically in the audio visual, lighting, staging, event production, or video industries. Ignore all jobs that are not related to AV/events or are outside New Orleans.",
             schema: {
                 type: "object",
                 properties: {
@@ -124,6 +125,19 @@ exports.dailyGigScraper = onSchedule(
 
                         console.log(`New Gig Found: ${job.job_title}`);
 
+                        // Append to Google Sheets
+                        await appendRow('gig_alerts', {
+                            job_title: job.job_title,
+                            company_name: job.company_name || '',
+                            location: job.location || '',
+                            job_type: job.job_type || '',
+                            salary: job.salary || '',
+                            description: job.description || '',
+                            apply_link: job.apply_link || '',
+                            source_url: url,
+                            date_discovered: new Date().toISOString()
+                        });
+
                         // Construct the Push Notification payload
                         const title = `New Gig Alert: ${job.job_title}`;
                         const body = job.description ? job.description.substring(0, 100) + '...' : 'Tap to view details and apply.';
@@ -152,7 +166,7 @@ async function scrapeNews(targetUrl) {
         url: targetUrl,
         formats: ["extract"],
         extract: {
-            prompt: "Extract the top 5 most recent press releases, convention announcements, or tourism news articles. Focus on events, hospitality, and trade show news relevant to the New Orleans area.",
+            prompt: "Extract the top 5 most recent press releases, convention announcements, or tourism news articles. You MUST STRICTLY ONLY include news that is explicitly relevant to the New Orleans area AND is specifically related to conventions, events, hospitality, or trade shows in New Orleans. Ignore general news or news not related to events/hospitality in New Orleans.",
             schema: {
                 type: "object",
                 properties: {
@@ -206,6 +220,17 @@ exports.dailyNewsScraper = onSchedule(
                             date_discovered: admin.firestore.FieldValue.serverTimestamp()
                         });
                         console.log(`New News Found: ${article.title}`);
+                        
+                        // Append to Google Sheets
+                        await appendRow('news_feed', {
+                            title: article.title,
+                            date: article.date,
+                            excerpt: article.excerpt || '',
+                            type: article.type || '',
+                            source_link: article.source_link || '',
+                            source_url: url,
+                            date_discovered: new Date().toISOString()
+                        });
                         
                         const title = `Industry News: ${article.title}`;
                         const body = article.excerpt ? article.excerpt : 'Tap to read more.';
@@ -289,6 +314,18 @@ exports.dailyCalendarScraper = onSchedule(
                             date_discovered: admin.firestore.FieldValue.serverTimestamp()
                         });
                         console.log(`New Calendar Event Found: ${ev.name} at ${ev.venue}`);
+                        
+                        // Append to Google Sheets
+                        await appendRow('calendar_events', {
+                            name: ev.name,
+                            loadIn: ev.loadIn,
+                            loadOut: ev.loadOut,
+                            venue: ev.venue,
+                            hall: ev.hall || '',
+                            type: ev.type || '',
+                            source_url: url,
+                            date_discovered: new Date().toISOString()
+                        });
                         
                         const title = `New Event: ${ev.name}`;
                         const body = `Venue: ${ev.venue} | Load In: ${ev.loadIn}`;

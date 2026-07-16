@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function DirectoryScreen() {
   const [companies, setCompanies] = useState([]);
@@ -124,23 +125,30 @@ export default function DirectoryScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>INDUSTRY DIRECTORY</Text>
-      
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search companies or types..."
-          placeholderTextColor={Colors.light.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
+      <LinearGradient
+        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <Text style={styles.headerTitle}>INDUSTRY DIRECTORY</Text>
+        
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search companies or types..."
+            placeholderTextColor={Colors.light.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -169,26 +177,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
+  headerGradient: {
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
   headerTitle: {
     fontSize: 28,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.text,
     paddingHorizontal: 20,
-    paddingTop: 60, // Account for safe area roughly
+    paddingTop: 20, // Adjusted since gradient handles top padding
     paddingBottom: 20,
     letterSpacing: 1,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 30, 30, 0.6)',
+    backgroundColor: Colors.light.glassBackground,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 0,
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#444',
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)',
+    borderColor: Colors.light.glassBorder,
+    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
   },
   searchIcon: {
     marginRight: 10,
@@ -208,12 +220,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.glassBackground,
     borderRadius: 16,
     marginBottom: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
     elevation: 4,
   },

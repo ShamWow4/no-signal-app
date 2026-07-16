@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const DONATION_TIERS = [
   {
@@ -45,13 +46,18 @@ export default function DonorsScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.header}
+      >
         <Text style={styles.eyebrow}>SUPPORT NVA</Text>
         <Text style={styles.title}>Invest in NOLA's AV Future</Text>
         <Text style={styles.subtitle}>
           Your contribution directly funds free and low-cost training for New Orleans youth and aspiring professionals who deserve access to the AV industry.
         </Text>
-      </View>
+      </LinearGradient>
 
       <View style={styles.impactSection}>
         <Text style={styles.sectionTitle}>Every Dollar at Work</Text>
@@ -124,10 +130,10 @@ const styles = StyleSheet.create({
   },
   impactSection: {
     padding: 20,
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.glassBackground,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.light.backgroundSelected,
+    borderColor: Colors.light.glassBorder,
   },
   sectionTitle: {
     fontSize: 22,
@@ -159,16 +165,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   tierCard: {
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.glassBackground,
     borderRadius: 16,
     padding: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.backgroundSelected,
+    borderColor: Colors.light.glassBorder,
   },
   tierCardFeatured: {
     borderColor: Colors.light.gold,
-    backgroundColor: 'rgba(211, 166, 37, 0.05)',
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   tierHeader: {
     flexDirection: 'row',
