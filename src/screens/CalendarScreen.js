@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../constants/theme';
 
 const VENUES = {
   'NOMCC':              { label: 'MCCNO',          color: '#4a90e2' },
@@ -517,12 +518,12 @@ const EventCard = React.memo(({ item, onPress }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: Colors.light.background,
   },
   headerTitle: {
     fontSize: 28,
     fontFamily: 'CinzelSemiBold',
-    color: '#fff',
+    color: Colors.light.text,
     marginLeft: 16,
     marginTop: 10,
     marginBottom: 20,
@@ -535,9 +536,9 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     flexDirection: 'row',
-    backgroundColor: '#141414',
+    backgroundColor: Colors.light.glassBackground,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     borderRadius: 24,
     alignSelf: 'flex-start',
     overflow: 'hidden',
@@ -572,9 +573,9 @@ const styles = StyleSheet.create({
   filterPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#141414',
+    backgroundColor: Colors.light.glassBackground,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
@@ -582,16 +583,16 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterPillActive: {
-    borderColor: '#D3A625',
-    backgroundColor: '#D3A6251a', // 10% opacity gold
+    borderColor: Colors.light.gold,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 12,
-    color: '#aaa',
+    color: Colors.light.textSecondary,
   },
   filterPillTextActive: {
-    color: '#D3A625',
+    color: Colors.light.gold,
     fontWeight: 'bold',
   },
   filterDot: {
@@ -603,21 +604,21 @@ const styles = StyleSheet.create({
   // Event Cards
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#141414',
+    backgroundColor: Colors.light.glassBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: Colors.light.glassBorder,
     marginBottom: 16,
     overflow: 'hidden',
   },
   cardDateBlock: {
     width: 80,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(212, 175, 55, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 16,
     borderRightWidth: 1,
-    borderRightColor: '#222',
+    borderRightColor: Colors.light.glassBorder,
   },
   cardMonth: {
     fontFamily: 'OpenSans',
@@ -688,9 +689,9 @@ const styles = StyleSheet.create({
   // Grid Month Styles
   gridWrapper: {
     flex: 1,
-    backgroundColor: '#141414',
+    backgroundColor: Colors.light.glassBackground,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     borderRadius: 8,
     overflow: 'hidden',
     paddingBottom: 10,
@@ -701,9 +702,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: Colors.light.glassBorder,
   },
   gridMonthText: {
     fontFamily: 'CinzelSemiBold',
@@ -716,8 +717,8 @@ const styles = StyleSheet.create({
   weekdaysRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    backgroundColor: '#111',
+    borderBottomColor: Colors.light.glassBorder,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
   },
   weekdayText: {
     flex: 1,
@@ -726,7 +727,7 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans',
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#666',
+    color: Colors.light.textSecondary,
     letterSpacing: 1,
   },
   gridBodyContinuous: {
@@ -735,7 +736,7 @@ const styles = StyleSheet.create({
   weekRowContinuous: {
     position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    borderBottomColor: Colors.light.glassBorder,
     height: 100,
     overflow: 'hidden',
   },
@@ -746,7 +747,7 @@ const styles = StyleSheet.create({
   gridCellContinuous: {
     flex: 1,
     borderRightWidth: 1,
-    borderRightColor: '#222',
+    borderRightColor: Colors.light.glassBorder,
     padding: 2,
   },
   dateNumberWrap: {
@@ -759,7 +760,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   dateNumberWrapToday: {
-    backgroundColor: '#D3A625',
+    backgroundColor: Colors.light.gold,
   },
   dateNumberText: {
     fontFamily: 'OpenSans',
@@ -808,18 +809,18 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '100%',
-    backgroundColor: '#111',
+    backgroundColor: Colors.light.glassBackground,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40, // extra padding for bottom safe area
     borderTopWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
   },
   modalDragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#333',
+    backgroundColor: Colors.light.glassBorder,
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 24,
@@ -830,7 +831,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: 'CinzelSemiBold',
     fontSize: 24,
-    color: '#fff',
+    color: Colors.light.text,
     marginBottom: 12,
     lineHeight: 32,
   },
@@ -863,11 +864,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(212, 175, 55, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: Colors.light.glassBorder,
   },
   modalInfoContent: {
     flex: 1,
@@ -883,14 +884,14 @@ const styles = StyleSheet.create({
   modalValue: {
     fontFamily: 'OpenSans',
     fontSize: 14,
-    color: '#e0e0e0',
+    color: Colors.light.text,
     lineHeight: 20,
   },
   modalActions: {
     gap: 12,
   },
   websiteBtn: {
-    backgroundColor: '#D3A625',
+    backgroundColor: Colors.light.gold,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -906,9 +907,9 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   googleCalBtn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -921,6 +922,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
     letterSpacing: 1,
-    color: '#D3A625',
+    color: Colors.light.gold,
   }
 });

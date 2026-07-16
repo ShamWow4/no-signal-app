@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const FALLBACK_FEED = [
   {
@@ -81,29 +82,22 @@ export default function HomeScreen() {
   };
 
   const renderHeader = () => (
-    <View style={styles.headerContainer}>
+    <LinearGradient
+      colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 0.8 }}
+      style={styles.headerContainer}
+    >
       <View style={styles.heroSection}>
         <Text style={styles.logoText}>No Signal!</Text>
         <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
-      </View>
-
-      <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>100<Text style={styles.statPlus}>+</Text></Text>
-          <Text style={styles.statLabel}>Students Trained</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>25<Text style={styles.statPlus}>+</Text></Text>
-          <Text style={styles.statLabel}>Events Supported</Text>
-        </View>
       </View>
 
       <Text style={styles.feedHeader}>Latest Transmissions</Text>
       {loading && (
         <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
       )}
-    </View>
+    </LinearGradient>
   );
 
   const AnimatedFeedItem = ({ item, index }) => {
@@ -198,39 +192,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textAlign: 'center',
   },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: Colors.light.backgroundElement,
-    borderRadius: 16,
-    paddingVertical: 20,
-    marginBottom: 40,
-    borderWidth: 1,
-    borderColor: Colors.light.backgroundSelected,
-  },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: Colors.light.backgroundSelected,
-  },
-  statNumber: {
-    fontSize: 32,
-    fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  statPlus: {
-    color: Colors.light.gold,
-  },
-  statLabel: {
-    color: Colors.light.textSecondary,
-    fontSize: 12,
-    fontFamily: 'Poppins',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
   
   // Feed Styles
   feedHeader: {
@@ -242,13 +203,13 @@ const styles = StyleSheet.create({
   feedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.backgroundElement,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: Colors.light.glassBackground,
+    borderRadius: 16,
+    padding: 20,
     marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.backgroundSelected,
+    borderColor: Colors.light.glassBorder,
     borderLeftWidth: 4,
     borderLeftColor: Colors.light.gold,
   },

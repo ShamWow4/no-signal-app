@@ -43,13 +43,18 @@ export default function GigsScreen() {
   };
 
   const renderHeader = () => (
-    <View style={styles.headerContainer}>
+    <LinearGradient
+      colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.headerContainer}
+    >
       <Text style={styles.pageTitle}>Gig Alerts</Text>
       <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
       {loading && (
         <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
       )}
-    </View>
+    </LinearGradient>
   );
 
   const renderGigItem = ({ item, index }) => {
@@ -137,13 +142,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   gigCard: {
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.glassBackground,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Colors.light.glassBorder,
     boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
     elevation: 4,
   },

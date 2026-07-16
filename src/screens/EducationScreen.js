@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator }
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function EducationScreen() {
   const [courses, setCourses] = React.useState([]);
@@ -78,10 +79,17 @@ export default function EducationScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>Past Courses & Materials</Text>
-      <Text style={styles.headerSubtitle}>
-        Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
-      </Text>
+      <LinearGradient
+        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <Text style={styles.headerTitle}>Past Courses & Materials</Text>
+        <Text style={styles.headerSubtitle}>
+          Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
+        </Text>
+      </LinearGradient>
       {loading ? (
         <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color={Colors.light.gold} /></View>
       ) : (
@@ -106,12 +114,15 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
+  headerGradient: {
+    paddingTop: 60, // Account for safe area
+    paddingBottom: 20,
+  },
   headerTitle: {
     fontSize: 28,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.text,
     marginHorizontal: 20,
-    marginTop: 20,
     marginBottom: 8,
   },
   headerSubtitle: {
@@ -119,16 +130,18 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     fontFamily: 'OpenSans',
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 0,
     lineHeight: 20,
   },
   card: {
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.glassBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.light.backgroundSelected,
+    borderColor: Colors.light.glassBorder,
+    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
+    elevation: 4,
   },
   cardHeader: {
     flexDirection: 'row',
