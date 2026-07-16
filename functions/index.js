@@ -6,6 +6,51 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
+// ==========================================
+// NOTIFICATION HELPER
+// ==========================================
+async function sendExpoPushNotifications(title, body, payloadData = {}) {
+    const tokensSnapshot = await db.collection('push_tokens').get();
+    if (tokensSnapshot.empty) return;
+    
+    const messages = [];
+    tokensSnapshot.forEach((tokenDoc) => {
+        const data = tokenDoc.data();
+        if (data.token) {
+            messages.push({
+                to: data.token,
+                sound: 'default',
+                title: title,
+                body: body,
+                data: payloadData,
+            });
+        }
+    });
+
+    if (messages.length > 0) {
+        try {
+            const expoResponse = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Accept-encoding': 'gzip, deflate',
+                    'Content-Type': 'application/json',
+                }
+            });
+            const expoData = expoResponse.data;
+            if (expoData && expoData.data) {
+                expoData.data.forEach((receipt, index) => {
+                    if (receipt.status === 'error') {
+                        console.error(`Expo Push Error for ${messages[index].to}:`, receipt.message);
+                    }
+                });
+                console.log(`Sent push notification "${title}" to ${messages.length} devices.`);
+            }
+        } catch (error) {
+            console.error(`Failed to send push notification:`, error.message);
+        }
+    }
+}
+
 // 1. The Target List (You will add your URLs here later)
 const TARGET_URLS = [
     "https://www.ziprecruiter.com/jobs-search?search=audio+video+technician&location=New+Orleans%2C+LA&lk=p-TzyxQ4xk7Q-hx3ku4z2Q",
@@ -83,50 +128,7 @@ exports.dailyGigScraper = onSchedule(
                         const title = `New Gig Alert: ${job.job_title}`;
                         const body = job.description ? job.description.substring(0, 100) + '...' : 'Tap to view details and apply.';
                         
-                        // Fetch all tokens from Firebase
-                        const tokensSnapshot = await db.collection('push_tokens').get();
-                        
-                        if (!tokensSnapshot.empty) {
-                            const messages = [];
-                            tokensSnapshot.forEach((tokenDoc) => {
-                                const data = tokenDoc.data();
-                                if (data.token) {
-                                    messages.push({
-                                        to: data.token,
-                                        sound: 'default',
-                                        title: title,
-                                        body: body,
-                                        data: { apply_link: job.apply_link },
-                                    });
-                                }
-                            });
-
-                            if (messages.length > 0) {
-                                // Send the alert to the crew via Expo
-                                try {
-                                    const expoResponse = await axios.post('https://exp.host/--/api/v2/push/send', messages, {
-                                        headers: {
-                                            'Accept': 'application/json',
-                                            'Accept-encoding': 'gzip, deflate',
-                                            'Content-Type': 'application/json',
-                                        }
-                                    });
-                                    
-                                    const expoData = expoResponse.data;
-                                    if (expoData && expoData.data) {
-                                        expoData.data.forEach((receipt, index) => {
-                                            if (receipt.status === 'error') {
-                                                console.error(`Expo Push Error for ${messages[index].to}:`, receipt.message);
-                                            } else {
-                                                console.log(`Push notification sent for ${job.job_title} to ${messages.length} devices.`);
-                                            }
-                                        });
-                                    }
-                                } catch (expoError) {
-                                    console.error(`Failed to send push notification for ${job.job_title}:`, expoError.message);
-                                }
-                            }
-                        }
+                        await sendExpoPushNotifications(title, body, { apply_link: job.apply_link });
                     }
                 }
             } catch (error) {
@@ -204,6 +206,10 @@ exports.dailyNewsScraper = onSchedule(
                             date_discovered: admin.firestore.FieldValue.serverTimestamp()
                         });
                         console.log(`New News Found: ${article.title}`);
+                        
+                        const title = `Industry News: ${article.title}`;
+                        const body = article.excerpt ? article.excerpt : 'Tap to read more.';
+                        await sendExpoPushNotifications(title, body, { source_link: article.source_link });
                     }
                 }
             } catch (error) {
@@ -283,6 +289,10 @@ exports.dailyCalendarScraper = onSchedule(
                             date_discovered: admin.firestore.FieldValue.serverTimestamp()
                         });
                         console.log(`New Calendar Event Found: ${ev.name} at ${ev.venue}`);
+                        
+                        const title = `New Event: ${ev.name}`;
+                        const body = `Venue: ${ev.venue} | Load In: ${ev.loadIn}`;
+                        await sendExpoPushNotifications(title, body, { });
                     }
                 }
             } catch (error) {
