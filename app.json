@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "no-signal-app",
+    "name": "No Signal!",
     "slug": "no-signal-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -67,6 +67,7 @@
       "eas": {
         "projectId": "3dc95b83-9148-4925-bc09-81a32f197539"
       }
-    }
+    },
+    "owner": "shimeong"
   }
 }
