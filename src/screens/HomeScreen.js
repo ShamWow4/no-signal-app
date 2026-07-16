@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -86,17 +87,19 @@ export default function HomeScreen() {
       colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 0.8 }}
-      style={styles.headerContainer}
+      style={styles.headerGradient}
     >
-      <View style={styles.heroSection}>
-        <Text style={styles.logoText}>No Signal!</Text>
+      <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitleLight}>NO</Text>
+          <Text style={styles.headerTitleBold}>SIGNAL</Text>
+        </View>
         <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
-      </View>
-
-      <Text style={styles.feedHeader}>Latest Transmissions</Text>
-      {loading && (
-        <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
-      )}
+        <Text style={styles.feedHeader}>Latest Transmissions</Text>
+        {loading && (
+          <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+        )}
+      </SafeAreaView>
     </LinearGradient>
   );
 
@@ -169,36 +172,42 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 40,
   },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
+  headerGradient: {
+    paddingBottom: 10,
   },
-  heroSection: {
-    marginBottom: 30,
-    alignItems: 'center',
+  headerTitleContainer: {
+    marginLeft: 20,
+    marginTop: 0,
+    marginBottom: 5,
   },
-  logoText: {
-    fontSize: 48,
+  headerTitleLight: {
+    fontSize: 22,
+    fontFamily: 'Cinzel',
+    color: '#aaa',
+    letterSpacing: 4,
+    marginBottom: -8,
+  },
+  headerTitleBold: {
+    fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
+    color: Colors.light.gold,
     letterSpacing: 2,
-    marginBottom: 12,
-    textAlign: 'center',
   },
   heroSubtitle: {
-    color: Colors.light.textSecondary,
     fontSize: 16,
-    fontFamily: 'OpenSans',
-    marginBottom: 4,
-    textAlign: 'center',
+    color: Colors.light.textSecondary,
+    fontFamily: 'Cinzel',
+    letterSpacing: 2,
+    marginLeft: 20,
+    marginBottom: 20,
   },
-  
-  // Feed Styles
   feedHeader: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.text,
-    marginBottom: 16,
+    marginLeft: 20,
+    marginBottom: 10,
+    letterSpacing: 1,
   },
   feedCard: {
     flexDirection: 'row',

@@ -281,88 +281,83 @@ const EventCard = React.memo(({ item, index, onPress }) => {
         </View>
         
         <View style={{ flex: 1 }}>
-          <View style={styles.gridBodyContinuous}>
-            {weeks.map((week, wIndex) => {
-              const weekStart = week[0];
-              const weekEnd = new Date(week[6]);
-              weekEnd.setHours(23, 59, 59, 999);
+          <ScrollView 
+            style={styles.gridBodyContinuous}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
+            {(() => {
+              let globalMaxLevel = 0;
+              const weeksData = weeks.map((week) => {
+                const weekStart = week[0];
+                const weekEnd = new Date(week[6]);
+                weekEnd.setHours(23, 59, 59, 999);
 
-              const weekEvents = filteredEvents.filter(e => {
-                const eStart = parseDate(e.loadIn);
-                const eEnd = parseDate(e.loadOut);
-                eStart.setHours(0,0,0,0);
-                eEnd.setHours(23,59,59,999);
-                return (eStart <= weekEnd && eEnd >= weekStart);
-              });
+                const weekEvents = filteredEvents.filter(e => {
+                  const eStart = parseDate(e.loadIn);
+                  const eEnd = parseDate(e.loadOut);
+                  eStart.setHours(0,0,0,0);
+                  eEnd.setHours(23,59,59,999);
+                  return (eStart <= weekEnd && eEnd >= weekStart);
+                });
 
-              const eventLayouts = weekEvents.map(e => {
-                const eStart = parseDate(e.loadIn);
-                eStart.setHours(0,0,0,0);
-                const eEnd = parseDate(e.loadOut);
-                eEnd.setHours(23,59,59,999);
+                const eventLayouts = weekEvents.map(e => {
+                  const eStart = parseDate(e.loadIn);
+                  eStart.setHours(0,0,0,0);
+                  const eEnd = parseDate(e.loadOut);
+                  eEnd.setHours(23,59,59,999);
+                  
+                  const drawStart = eStart < weekStart ? weekStart : eStart;
+                  const drawEnd = eEnd > weekEnd ? weekEnd : eEnd;
+                  
+                  const utcWeekStart = Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+                  const utcDrawStart = Date.UTC(drawStart.getFullYear(), drawStart.getMonth(), drawStart.getDate());
+                  const utcDrawEnd = Date.UTC(drawEnd.getFullYear(), drawEnd.getMonth(), drawEnd.getDate());
+                  
+                  const startCol = Math.floor((utcDrawStart - utcWeekStart) / 86400000);
+                  const endCol = Math.floor((utcDrawEnd - utcWeekStart) / 86400000);
+                  const duration = endCol - startCol + 1;
+                  
+                  return { event: e, startCol, duration, eStart, eEnd };
+                });
+
+                eventLayouts.sort((a, b) => a.startCol - b.startCol || b.duration - a.duration);
+
+                const occupiedLevels = {};
+                const visibleLayouts = [];
                 
-                const drawStart = eStart < weekStart ? weekStart : eStart;
-                const drawEnd = eEnd > weekEnd ? weekEnd : eEnd;
-                
-                // Safely calculate day difference ignoring time/DST
-                const utcWeekStart = Date.UTC(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
-                const utcDrawStart = Date.UTC(drawStart.getFullYear(), drawStart.getMonth(), drawStart.getDate());
-                const utcDrawEnd = Date.UTC(drawEnd.getFullYear(), drawEnd.getMonth(), drawEnd.getDate());
-                
-                const startCol = Math.floor((utcDrawStart - utcWeekStart) / 86400000);
-                const endCol = Math.floor((utcDrawEnd - utcWeekStart) / 86400000);
-                const duration = endCol - startCol + 1;
-                
-                return { event: e, startCol, duration, eStart, eEnd };
-              });
-
-              eventLayouts.sort((a, b) => a.startCol - b.startCol || b.duration - a.duration);
-
-              // We have fixed height rows now (e.g. 100px) which means we can fit at most 3 levels of events (Level 0, 1, 2)
-              // We'll limit max levels and simply not render the layout if it exceeds the limit.
-              const MAX_LEVEL = 2; 
-
-              const occupiedLevels = {};
-              const visibleLayouts = [];
-              
-              eventLayouts.forEach(layout => {
-                let level = 0;
-                while (true) {
-                  let hasOverlap = false;
-                  for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
-                    if (occupiedLevels[`${level}-${c}`]) {
-                      hasOverlap = true;
+                eventLayouts.forEach(layout => {
+                  let level = 0;
+                  while (true) {
+                    let hasOverlap = false;
+                    for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
+                      if (occupiedLevels[`${level}-${c}`]) {
+                        hasOverlap = true;
+                        break;
+                      }
+                    }
+                    if (!hasOverlap) {
+                      layout.level = level;
+                      for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
+                        occupiedLevels[`${level}-${c}`] = true;
+                      }
+                      visibleLayouts.push(layout);
+                      globalMaxLevel = Math.max(globalMaxLevel, level);
                       break;
                     }
+                    level++;
                   }
-                  if (!hasOverlap) {
-                    layout.level = level;
-                    for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
-                      occupiedLevels[`${level}-${c}`] = true;
-                    }
-                    if (level <= MAX_LEVEL) {
-                       visibleLayouts.push(layout);
-                    }
-                    break;
-                  }
-                  level++;
-                }
+                });
+                return { week, weekStart, weekEnd, visibleLayouts };
               });
 
-              return (
-                <View key={wIndex} style={styles.weekRowContinuous}>
+              const rowHeight = Math.max(80, globalMaxLevel * 16 + 32);
+
+              return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts }, wIndex) => (
+                <View key={wIndex} style={[styles.weekRowContinuous, { flex: 1, minHeight: rowHeight }]}>
                   <View style={styles.weekCellsRow}>
                     {week.map((dateObj, dIndex) => {
                       const isCurrentMonth = dateObj.getMonth() === month;
                       const isToday = dateObj.toDateString() === new Date().toDateString();
-                      
-                      // Check for overflow
-                      let overflowCount = 0;
-                      let l = MAX_LEVEL + 1;
-                      while(occupiedLevels[`${l}-${dIndex}`]) {
-                        overflowCount++;
-                        l++;
-                      }
                       
                       return (
                         <View key={dIndex} style={styles.gridCellContinuous}>
@@ -371,11 +366,6 @@ const EventCard = React.memo(({ item, index, onPress }) => {
                               {dateObj.getDate()}
                             </Text>
                           </View>
-                          {overflowCount > 0 && (
-                            <View style={styles.overflowIndicator}>
-                              <Text style={styles.overflowText}>+{overflowCount} more</Text>
-                            </View>
-                          )}
                         </View>
                       );
                     })}
@@ -385,8 +375,9 @@ const EventCard = React.memo(({ item, index, onPress }) => {
                     {visibleLayouts.map(layout => {
                       const venueConfig = VENUES[layout.event.venue] || { color: '#888' };
                       const left = `${layout.startCol * (100 / 7)}%`;
-                      const width = `${layout.duration * (100 / 7)}%`;
-                      const top = layout.level * 20 + 26;
+                      const rightCol = 7 - (layout.startCol + layout.duration);
+                      const right = `${rightCol * (100 / 7)}%`;
+                      const top = layout.level * 16 + 24; // Standard spacing under the pinned date
                       
                       const isContinuesLeft = layout.eStart < weekStart;
                       const isContinuesRight = layout.eEnd > weekEnd;
@@ -399,7 +390,7 @@ const EventCard = React.memo(({ item, index, onPress }) => {
                             styles.absoluteEventBar, 
                             { 
                               backgroundColor: venueConfig.color,
-                              left, width, top,
+                              left, right, top,
                               marginLeft: isContinuesLeft ? 0 : 2,
                               marginRight: isContinuesRight ? 0 : 2,
                               borderTopLeftRadius: isContinuesLeft ? 0 : 4,
@@ -417,9 +408,9 @@ const EventCard = React.memo(({ item, index, onPress }) => {
                     })}
                   </View>
                 </View>
-              );
-            })}
-          </View>
+              ));
+            })()}
+          </ScrollView>
         </View>
       </View>
     );
@@ -515,7 +506,10 @@ const EventCard = React.memo(({ item, index, onPress }) => {
         style={styles.headerGradient}
       >
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
-          <Text style={styles.headerTitle}>CONVENTION CALENDAR</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleLight}>CONVENTION</Text>
+            <Text style={styles.headerTitleBold}>CALENDAR</Text>
+          </View>
           {renderFilters()}
         </SafeAreaView>
       </LinearGradient>
@@ -539,22 +533,31 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
   },
   headerGradient: {
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
+  headerTitleContainer: {
     marginLeft: 20,
-    marginTop: 10,
-    marginBottom: 20,
-    letterSpacing: 1,
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  headerTitleLight: {
+    fontSize: 22,
+    fontFamily: 'Cinzel',
+    color: '#aaa',
+    letterSpacing: 4,
+    marginBottom: -8, // pull calendar up tightly
+  },
+  headerTitleBold: {
+    fontSize: 34,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.gold,
+    letterSpacing: 2,
   },
   controlsContainer: {
     flexDirection: 'column',
     paddingHorizontal: 20,
     marginBottom: 0,
-    gap: 15,
+    gap: 10,
   },
   viewToggle: {
     flexDirection: 'row',
@@ -728,7 +731,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.glassBorder,
   },
@@ -765,7 +768,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.glassBorder,
+    borderBottomColor: '#222',
     overflow: 'hidden',
   },
   weekCellsRow: {
@@ -776,17 +779,16 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRightWidth: 1,
     borderRightColor: Colors.light.glassBorder,
-    padding: 2,
   },
   dateNumberWrap: {
-    alignSelf: 'center',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
-    marginTop: 2,
   },
   dateNumberWrapToday: {
     backgroundColor: Colors.light.gold,
@@ -801,27 +803,14 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
-  overflowIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingVertical: 1,
-  },
-  overflowText: {
-    fontFamily: 'PoppinsSemiBold',
-    fontSize: 8,
-    color: '#ccc',
-  },
+
   weekEventsLayer: {
     ...StyleSheet.absoluteFillObject,
     pointerEvents: 'box-none',
   },
   absoluteEventBar: {
     position: 'absolute',
-    height: 18,
+    height: 14,
     paddingHorizontal: 4,
     justifyContent: 'center',
     shadowColor: '#000',

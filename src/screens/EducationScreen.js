@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -38,9 +39,7 @@ export default function EducationScreen() {
 
   const openLink = (url) => {
     if (url) {
-      import('react-native').then(({ Linking }) => {
-        Linking.openURL(url).catch(() => {});
-      });
+      Linking.openURL(url).catch(() => {});
     }
   };
 
@@ -85,10 +84,15 @@ export default function EducationScreen() {
         end={{ x: 0.5, y: 1 }}
         style={styles.headerGradient}
       >
-        <Text style={styles.headerTitle}>Past Courses & Materials</Text>
-        <Text style={styles.headerSubtitle}>
-          Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
-        </Text>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleLight}>TECH</Text>
+            <Text style={styles.headerTitleBold}>SUPPORT</Text>
+          </View>
+          <Text style={styles.headerSubtitle}>
+            Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
+          </Text>
+        </SafeAreaView>
       </LinearGradient>
       {loading ? (
         <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color={Colors.light.gold} /></View>
@@ -115,23 +119,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   headerGradient: {
-    paddingTop: 60, // Account for safe area
     paddingBottom: 20,
   },
-  headerTitle: {
-    fontSize: 28,
+  headerTitleContainer: {
+    marginLeft: 20,
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  headerTitleLight: {
+    fontSize: 22,
+    fontFamily: 'Cinzel',
+    color: '#aaa',
+    letterSpacing: 4,
+    marginBottom: -8,
+  },
+  headerTitleBold: {
+    fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
-    marginHorizontal: 20,
-    marginBottom: 8,
+    color: Colors.light.gold,
+    letterSpacing: 2,
   },
   headerSubtitle: {
-    fontSize: 14,
     color: Colors.light.textSecondary,
-    fontFamily: 'OpenSans',
-    marginHorizontal: 20,
-    marginBottom: 0,
-    lineHeight: 20,
+    fontSize: 16,
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom: 10,
+    lineHeight: 22,
   },
   card: {
     backgroundColor: Colors.light.glassBackground,

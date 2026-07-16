@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -47,13 +48,18 @@ export default function GigsScreen() {
       colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      style={styles.headerContainer}
+      style={styles.headerGradient}
     >
-      <Text style={styles.pageTitle}>Gig Alerts</Text>
-      <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
-      {loading && (
-        <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
-      )}
+      <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitleLight}>GIG</Text>
+          <Text style={styles.headerTitleBold}>ALERTS</Text>
+        </View>
+        <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
+        {loading && (
+          <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+        )}
+      </SafeAreaView>
     </LinearGradient>
   );
 
@@ -123,21 +129,34 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 40,
   },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 20,
+  headerGradient: {
+    paddingBottom: 10,
   },
-  pageTitle: {
-    fontSize: 32,
+  headerTitleContainer: {
+    marginLeft: 20,
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  headerTitleLight: {
+    fontSize: 22,
+    fontFamily: 'Cinzel',
+    color: '#aaa',
+    letterSpacing: 4,
+    marginBottom: -8,
+  },
+  headerTitleBold: {
+    fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
-    letterSpacing: 1,
-    marginBottom: 8,
+    color: Colors.light.gold,
+    letterSpacing: 2,
   },
   pageSubtitle: {
     color: Colors.light.textSecondary,
     fontSize: 16,
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom: 10,
+  },
     fontFamily: 'OpenSans',
     marginBottom: 10,
   },
