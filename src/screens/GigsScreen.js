@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, ScrollView, Animated as RNAnimated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -16,6 +16,7 @@ export default function GigsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
   
   const [user, setUser] = useState(null);
   const [savedGigs, setSavedGigs] = useState(new Set());
@@ -106,34 +107,105 @@ export default function GigsScreen() {
     }
   };
 
+  const renderHeroGig = ({ item }) => {
+    return (
+      <Animated.View entering={FadeInDown.duration(500)}>
+        <TouchableOpacity 
+          style={[styles.heroCard, Shadows.subtle]} 
+          activeOpacity={0.8}
+          onPress={() => handleApply(item['Link'])}
+        >
+          <LinearGradient
+            colors={['rgba(212, 175, 55, 0.2)', 'rgba(0, 0, 0, 0.4)']}
+            style={styles.heroGradient}
+          >
+            <View style={styles.heroCardHeader}>
+              <View style={styles.gigTypeContainer}>
+                <Ionicons name="flame" size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+                <Text style={styles.gigCardType}>HOT GIG</Text>
+              </View>
+              {user && (
+                <TouchableOpacity onPress={() => toggleSaveGig(item.id)} style={{ padding: 4 }}>
+                  <Ionicons 
+                    name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
+                    size={24} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : Colors.light.gold} 
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.heroCardTitle}>{item['Job Title']}</Text>
+            {(item['Company'] || item['Location']) && (
+              <Text style={styles.heroCardCompany}>
+                {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
+              </Text>
+            )}
+            <View style={[styles.applyContainer, { backgroundColor: Colors.light.gold, marginTop: 16 }]}>
+              <Text style={[styles.applyText, { color: '#000' }]}>Apply Now</Text>
+              <Ionicons name="arrow-forward" size={16} color="#000" />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   const renderHeader = () => (
-    <LinearGradient
-      colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.headerGradient}
-    >
-      <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleLight}>GIG</Text>
-          <Text style={styles.headerTitleBold}>ALERTS</Text>
+    <View>
+      <LinearGradient
+        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleLight}>GIG</Text>
+            <Text style={styles.headerTitleBold}>ALERTS</Text>
+          </View>
+          <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
+            {['All', 'Saved', 'Full-Time', 'Freelance'].map(cat => (
+              <TouchableOpacity 
+                key={cat}
+                style={[styles.filterPill, activeCategory === cat && styles.filterPillActive]} 
+                onPress={() => setActiveCategory(cat)}
+              >
+                <Text style={[styles.filterPillText, activeCategory === cat && styles.filterPillTextActive]}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {loading && (
+            <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+          )}
+        </SafeAreaView>
+      </LinearGradient>
+      {heroGig && (
+        <View style={{ paddingTop: 10 }}>
+          {renderHeroGig({ item: heroGig })}
         </View>
-        <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
-        {loading && (
-          <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
-        )}
-      </SafeAreaView>
-    </LinearGradient>
+      )}
+    </View>
   );
 
   const renderGigItem = ({ item, index }) => {
+    // Basic remote or salary detection
+    const isRemote = (item['Location'] || '').toLowerCase().includes('remote');
+    
     return (
-      <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
         <TouchableOpacity 
           style={[styles.gigCard, Shadows.subtle]} 
           activeOpacity={0.7}
           onPress={() => handleApply(item['Link'])}
         >
+          <Image 
+            source={require('../../assets/images/nola-av-logo.png.png')} 
+            style={[styles.watermarkIcon, { width: 120, height: 120, opacity: 0.04, tintColor: Colors.light.gold }]} 
+            resizeMode="contain"
+          />
           <View style={styles.gigCardContent}>
             <View style={styles.gigCardHeader}>
               <View style={styles.gigTypeContainer}>
@@ -158,6 +230,14 @@ export default function GigsScreen() {
                 {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
               </Text>
             )}
+            
+            {isRemote && (
+              <View style={styles.gigSalaryBadge}>
+                <Ionicons name="globe-outline" size={12} color="#85bb65" style={{marginRight: 4}}/>
+                <Text style={styles.gigCardSalary}>Remote</Text>
+              </View>
+            )}
+
             <LinearGradient
               colors={['rgba(212, 175, 55, 0.9)', 'rgba(179, 139, 34, 0.9)']}
               start={{ x: 0, y: 0 }}
@@ -173,6 +253,23 @@ export default function GigsScreen() {
     );
   };
 
+  const filteredGigs = gigsData.filter(gig => {
+    if (activeCategory === 'Saved') return savedGigs.has(gig.id);
+    if (activeCategory === 'Full-Time') {
+      const title = (gig['Job Title'] || '').toLowerCase();
+      return title.includes('full-time') || title.includes('full time');
+    }
+    if (activeCategory === 'Freelance') {
+      const title = (gig['Job Title'] || '').toLowerCase();
+      const source = (gig['Source'] || '').toLowerCase();
+      return title.includes('freelance') || title.includes('contract') || source.includes('gig');
+    }
+    return true; // 'All'
+  });
+
+  const heroGig = activeCategory === 'All' && filteredGigs.length > 0 ? filteredGigs[0] : null;
+  const remainingGigs = activeCategory === 'All' && filteredGigs.length > 0 ? filteredGigs.slice(1) : filteredGigs;
+
   return (
     <View style={styles.container}>
       {loading ? (
@@ -183,7 +280,7 @@ export default function GigsScreen() {
         </View>
       ) : (
         <FlatList
-          data={gigsData}
+          data={remainingGigs}
           keyExtractor={(item) => item.id}
           renderItem={renderGigItem}
           ListHeaderComponent={renderHeader}
@@ -247,6 +344,73 @@ const styles = StyleSheet.create({
     marginRight: 20,
     fontFamily: 'OpenSans',
     marginBottom: 10,
+  },
+  filtersScroll: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    paddingTop: 5,
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  filterPillActive: {
+    backgroundColor: Colors.light.gold,
+    borderColor: Colors.light.gold,
+  },
+  filterPillText: {
+    color: Colors.light.textSecondary,
+    fontSize: 13,
+    fontFamily: 'PoppinsSemiBold',
+  },
+  filterPillTextActive: {
+    color: '#000',
+  },
+  heroCard: {
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+    height: 180,
+    backgroundColor: Colors.light.backgroundElement,
+    borderWidth: 1,
+    borderColor: Colors.light.gold,
+  },
+  heroGradient: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'flex-end',
+  },
+  heroCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+  },
+  heroCardTitle: {
+    color: Colors.light.text,
+    fontSize: 22,
+    fontFamily: 'CinzelSemiBold',
+    marginBottom: 4,
+  },
+  heroCardCompany: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+    fontFamily: 'Poppins',
+  },
+  watermarkIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    transform: [{ rotate: '-15deg' }],
   },
   gigCard: {
     backgroundColor: Colors.light.glassBackground,

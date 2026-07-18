@@ -12,22 +12,44 @@ const db = admin.firestore();
 // ==========================================
 // NOTIFICATION HELPER
 // ==========================================
-async function sendExpoPushNotifications(title, body, payloadData = {}) {
-    const tokensSnapshot = await db.collection('push_tokens').get();
-    if (tokensSnapshot.empty) return;
-    
+async function sendExpoPushNotifications(title, body, payloadData = {}, target = 'all') {
+    const tokens = new Set();
     const messages = [];
-    tokensSnapshot.forEach((tokenDoc) => {
-        const data = tokenDoc.data();
-        if (data.token) {
-            messages.push({
-                to: data.token,
-                sound: 'default',
-                title: title,
-                body: body,
-                data: payloadData,
-            });
+
+    // 1. Check legacy push_tokens collection (we only use this for 'all' as a fallback)
+    if (target === 'all') {
+        const legacySnapshot = await db.collection('push_tokens').get();
+        legacySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.token) tokens.add(data.token);
+        });
+    }
+
+    // 2. Check modern users collection where preferences live
+    const usersSnapshot = await db.collection('users').get();
+    usersSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.pushToken) {
+            const prefs = data.notificationPrefs || {};
+            let shouldSend = true;
+            if (target === 'gigs' && prefs.gigs === false) shouldSend = false;
+            if (target === 'calendar' && prefs.calendar === false) shouldSend = false;
+            if (target === 'news' && prefs.news === false) shouldSend = false;
+            
+            if (shouldSend) tokens.add(data.pushToken);
         }
+    });
+
+    if (tokens.size === 0) return;
+    
+    tokens.forEach((token) => {
+        messages.push({
+            to: token,
+            sound: 'default',
+            title: title,
+            body: body,
+            data: payloadData,
+        });
     });
 
     if (messages.length > 0) {
@@ -571,7 +593,20 @@ exports.syncMasterSheetToApp = onSchedule(
 
         for (const config of syncConfigs) {
             console.log(`\nFetching data from ${config.tab}...`);
-            const data = await getSheetData(config.tab);
+            let data = await getSheetData(config.tab);
+
+            // Filter jobs to only those discovered in the last 48 hours
+            if (config.collection === 'av_gigs') {
+                const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+                const originalLength = data.length;
+                data = data.filter(item => {
+                    if (!item['date_discovered']) return true; // Sync if no date exists
+                    const discovered = new Date(item['date_discovered']);
+                    return !isNaN(discovered) && discovered >= fortyEightHoursAgo;
+                });
+                console.log(`Filtered ${config.tab}: ${originalLength} total -> ${data.length} recent items (last 48h).`);
+            }
+
             const trackNew = config.collection === 'av_gigs' || config.collection === 'calendar_events';
             const result = await pushToCollection(config.collection, data, config.getId, trackNew);
             
@@ -582,16 +617,42 @@ exports.syncMasterSheetToApp = onSchedule(
         if (totalNewGigs > 0) {
             const title = `New Gigs Available!`;
             const body = `${totalNewGigs} new ${totalNewGigs === 1 ? 'gig has' : 'gigs have'} been posted to the board.`;
-            await sendExpoPushNotifications(title, body, {});
+            await sendExpoPushNotifications(title, body, { url: '/(tabs)/gigs' }, 'gigs');
         }
         
         if (totalNewEvents > 0) {
             const title = `New Events Added!`;
             const body = `${totalNewEvents} new ${totalNewEvents === 1 ? 'event has' : 'events have'} been added to the calendar.`;
-            await sendExpoPushNotifications(title, body, {});
+            await sendExpoPushNotifications(title, body, { url: '/(tabs)/' }, 'calendar');
         }
 
         console.log("\nMaster Sheet Sync complete!");
     }
 );
+
+// ==========================================
+// ADMIN BROADCAST TOOL
+// ==========================================
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+
+exports.sendAdminBroadcast = onCall(async (request) => {
+    // Note: For option C (openly visible), we don't enforce authentication on this cloud function.
+    // If transitioning to Option A, we would add:
+    // if (!request.auth || request.auth.token.email !== 'shimeong@gmail.com') {
+    //     throw new HttpsError('permission-denied', 'Only admins can broadcast notifications.');
+    // }
+
+    const { title, body, target } = request.data;
+    if (!title || !body) {
+        throw new HttpsError('invalid-argument', 'Title and Body are required.');
+    }
+
+    const payloadTarget = target || 'all';
+    console.log(`Sending Admin Broadcast [${payloadTarget}]: ${title}`);
+    
+    // Default to the home screen if they tap it
+    await sendExpoPushNotifications(title, body, { url: '/(tabs)/' }, payloadTarget);
+
+    return { success: true };
+});
 

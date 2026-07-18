@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Cinzel_400Regular, Cinzel_600SemiBold } from '@expo-google-fonts/cinzel';
@@ -10,7 +10,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../src/firebase';
+import { db, auth } from '../src/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { LogBox } from 'react-native';
 
 LogBox.ignoreLogs([
@@ -98,12 +99,22 @@ export default function RootLayout() {
       registerForPushNotificationsAsync().then(token => {
         if (token) {
           setExpoPushToken(token);
-          // Save the token to Firebase
+          // Save the token to Firebase push_tokens collection (legacy fallback)
           setDoc(doc(db, 'push_tokens', token), {
             token: token,
             platform: Platform.OS,
             updatedAt: new Date().toISOString(),
           }).catch(err => console.error('Error saving push token to Firebase:', err));
+
+          // Listen to auth state and save token to user document
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              setDoc(doc(db, 'users', user.uid), {
+                pushToken: token,
+                pushUpdatedAt: new Date().toISOString(),
+              }, { merge: true }).catch(err => console.error('Error saving push token to User document:', err));
+            }
+          });
         }
       });
 
@@ -114,6 +125,13 @@ export default function RootLayout() {
           const data = response.notification.request.content.data;
           if (data && data.apply_link) {
             Linking.openURL(data.apply_link).catch(err => console.error("Error opening link from notification:", err));
+          }
+          if (data && data.url) {
+            try {
+              router.navigate(data.url);
+            } catch (err) {
+              console.error("Error deep linking:", err);
+            }
           }
         });
       }

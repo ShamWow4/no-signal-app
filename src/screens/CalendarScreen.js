@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, Dimensions, RefreshControl, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, Dimensions, RefreshControl, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -10,14 +10,6 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../components/SkeletonCard';
-
-const VENUES = {
-  'NOMCC':              { label: 'MCCNO',          color: '#4a90e2' },
-  'Hyatt Regency':      { label: 'Hyatt Regency',  color: '#50b86c' },
-  'Sheraton New Orleans':{ label: 'Sheraton',       color: '#e8954a' },
-  'Hilton Riverside':   { label: 'Hilton',          color: '#c0574a' },
-  'Marriott':           { label: 'Marriott',        color: '#9b6bb5' },
-};
 
 function parseDate(str) {
   if (!str) return null;
@@ -82,6 +74,22 @@ export default function CalendarScreen() {
   
   const [user, setUser] = useState(null);
   const [savedEvents, setSavedEvents] = useState(new Set());
+
+  const dynamicVenues = useMemo(() => {
+    const uniqueVenues = Array.from(new Set(events.map(e => e.venue).filter(v => v))).sort();
+    const colors = ['#4a90e2', '#50b86c', '#e8954a', '#c0574a', '#9b6bb5', '#d3a625', '#45b8ac', '#e08283', '#7b90d2', '#f3715c'];
+    
+    const venueMap = {};
+    uniqueVenues.forEach((venue, index) => {
+      // Use original venue as label if it's short, otherwise truncate it nicely
+      const label = venue.length > 20 ? venue.substring(0, 17) + '...' : venue;
+      venueMap[venue] = {
+        label: label,
+        color: colors[index % colors.length]
+      };
+    });
+    return venueMap;
+  }, [events]);
 
   const fetchEvents = async (isRefresh = false) => {
     try {
@@ -209,6 +217,9 @@ export default function CalendarScreen() {
   };
 
   const filteredEvents = events.filter(e => {
+    if (activeVenue === 'saved') {
+      return savedEvents.has(e.id) && (e.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    }
     const matchesVenue = activeVenue === 'all' || e.venue === activeVenue;
     const matchesSearch = (e.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesVenue && matchesSearch;
@@ -262,7 +273,13 @@ export default function CalendarScreen() {
         >
           <Text style={[styles.filterPillText, activeVenue === 'all' && styles.filterPillTextActive]}>All Venues</Text>
         </TouchableOpacity>
-        {Object.entries(VENUES).map(([key, config]) => (
+        <TouchableOpacity 
+          style={[styles.filterPill, activeVenue === 'saved' && styles.filterPillActive]} 
+          onPress={() => setActiveVenue('saved')}
+        >
+          <Text style={[styles.filterPillText, activeVenue === 'saved' && styles.filterPillTextActive]}>Saved</Text>
+        </TouchableOpacity>
+        {Object.entries(dynamicVenues).map(([key, config]) => (
           <TouchableOpacity 
             key={key}
             style={[styles.filterPill, activeVenue === key && styles.filterPillActive]} 
@@ -277,7 +294,7 @@ export default function CalendarScreen() {
   );
 
 const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleSaveEvent }) => {
-  const venueConfig = VENUES[item.venue] || { label: item.venue, color: '#888' };
+  const venueConfig = dynamicVenues[item.venue] || { label: item.venue, color: '#888' };
   const start = parseDate(item.loadIn);
   const end = parseDate(item.loadOut);
   const month = start.toLocaleString('default', { month: 'short' }).toUpperCase();
@@ -287,10 +304,15 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
   return (
     <Animated.View entering={FadeInDown.delay((index % 10) * 50).duration(500)}>
       <TouchableOpacity 
-        style={[styles.eventCard, Shadows.subtle]} 
+        style={[styles.eventCard, Shadows.subtle, { overflow: 'hidden' }]} 
         activeOpacity={0.7}
         onPress={() => onPress(item)}
       >
+      <Image 
+        source={require('../../assets/images/nola-av-logo.png.png')} 
+        style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
+        resizeMode="contain"
+      />
       <View style={styles.cardDateBlock}>
         <Text style={styles.cardMonth}>{month}</Text>
         <Text style={styles.cardDay}>{day}</Text>
@@ -522,7 +544,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
                   
                   <View style={styles.weekEventsLayer}>
                     {visibleLayouts.map(layout => {
-                      const venueConfig = VENUES[layout.event.venue] || { color: '#888' };
+                      const venueConfig = dynamicVenues[layout.event.venue] || { color: '#888' };
                       const left = `${layout.startCol * (100 / 7)}%`;
                       const rightCol = 7 - (layout.startCol + layout.duration);
                       const right = `${rightCol * (100 / 7)}%`;
@@ -567,7 +589,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
 
   const renderModal = () => {
     if (!selectedEvent) return null;
-    const venueConfig = VENUES[selectedEvent.venue] || { label: selectedEvent.venue, color: '#888' };
+    const venueConfig = dynamicVenues[selectedEvent.venue] || { label: selectedEvent.venue, color: '#888' };
     const start = parseDate(selectedEvent.loadIn);
     const end = parseDate(selectedEvent.loadOut);
     
