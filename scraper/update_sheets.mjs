@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { google } from 'googleapis';
 
-const SPREADSHEET_ID = '1G1FENjoI-CZmKzqbTWWHEfRJ9Q8FkP8379clSpFR2Xg';
+const SPREADSHEET_ID = '1q3UNaTuyHbJ630R8UPZyxcGow00HQGaaRZ6YiSOEB1A';
 const CREDENTIALS_PATH = 'google-credentials.json';
 
 async function pushDataToSheet(sheets, tabName, filePath, columnsCount) {
@@ -69,26 +69,26 @@ async function updateSheets() {
     
     const allEventRows = [...encoreRows, ...mccnoRows];
     if (allEventRows.length > 0) {
-        console.log(`Pushing ${allEventRows.length} rows to Sheet1 (Events)...`);
+        console.log(`Pushing ${allEventRows.length} rows to calendar_events...`);
         try {
-            await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: 'A:Z' });
+            await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: 'calendar_events!A:Z' });
             await sheets.spreadsheets.values.update({
                 spreadsheetId: SPREADSHEET_ID,
-                range: 'A1',
+                range: 'calendar_events!A1',
                 valueInputOption: 'USER_ENTERED',
                 requestBody: { values: allEventRows }
             });
-            console.log("Success! Sheet1 (Events) updated.");
+            console.log("Success! calendar_events updated.");
         } catch(e) {
-            console.error("Failed to update Sheet1:", e.message);
+            console.error("Failed to update calendar_events:", e.message);
         }
     }
 
     // 2. Push AV News
-    await pushDataToSheet(sheets, 'Newsletter_AV News', 'av_news.tsv');
+    await pushDataToSheet(sheets, 'news_feed', 'av_news.tsv');
 
     // 3. Push AV Gigs
-    await pushDataToSheet(sheets, 'Newsletter_Gigs', 'av_gigs.tsv');
+    await pushDataToSheet(sheets, 'gig_alerts', 'av_gigs.tsv');
 
     // 4. Push AV Directory
     // Combine baseline and new directory
@@ -104,22 +104,22 @@ async function updateSheets() {
     
     const allDirectoryRows = [...baselineDir, ...newDir];
     if (allDirectoryRows.length > 0) {
-        console.log(`Pushing ${allDirectoryRows.length} rows to Newsletter_AV Directory...`);
+        console.log(`Pushing ${allDirectoryRows.length} rows to labor_directory...`);
         try {
-            await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "'Newsletter_AV Directory'!A:Z" });
+            await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "labor_directory!A:Z" });
             await sheets.spreadsheets.values.update({
                 spreadsheetId: SPREADSHEET_ID,
-                range: "'Newsletter_AV Directory'!A1",
+                range: "labor_directory!A1",
                 valueInputOption: 'USER_ENTERED',
                 requestBody: { values: allDirectoryRows }
             });
-            console.log("Success! Newsletter_AV Directory updated.");
+            console.log("Success! labor_directory updated.");
         } catch(e) {
-            console.error("Failed to update Newsletter_AV Directory. Does the tab exist?", e.message);
+            console.error("Failed to update labor_directory. Does the tab exist?", e.message);
         }
     }
-    // 5. Push AV Training & Tech Support
-    await pushDataToSheet(sheets, 'Newsletter_Tech Support', 'av_training.tsv');
+    // 5. Push AV Training
+    await pushDataToSheet(sheets, 'av_training', 'av_training.tsv');
 }
 
 updateSheets();

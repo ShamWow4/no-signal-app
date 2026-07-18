@@ -1,41 +1,104 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs, query, limit, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SkeletonCard from '../components/SkeletonCard';
 
 export default function GigsScreen() {
   const [gigsData, setGigsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const [user, setUser] = useState(null);
+  const [savedGigs, setSavedGigs] = useState(new Set());
+
+  const fetchGigs = async (isRefresh = false) => {
+    try {
+      if (!isRefresh) {
+        const cachedData = await AsyncStorage.getItem('cache_gigs');
+        if (cachedData) {
+          setGigsData(JSON.parse(cachedData));
+          setLoading(false);
+        }
+      }
+
+      const q = query(collection(db, 'av_gigs'), limit(20));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const fetchedGigs = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setGigsData(fetchedGigs);
+        await AsyncStorage.setItem('cache_gigs', JSON.stringify(fetchedGigs));
+      } else {
+        setGigsData([]);
+        await AsyncStorage.setItem('cache_gigs', JSON.stringify([]));
+      }
+    } catch (err) {
+      console.error("Error fetching gigs:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchGigs = async () => {
-      try {
-        const q = query(collection(db, 'av_gigs'), limit(20));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          const fetchedGigs = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setGigsData(fetchedGigs);
-        } else {
-          setGigsData([]);
-        }
-      } catch (error) {
-        console.error("Error fetching gigs: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchGigs();
+    
+    let unsubDoc = null;
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setSavedGigs(new Set(data.savedGigs || []));
+          } else {
+            setDoc(userDocRef, { savedGigs: [], savedEvents: [] }, { merge: true });
+          }
+        });
+      } else {
+        setSavedGigs(new Set());
+        if (unsubDoc) unsubDoc();
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubDoc) unsubDoc();
+    };
   }, []);
+
+  const toggleSaveGig = async (gigId) => {
+    if (!user) return;
+    const isSaved = savedGigs.has(gigId);
+    const userDocRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userDocRef, {
+        savedGigs: isSaved ? arrayRemove(gigId) : arrayUnion(gigId)
+      });
+      // The onSnapshot will automatically update local state
+    } catch (err) {
+      console.error("Error toggling save gig:", err);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchGigs(true);
+  };
 
   const handleApply = (url) => {
     if (url) {
@@ -79,6 +142,15 @@ export default function GigsScreen() {
                   {item['Source'] ? item['Source'].toUpperCase() : 'GIG'}
                 </Text>
               </View>
+              {user && (
+                <TouchableOpacity onPress={() => toggleSaveGig(item.id)} style={{ padding: 4 }}>
+                  <Ionicons 
+                    name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
+                    size={22} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+                  />
+                </TouchableOpacity>
+              )}
             </View>
             <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
             {(item['Company'] || item['Location']) && (
@@ -103,20 +175,38 @@ export default function GigsScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={gigsData}
-        keyExtractor={(item) => item.id}
-        renderItem={renderGigItem}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={!loading && (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="alert-circle-outline" size={48} color={Colors.light.textSecondary} />
-            <Text style={styles.emptyText}>No gigs found right now.{'\n'}Check back later!</Text>
-          </View>
-        )}
-      />
+      {loading ? (
+        <View style={{flex: 1, paddingHorizontal: 16, paddingTop: 10}}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
+      ) : (
+        <FlatList
+          data={gigsData}
+          keyExtractor={(item) => item.id}
+          renderItem={renderGigItem}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+          }
+          ListEmptyComponent={!loading && (
+            error ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="cloud-offline-outline" size={48} color="#888" />
+                <Text style={styles.emptyText}>Unable to connect.{'\n'}Please check your network and try again.</Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="alert-circle-outline" size={48} color={Colors.light.textSecondary} />
+                <Text style={styles.emptyText}>No gigs found right now.{'\n'}Check back later!</Text>
+              </View>
+            )
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -155,8 +245,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 20,
     marginRight: 20,
-    marginBottom: 10,
-  },
     fontFamily: 'OpenSans',
     marginBottom: 10,
   },

@@ -1,41 +1,64 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SkeletonCard from '../components/SkeletonCard';
 
 export default function EducationScreen() {
   const [courses, setCourses] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [activeCategory, setActiveCategory] = React.useState('All');
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const fetchTraining = async (isRefresh = false) => {
+    try {
+      if (!isRefresh) {
+        const cachedData = await AsyncStorage.getItem('cache_education');
+        if (cachedData) {
+          setCourses(JSON.parse(cachedData));
+          setLoading(false);
+        }
+      }
+
+      const { collection, getDocs, query, limit } = await import('firebase/firestore');
+      const { db } = await import('../firebase');
+      const q = query(collection(db, 'av_training'), limit(30));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const fetchedCourses = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setCourses(fetchedCourses);
+        await AsyncStorage.setItem('cache_education', JSON.stringify(fetchedCourses));
+      } else {
+        setCourses([]);
+        await AsyncStorage.setItem('cache_education', JSON.stringify([]));
+      }
+    } catch (err) {
+      console.error("Error fetching education:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   React.useEffect(() => {
-    const fetchTraining = async () => {
-      try {
-        const { collection, getDocs, query, limit } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        const q = query(collection(db, 'av_training'), limit(30));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          const fetchedCourses = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setCourses(fetchedCourses);
-        } else {
-          setCourses([]);
-        }
-      } catch (error) {
-        console.error("Error fetching training: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTraining();
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchTraining(true);
+  };
 
   const openLink = (url) => {
     if (url) {
@@ -52,27 +75,45 @@ export default function EducationScreen() {
     return 'school-outline';
   };
 
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = (course['Course Title'] || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (course['Platform/Instructor'] || '').toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (activeCategory === 'All') return matchesSearch;
+    
+    const courseType = (course['Type'] || 'General').toLowerCase();
+    const isIT = courseType.includes('network') || courseType.includes('it');
+    
+    if (activeCategory === 'Audio') return matchesSearch && courseType.includes('audio');
+    if (activeCategory === 'Video') return matchesSearch && (courseType.includes('video') || courseType.includes('camera'));
+    if (activeCategory === 'Lighting') return matchesSearch && courseType.includes('light');
+    if (activeCategory === 'IT') return matchesSearch && isIT;
+    if (activeCategory === 'General') return matchesSearch && (!courseType.includes('audio') && !courseType.includes('video') && !courseType.includes('light') && !isIT);
+    
+    return matchesSearch;
+  });
+
   const renderCourse = ({ item, index }) => (
     <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
       <View style={[styles.card, Shadows.subtle]}>
         <View style={styles.cardHeader}>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
+          </View>
+          <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={24} color={Colors.light.gold} />
         </View>
-        <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={24} color={Colors.light.gold} />
+        <Text style={styles.courseTitle}>{item['Course Title']}</Text>
+        <View style={styles.instructorRow}>
+          <Ionicons name="person" size={14} color="#888" />
+          <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
+        </View>
+        {item['Duration'] && (
+          <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
+        )}
+        <TouchableOpacity style={styles.actionButton} onPress={() => openLink(item['Link'])}>
+          <Text style={styles.actionButtonText}>View Course</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.courseTitle}>{item['Course Title']}</Text>
-      <View style={styles.instructorRow}>
-        <Ionicons name="person" size={14} color="#888" />
-        <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
-      </View>
-      {item['Duration'] && (
-        <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
-      )}
-      <TouchableOpacity style={styles.actionButton} onPress={() => openLink(item['Link'])}>
-        <Text style={styles.actionButtonText}>View Course</Text>
-      </TouchableOpacity>
-    </View>
     </Animated.View>
   );
 
@@ -92,19 +133,61 @@ export default function EducationScreen() {
           <Text style={styles.headerSubtitle}>
             Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
           </Text>
+          
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search courses or providers..."
+              placeholderTextColor={Colors.light.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
+            {['All', 'Audio', 'Video', 'Lighting', 'IT', 'General'].map(cat => (
+              <TouchableOpacity 
+                key={cat}
+                style={[styles.filterPill, activeCategory === cat && styles.filterPillActive]} 
+                onPress={() => setActiveCategory(cat)}
+              >
+                <Text style={[styles.filterPillText, activeCategory === cat && styles.filterPillTextActive]}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </SafeAreaView>
       </LinearGradient>
       {loading ? (
-        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color={Colors.light.gold} /></View>
+        <View style={{flex: 1, paddingHorizontal: 16, paddingTop: 10}}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
       ) : (
         <FlatList
-          data={courses}
+          data={filteredCourses}
           keyExtractor={(item) => item.id}
           renderItem={renderCourse}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="school-outline" size={48} color={Colors.light.textSecondary} />
+              <Text style={styles.emptyText}>No courses match your search.</Text>
+            </View>
+          }
         />
       )}
+
     </View>
   );
 }
@@ -213,5 +296,68 @@ const styles = StyleSheet.create({
     color: Colors.light.gold,
     fontFamily: 'Poppins',
     fontSize: 14,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.glassBackground,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 50,
+    color: Colors.light.text,
+    fontFamily: 'Poppins',
+    fontSize: 15,
+  },
+  clearButton: {
+    padding: 5,
+  },
+  filtersScroll: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 8,
+    alignItems: 'center',
+  },
+  filterPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: Colors.light.glassBackground,
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+    marginRight: 8,
+  },
+  filterPillActive: {
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    borderColor: Colors.light.gold,
+  },
+  filterPillText: {
+    fontFamily: 'OpenSans',
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+  },
+  filterPillTextActive: {
+    color: Colors.light.gold,
+    fontWeight: 'bold',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: 'Poppins',
+    color: Colors.light.textSecondary,
   },
 });
