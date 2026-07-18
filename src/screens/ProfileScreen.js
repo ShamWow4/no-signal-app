@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Switch } from 'react-native';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, updateProfile, signInAnonymously } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { Ionicons } from '@expo-vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
@@ -14,6 +14,7 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [savedGigsCount, setSavedGigsCount] = useState(0);
   const [savedEventsCount, setSavedEventsCount] = useState(0);
+  const [prefs, setPrefs] = useState({ gigs: true, calendar: true, news: true });
   
   const router = useRouter();
 
@@ -26,15 +27,21 @@ export default function ProfileScreen() {
         
         const userDocRef = doc(db, 'users', currentUser.uid);
         unsubDoc = onSnapshot(userDocRef, (docSnapshot) => {
-          if (docSnapshot.exists()) {
-            const data = docSnapshot.data();
-            setSavedGigsCount(data.savedGigs?.length || 0);
-            setSavedEventsCount(data.savedEvents?.length || 0);
-          } else {
-            // Create doc if it doesn't exist
-            setDoc(userDocRef, { savedGigs: [], savedEvents: [] }, { merge: true });
-          }
-          setLoading(false);
+            if (docSnapshot.exists()) {
+              const data = docSnapshot.data();
+              setSavedGigsCount(data.savedGigs?.length || 0);
+              setSavedEventsCount(data.savedEvents?.length || 0);
+              
+              setPrefs({
+                gigs: data.notificationPrefs?.gigs !== false,
+                calendar: data.notificationPrefs?.calendar !== false,
+                news: data.notificationPrefs?.news !== false,
+              });
+            } else {
+              // Create doc if it doesn't exist
+              setDoc(userDocRef, { savedGigs: [], savedEvents: [], notificationPrefs: { gigs: true, calendar: true, news: true } }, { merge: true });
+            }
+            setLoading(false);
         }, (err) => {
           console.error("Error fetching user profile:", err);
           setLoading(false);
@@ -66,6 +73,20 @@ export default function ProfileScreen() {
       Alert.alert('Error', error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const togglePref = async (key, value) => {
+    if (!user) return;
+    setPrefs(prev => ({ ...prev, [key]: value }));
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        notificationPrefs: {
+          [key]: value
+        }
+      }, { merge: true });
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -133,6 +154,67 @@ export default function ProfileScreen() {
                 )}
               </TouchableOpacity>
             </View>
+
+            <View style={styles.formContainer}>
+              <Text style={styles.formTitle}>Notification Preferences</Text>
+              
+              <View style={styles.prefRow}>
+                <View style={styles.prefLeft}>
+                  <Ionicons name="musical-notes-outline" size={24} color="#D4AF37" style={styles.prefIcon} />
+                  <View>
+                    <Text style={styles.prefTitle}>Gig Alerts</Text>
+                    <Text style={styles.prefDesc}>Be notified when new gigs drop</Text>
+                  </View>
+                </View>
+                <Switch 
+                  value={prefs.gigs} 
+                  onValueChange={(val) => togglePref('gigs', val)}
+                  trackColor={{ false: '#333', true: '#FF3B30' }}
+                  thumbColor="#FFF"
+                />
+              </View>
+
+              <View style={styles.prefRow}>
+                <View style={styles.prefLeft}>
+                  <Ionicons name="calendar-outline" size={24} color="#00C4B4" style={styles.prefIcon} />
+                  <View>
+                    <Text style={styles.prefTitle}>Calendar Alerts</Text>
+                    <Text style={styles.prefDesc}>Updates on conventions & events</Text>
+                  </View>
+                </View>
+                <Switch 
+                  value={prefs.calendar} 
+                  onValueChange={(val) => togglePref('calendar', val)}
+                  trackColor={{ false: '#333', true: '#FF3B30' }}
+                  thumbColor="#FFF"
+                />
+              </View>
+
+              <View style={styles.prefRow}>
+                <View style={styles.prefLeft}>
+                  <Ionicons name="newspaper-outline" size={24} color="#4A90E2" style={styles.prefIcon} />
+                  <View>
+                    <Text style={styles.prefTitle}>News Alerts</Text>
+                    <Text style={styles.prefDesc}>Tourism news & press releases</Text>
+                  </View>
+                </View>
+                <Switch 
+                  value={prefs.news} 
+                  onValueChange={(val) => togglePref('news', val)}
+                  trackColor={{ false: '#333', true: '#FF3B30' }}
+                  thumbColor="#FFF"
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.adminButton} 
+              onPress={() => router.push('/admin')}
+            >
+              <Ionicons name="shield-checkmark-outline" size={20} color="#D4AF37" style={{marginRight: 8}} />
+              <Text style={styles.adminButtonText}>Admin Broadcast</Text>
+            </TouchableOpacity>
+            
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -257,4 +339,46 @@ const styles = StyleSheet.create({
     fontFamily: 'PoppinsSemiBold',
     fontSize: 16,
   },
+  prefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  prefLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  prefIcon: {
+    marginRight: 16,
+  },
+  prefTitle: {
+    fontFamily: 'PoppinsSemiBold',
+    fontSize: 16,
+    color: '#FFF',
+  },
+  prefDesc: {
+    fontFamily: 'OpenSans',
+    fontSize: 12,
+    color: '#AAA',
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    width: '100%'
+  },
+  adminButtonText: {
+    color: '#D4AF37',
+    fontFamily: 'PoppinsSemiBold',
+    fontSize: 14,
+  }
 });

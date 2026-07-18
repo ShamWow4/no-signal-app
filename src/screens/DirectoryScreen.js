@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Linking, Platform, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -12,6 +13,9 @@ export default function DirectoryScreen() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [user, setUser] = useState(null);
+  const [savedCompanies, setSavedCompanies] = useState(new Set());
 
   useEffect(() => {
     const fetchDirectory = async () => {
@@ -47,10 +51,60 @@ export default function DirectoryScreen() {
     fetchDirectory();
   }, []);
 
-  const filteredCompanies = companies.filter(company => 
-    company.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    company.type?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    let unsubDoc = null;
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setSavedCompanies(new Set(data.savedCompanies || []));
+          } else {
+            setDoc(userDocRef, { savedCompanies: [] }, { merge: true });
+          }
+        });
+      } else {
+        setSavedCompanies(new Set());
+        if (unsubDoc) unsubDoc();
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubDoc) unsubDoc();
+    };
+  }, []);
+
+  const toggleSaveCompany = async (companyId) => {
+    if (!user) return;
+    const isSaved = savedCompanies.has(companyId);
+    const userDocRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userDocRef, {
+        savedCompanies: isSaved ? arrayRemove(companyId) : arrayUnion(companyId)
+      });
+    } catch (err) {
+      console.error("Error toggling save company:", err);
+    }
+  };
+
+  const dynamicCategories = Array.from(new Set(companies.map(c => c.type).filter(t => t))).sort();
+  const categories = ['All', 'Saved', ...dynamicCategories];
+
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          company.type?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (activeCategory === 'Saved') {
+      return savedCompanies.has(company.id) && matchesSearch;
+    }
+    if (activeCategory !== 'All') {
+      return company.type === activeCategory && matchesSearch;
+    }
+    return matchesSearch;
+  });
 
   const handleLink = (type, value) => {
     if (!value) return;
@@ -73,12 +127,26 @@ export default function DirectoryScreen() {
 
   const renderItem = ({ item, index }) => (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(500)}>
-      <View style={[styles.card, Shadows.subtle]}>
+      <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
+        <Image 
+          source={require('../../assets/images/nola-av-logo.png.png')} 
+          style={[styles.watermarkIcon, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
+          resizeMode="contain"
+        />
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleContainer}>
             <Text style={styles.companyName}>{item.name}</Text>
             <Text style={styles.companyType}>{item.type}</Text>
           </View>
+          {user && (
+            <TouchableOpacity onPress={() => toggleSaveCompany(item.id)} style={{ padding: 4, zIndex: 10 }}>
+              <Ionicons 
+                name={savedCompanies.has(item.id) ? "heart" : "heart-outline"} 
+                size={22} 
+                color={savedCompanies.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+              />
+            </TouchableOpacity>
+          )}
         </View>
         
         {item.description && (
@@ -153,6 +221,19 @@ export default function DirectoryScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
+          {categories.map(cat => (
+            <TouchableOpacity 
+              key={cat}
+              style={[styles.filterPill, activeCategory === cat && styles.filterPillActive]} 
+              onPress={() => setActiveCategory(cat)}
+            >
+              <Text style={[styles.filterPillText, activeCategory === cat && styles.filterPillTextActive]}>{cat}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         </SafeAreaView>
       </LinearGradient>
 
@@ -228,6 +309,39 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 5,
+  },
+  filtersScroll: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 5,
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  filterPillActive: {
+    backgroundColor: Colors.light.gold,
+    borderColor: Colors.light.gold,
+  },
+  filterPillText: {
+    color: Colors.light.textSecondary,
+    fontSize: 13,
+    fontFamily: 'PoppinsSemiBold',
+  },
+  filterPillTextActive: {
+    color: '#000',
+  },
+  watermarkIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    transform: [{ rotate: '-15deg' }],
+    zIndex: 0,
   },
   list: {
     paddingHorizontal: 20,

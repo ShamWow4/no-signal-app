@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, TextInput, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { collection, getDocs, query, limit, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +18,8 @@ export default function EducationScreen() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeCategory, setActiveCategory] = React.useState('All');
   const [refreshing, setRefreshing] = React.useState(false);
+  const [user, setUser] = React.useState(null);
+  const [savedCourses, setSavedCourses] = React.useState(new Set());
 
   const fetchTraining = async (isRefresh = false) => {
     try {
@@ -26,8 +31,6 @@ export default function EducationScreen() {
         }
       }
 
-      const { collection, getDocs, query, limit } = await import('firebase/firestore');
-      const { db } = await import('../firebase');
       const q = query(collection(db, 'av_training'), limit(30));
       const querySnapshot = await getDocs(q);
       
@@ -55,6 +58,45 @@ export default function EducationScreen() {
     fetchTraining();
   }, []);
 
+  React.useEffect(() => {
+    let unsubDoc = null;
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setSavedCourses(new Set(data.savedCourses || []));
+          } else {
+            setDoc(userDocRef, { savedCourses: [] }, { merge: true });
+          }
+        });
+      } else {
+        setSavedCourses(new Set());
+        if (unsubDoc) unsubDoc();
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubDoc) unsubDoc();
+    };
+  }, []);
+
+  const toggleSaveCourse = async (courseId) => {
+    if (!user) return;
+    const isSaved = savedCourses.has(courseId);
+    const userDocRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userDocRef, {
+        savedCourses: isSaved ? arrayRemove(courseId) : arrayUnion(courseId)
+      });
+    } catch (err) {
+      console.error("Error toggling save course:", err);
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchTraining(true);
@@ -75,47 +117,123 @@ export default function EducationScreen() {
     return 'school-outline';
   };
 
+  const dynamicCategories = Array.from(new Set(courses.map(c => c['Type']).filter(t => t))).sort();
+  const categories = ['All', 'Saved', ...dynamicCategories];
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch = (course['Course Title'] || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (course['Platform/Instructor'] || '').toLowerCase().includes(searchQuery.toLowerCase());
     
+    if (activeCategory === 'Saved') return matchesSearch && savedCourses.has(course.id);
     if (activeCategory === 'All') return matchesSearch;
     
-    const courseType = (course['Type'] || 'General').toLowerCase();
-    const isIT = courseType.includes('network') || courseType.includes('it');
-    
-    if (activeCategory === 'Audio') return matchesSearch && courseType.includes('audio');
-    if (activeCategory === 'Video') return matchesSearch && (courseType.includes('video') || courseType.includes('camera'));
-    if (activeCategory === 'Lighting') return matchesSearch && courseType.includes('light');
-    if (activeCategory === 'IT') return matchesSearch && isIT;
-    if (activeCategory === 'General') return matchesSearch && (!courseType.includes('audio') && !courseType.includes('video') && !courseType.includes('light') && !isIT);
-    
-    return matchesSearch;
+    return matchesSearch && course['Type'] === activeCategory;
   });
 
-  const renderCourse = ({ item, index }) => (
-    <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
-      <View style={[styles.card, Shadows.subtle]}>
+  const renderHeroCourse = (item) => (
+    <Animated.View entering={FadeInDown.duration(500)}>
+      <LinearGradient
+        colors={['#1F1F1F', '#000000']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.heroCard, Shadows.medium, { overflow: 'hidden' }]}
+      >
+        <Image 
+          source={require('../../assets/images/nola-av-logo.png.png')} 
+          style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: Colors.light.gold, right: -40, bottom: -40 }]} 
+          resizeMode="contain"
+        />
         <View style={styles.cardHeader}>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={[styles.categoryBadge, { backgroundColor: 'rgba(211, 166, 37, 0.2)' }]}>
+              <Text style={[styles.categoryText, { color: Colors.light.gold, fontWeight: 'bold' }]}>FEATURED</Text>
+            </View>
+            <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={16} color={Colors.light.gold} style={{ marginLeft: 8 }} />
           </View>
-          <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={24} color={Colors.light.gold} />
+          {user && (
+            <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
+              <Ionicons 
+                name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
+                size={28} 
+                color={savedCourses.has(item.id) ? "#FF3B30" : "rgba(255,255,255,0.5)"} 
+              />
+            </TouchableOpacity>
+          )}
         </View>
-        <Text style={styles.courseTitle}>{item['Course Title']}</Text>
-        <View style={styles.instructorRow}>
+        <Text style={[styles.courseTitle, { color: '#FFF', fontSize: 26, marginTop: 10 }]}>{item['Course Title']}</Text>
+        <View style={[styles.instructorRow, { marginTop: 10 }]}>
           <Ionicons name="person" size={14} color="#888" />
-          <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
+          <Text style={[styles.instructorText, { color: '#CCC', fontSize: 16 }]}>{item['Platform/Instructor']}</Text>
         </View>
         {item['Duration'] && (
-          <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
+          <Text style={[styles.courseDescription, { color: '#AAA' }]}>Duration: {item['Duration']}</Text>
         )}
-        <TouchableOpacity style={styles.actionButton} onPress={() => openLink(item['Link'])}>
-          <Text style={styles.actionButtonText}>View Course</Text>
+        <TouchableOpacity onPress={() => openLink(item['Link'])}>
+          <LinearGradient
+            colors={[Colors.light.gold, '#B8860B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.actionButton, { marginTop: 10, borderWidth: 0 }]}
+          >
+            <Text style={[styles.actionButtonText, { color: '#000', fontFamily: 'PoppinsSemiBold' }]}>Start Learning</Text>
+          </LinearGradient>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
     </Animated.View>
   );
+
+  const renderCourse = ({ item, index }) => {
+    if (index === 0 && activeCategory === 'All' && !searchQuery) {
+      return renderHeroCourse(item);
+    }
+    
+    return (
+      <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
+        <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
+          <Image 
+            source={require('../../assets/images/nola-av-logo.png.png')} 
+            style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: Colors.light.gold }]} 
+            resizeMode="contain"
+          />
+          <View style={styles.cardHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
+              </View>
+              <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={16} color={Colors.light.gold} style={{ marginLeft: 8 }} />
+            </View>
+            {user && (
+              <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
+                <Ionicons 
+                  name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
+                  size={24} 
+                  color={savedCourses.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={styles.courseTitle}>{item['Course Title']}</Text>
+          <View style={styles.instructorRow}>
+            <Ionicons name="person" size={14} color="#888" />
+            <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
+          </View>
+          {item['Duration'] && (
+            <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
+          )}
+          <TouchableOpacity onPress={() => openLink(item['Link'])}>
+            <LinearGradient
+              colors={[Colors.light.gold, '#B8860B']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.actionButton, { borderWidth: 0 }]}
+            >
+              <Text style={[styles.actionButtonText, { color: '#000' }]}>View Course</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -151,7 +269,7 @@ export default function EducationScreen() {
           </View>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-            {['All', 'Audio', 'Video', 'Lighting', 'IT', 'General'].map(cat => (
+            {categories.map(cat => (
               <TouchableOpacity 
                 key={cat}
                 style={[styles.filterPill, activeCategory === cat && styles.filterPillActive]} 
@@ -239,6 +357,23 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.glassBorder,
     boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
     elevation: 4,
+  },
+  heroCard: {
+    backgroundColor: '#1F1F1F',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    boxShadow: '0px 8px 24px rgba(212, 175, 55, 0.15)',
+    elevation: 6,
+  },
+  watermarkIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    transform: [{ rotate: '-15deg' }],
+    zIndex: 0,
   },
   cardHeader: {
     flexDirection: 'row',
