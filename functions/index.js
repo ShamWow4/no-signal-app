@@ -1,7 +1,9 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const axios = require("axios");
-const { appendRow } = require('./sheetsSync');
+const { appendRow, getSheetData } = require('./sheetsSync');
+const crypto = require('crypto');
+const { scrapeEventNow } = require('./scraper/scrape_no');
 
 // Initialize Firebase Admin to access Firestore and Push Notifications
 admin.initializeApp();
@@ -137,12 +139,6 @@ exports.dailyGigScraper = onSchedule(
                             source_url: url,
                             date_discovered: new Date().toISOString()
                         });
-
-                        // Construct the Push Notification payload
-                        const title = `New Gig Alert: ${job.job_title}`;
-                        const body = job.description ? job.description.substring(0, 100) + '...' : 'Tap to view details and apply.';
-                        
-                        await sendExpoPushNotifications(title, body, { apply_link: job.apply_link });
                     }
                 }
             } catch (error) {
@@ -231,10 +227,6 @@ exports.dailyNewsScraper = onSchedule(
                             source_url: url,
                             date_discovered: new Date().toISOString()
                         });
-                        
-                        const title = `Industry News: ${article.title}`;
-                        const body = article.excerpt ? article.excerpt : 'Tap to read more.';
-                        await sendExpoPushNotifications(title, body, { source_link: article.source_link });
                     }
                 }
             } catch (error) {
@@ -293,18 +285,33 @@ async function scrapeCalendar(targetUrl) {
 }
 
 exports.dailyCalendarScraper = onSchedule(
-    { schedule: "0 6 * * *", timeZone: "America/Chicago" },
+    { schedule: "0 6 * * *", timeZone: "America/Chicago", timeoutSeconds: 300, memory: "2GiB" },
     async (event) => {
         console.log("Starting daily AV calendar sweep...");
 
         for (const url of CALENDAR_TARGET_URLS) {
             try {
-                const scrapedEvents = await scrapeCalendar(url);
+                let scrapedEvents = [];
+                if (url.includes('eventnow.encoreglobal.com')) {
+                    console.log("Using Puppeteer to scrape EventNow...");
+                    const rawEvents = await scrapeEventNow();
+                    scrapedEvents = rawEvents.map(e => ({
+                        name: e.title,
+                        venue: e.venue,
+                        loadIn: e.loadIn,
+                        loadOut: e.loadOut,
+                        type: 'Tradeshow/Convention',
+                        hall: ''
+                    }));
+                } else {
+                    scrapedEvents = await scrapeCalendar(url);
+                }
+                
                 if (!scrapedEvents || scrapedEvents.length === 0) continue;
 
                 for (const ev of scrapedEvents) {
                     const eventId = Buffer.from(`${ev.name}-${ev.venue}-${ev.loadIn}`).toString('base64url');
-                    const eventRef = db.collection('calendar_events').doc(eventId);
+                    const eventRef = db.collection('calendar_events_raw').doc(eventId);
                     const doc = await eventRef.get();
 
                     if (!doc.exists) {
@@ -326,10 +333,6 @@ exports.dailyCalendarScraper = onSchedule(
                             source_url: url,
                             date_discovered: new Date().toISOString()
                         });
-                        
-                        const title = `New Event: ${ev.name}`;
-                        const body = `Venue: ${ev.venue} | Load In: ${ev.loadIn}`;
-                        await sendExpoPushNotifications(title, body, { });
                     }
                 }
             } catch (error) {
@@ -339,3 +342,256 @@ exports.dailyCalendarScraper = onSchedule(
         console.log("Daily calendar sweep complete.");
     }
 );
+
+// ==========================================
+// DAILY DIRECTORY SCRAPER
+// ==========================================
+exports.dailyDirectoryScraper = onSchedule(
+    { schedule: "0 4 * * *", timeZone: "America/Chicago", timeoutSeconds: 300, memory: "1GiB" },
+    async (event) => {
+        console.log("Starting Daily Directory Scraper...");
+        
+        try {
+            const response = await axios.post('https://api.firecrawl.dev/v1/scrape', {
+                url: "https://www.yelp.com/search?find_desc=Audio+Visual+Equipment+Rental&find_loc=New+Orleans%2C+LA",
+                formats: ["extract"],
+                extract: {
+                    prompt: "Extract a list of audio visual, production, and event labor companies from the page. Exclude companies that only do DJ services or weddings.",
+                    schema: {
+                        type: "object",
+                        properties: {
+                            companies: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        name: { type: "string" },
+                                        type: { type: "string" },
+                                        phone: { type: "string" },
+                                        website: { type: "string" }
+                                    },
+                                    required: ["name"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY || 'fc-5308d0d6ba954d18adae9c4996e1ab94'}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.data && response.data.success && response.data.data && response.data.data.extract) {
+                const newCompanies = response.data.data.extract.companies || [];
+                console.log(`Found ${newCompanies.length} companies. Checking for duplicates...`);
+                
+                const directoryRef = db.collection('labor_directory_raw');
+                
+                for (const company of newCompanies) {
+                    // Generate a safe ID based on company name
+                    const docId = Buffer.from(company.name.toLowerCase().replace(/\s+/g, '')).toString('base64url');
+                    const doc = await directoryRef.doc(docId).get();
+                    
+                    if (!doc.exists) {
+                        await directoryRef.doc(docId).set(company);
+                        console.log(`+ Appending to Google Sheets: ${company.name}`);
+                        await appendRow('labor_directory', {
+                            'Company Name': company.name || '',
+                            'Company Website': company.website || '',
+                            'Contact phone number': company.phone || '',
+                            'Contact Name': '',
+                            'Position': '',
+                            'Email': '',
+                            'Type': company.type || 'COMPANY'
+                        });
+                    } else {
+                        console.log(`- Skipped existing: ${company.name}`);
+                    }
+                }
+            }
+        } catch(e) {
+            console.error("Failed to scrape directory:", e.message);
+        }
+    }
+);
+
+// ==========================================
+// DAILY TRAINING SCRAPER
+// ==========================================
+exports.dailyTrainingScraper = onSchedule(
+    { schedule: "0 5 * * *", timeZone: "America/Chicago", timeoutSeconds: 500, memory: "1GiB" },
+    async (event) => {
+        console.log("Starting Daily Training Scraper...");
+        
+        const urls = [
+            'https://www.avixa.org/training-section',
+            'https://www.ui.com/training/',
+            'https://www.prosoundtraining.com/?s=free+training'
+        ];
+        
+        const schema = {
+            type: 'object',
+            properties: {
+                courses: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            title: { type: 'string' },
+                            provider: { type: 'string' },
+                            cost: { type: 'string', description: "e.g., 'Free', 'Paid', or specific price" },
+                            link: { type: 'string' },
+                            description: { type: 'string' }
+                        },
+                        required: ['title', 'provider', 'cost', 'link']
+                    }
+                }
+            }
+        };
+
+        const apiKey = process.env.FIRECRAWL_API_KEY || 'fc-5308d0d6ba954d18adae9c4996e1ab94';
+        const trainingRef = db.collection('av_training_raw');
+
+        for (const url of urls) {
+            console.log(`Scraping training from ${url}...`);
+            try {
+                const response = await axios.post('https://api.firecrawl.dev/v1/scrape', {
+                    url: url,
+                    formats: ["extract"],
+                    extract: { 
+                        prompt: 'Extract any Audio/Video or AV industry relevant training courses or certifications. Prioritize extracting free coursework if available, followed by paid content. Include course title, provider, cost (free/paid), link, and a short description.',
+                        schema: schema
+                    }
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.data && response.data.success && response.data.data && response.data.data.extract) {
+                    const courses = response.data.data.extract.courses || [];
+                    for (const c of courses) {
+                        const titleLower = (c.title || '').toLowerCase().replace(/\s+/g, '');
+                        if (!titleLower) continue;
+                        
+                        const docId = Buffer.from(titleLower).toString('base64url');
+                        const doc = await trainingRef.doc(docId).get();
+                        
+                        if (!doc.exists) {
+                            await trainingRef.doc(docId).set(c);
+                            console.log(`+ Appending to Google Sheets: ${c.title}`);
+                            await appendRow('av_training', {
+                                'Course Title': c.title || '',
+                                'Platform/Instructor': c.provider || '',
+                                'Type': (c.title || '').toLowerCase().includes('audio') ? 'Audio' : 'General',
+                                'Link': c.link || '',
+                                'Duration': '',
+                                'Price': c.cost || ''
+                            });
+                        } else {
+                            console.log(`- Skipped existing: ${c.title}`);
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error(`Failed to scrape ${url}:`, e.message);
+            }
+        }
+    }
+);
+
+// ==========================================
+// MASTER SHEET SYNC TO APP
+// ==========================================
+
+function generateId(string) {
+    return crypto.createHash('md5').update(string).digest('hex');
+}
+
+async function pushToCollection(collectionName, data, idFieldGetter, trackNew = false) {
+    if (!data || data.length === 0) {
+        console.log(`No data to push to ${collectionName}.`);
+        return { count: 0, newDocsCount: 0 };
+    }
+    
+    console.log(`Pushing ${data.length} items to ${collectionName}...`);
+    const batch = db.batch();
+    const collectionRef = db.collection(collectionName);
+    
+    let count = 0;
+    let newDocsCount = 0;
+
+    for (const item of data) {
+        const idString = idFieldGetter(item);
+        if (!idString) continue;
+        
+        const docId = generateId(idString);
+        const docRef = collectionRef.doc(docId);
+        
+        if (trackNew) {
+            const doc = await docRef.get();
+            if (!doc.exists) {
+                newDocsCount++;
+            }
+        }
+        
+        batch.set(docRef, item, { merge: true });
+        count++;
+        
+        if (count % 400 === 0) {
+            await batch.commit();
+            console.log(`Committed ${count} items...`);
+        }
+    }
+    if (count % 400 !== 0) {
+        await batch.commit();
+    }
+    console.log(`Successfully pushed ${count} items to ${collectionName}. (${newDocsCount} new)`);
+    return { count, newDocsCount };
+}
+
+exports.syncMasterSheetToApp = onSchedule(
+    { schedule: "0 12 * * *", timeZone: "America/Chicago", timeoutSeconds: 300, memory: "2GiB" },
+    async (event) => {
+        console.log("Starting Master Sheet Sync to Firebase...");
+
+        const syncConfigs = [
+            { tab: 'calendar_events', collection: 'calendar_events', getId: item => item['Title'] ? item['Title'] + (item['Dates']||'') : null },
+            { tab: 'news_feed', collection: 'av_news', getId: item => item['Title'] ? item['Title'] + (item['Date']||'') : null },
+            { tab: 'gig_alerts', collection: 'av_gigs', getId: item => item['Job Title'] ? item['Job Title'] + (item['Company']||'') : null },
+            { tab: 'labor_directory', collection: 'labor_directory', getId: item => item['Company Name'] ? item['Company Name'] : null },
+            { tab: 'av_training', collection: 'av_training', getId: item => item['Course Title'] ? item['Course Title'] : null }
+        ];
+
+        let totalNewGigs = 0;
+        let totalNewEvents = 0;
+
+        for (const config of syncConfigs) {
+            console.log(`\nFetching data from ${config.tab}...`);
+            const data = await getSheetData(config.tab);
+            const trackNew = config.collection === 'av_gigs' || config.collection === 'calendar_events';
+            const result = await pushToCollection(config.collection, data, config.getId, trackNew);
+            
+            if (config.collection === 'av_gigs') totalNewGigs = result.newDocsCount;
+            if (config.collection === 'calendar_events') totalNewEvents = result.newDocsCount;
+        }
+
+        if (totalNewGigs > 0) {
+            const title = `New Gigs Available!`;
+            const body = `${totalNewGigs} new ${totalNewGigs === 1 ? 'gig has' : 'gigs have'} been posted to the board.`;
+            await sendExpoPushNotifications(title, body, {});
+        }
+        
+        if (totalNewEvents > 0) {
+            const title = `New Events Added!`;
+            const body = `${totalNewEvents} new ${totalNewEvents === 1 ? 'event has' : 'events have'} been added to the calendar.`;
+            await sendExpoPushNotifications(title, body, {});
+        }
+
+        console.log("\nMaster Sheet Sync complete!");
+    }
+);
+

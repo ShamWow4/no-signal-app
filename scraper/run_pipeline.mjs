@@ -7,7 +7,7 @@ const scripts = [
     { name: '4. Scraping AV Directory', command: 'node scrape_av_directory.mjs' },
     { name: '5. Scraping AV Training', command: 'node scrape_av_training.mjs' },
     { name: '6. Syncing to Google Sheets', command: 'node update_sheets.mjs' },
-    { name: '7. Syncing to Firebase (Live App)', command: 'node pushToFirebase.mjs' }
+    { name: '7. Syncing to Firebase (Live App)', command: 'node syncSheetsToFirebase.mjs' }
 ];
 
 console.log('=============================================');

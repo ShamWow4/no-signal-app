@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, Dimensions, RefreshControl, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SkeletonCard from '../components/SkeletonCard';
 
 const VENUES = {
   'NOMCC':              { label: 'MCCNO',          color: '#4a90e2' },
@@ -17,20 +20,39 @@ const VENUES = {
 };
 
 function parseDate(str) {
-  if (!str) return new Date();
-  return new Date(str.includes('T') ? str : str + 'T00:00');
+  if (!str) return null;
+  // If it's already an ISO string or includes T, try to parse it
+  if (str.includes('T')) {
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  
+  // Custom parsing for 'MM/DD/YYYY' etc. Let JS parse it naturally.
+  let d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+
+  // Fallback for YYYY-MM-DD missing T
+  if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
+    const isoStr = str.replace(' ', 'T');
+    const fallbackD = new Date(isoStr);
+    if (!isNaN(fallbackD.getTime())) return fallbackD;
+  }
+
+  return null;
 }
 
 function getDurationDays(start, end) {
   if (!start || !end) return 1;
   const s = parseDate(start);
   const e = parseDate(end);
+  if (!s || !e) return 1;
   return Math.max(1, Math.round((e - s) / 86400000));
 }
 
 function formatGoogleDate(dateStr) {
   if (!dateStr) return '';
   const d = parseDate(dateStr);
+  if (!d) return '';
   return d.toISOString().replace(/-|:|\.\d\d\d/g, "");
 }
 
@@ -45,8 +67,10 @@ function generateGoogleCalendarLink(event) {
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [activeView, setActiveView] = useState('list'); // Default to list view
   const [activeVenue, setActiveVenue] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [selectedEvent, setSelectedEvent] = useState(null);
   
@@ -54,25 +78,45 @@ export default function CalendarScreen() {
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'calendar_events'));
-        const eventsList = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const [user, setUser] = useState(null);
+  const [savedEvents, setSavedEvents] = useState(new Set());
 
-        const twoWeeksAgo = new Date(today);
-        twoWeeksAgo.setDate(today.getDate() - 14);
+  const fetchEvents = async (isRefresh = false) => {
+    try {
+      if (!isRefresh) {
+        const cachedData = await AsyncStorage.getItem('cache_calendar');
+        if (cachedData) {
+          setEvents(JSON.parse(cachedData));
+          setLoading(false);
+        }
+      }
 
-        querySnapshot.forEach((doc) => {
-          const d = doc.data();
-          let loadIn = d.loadIn;
-          let loadOut = d.loadOut;
+      const querySnapshot = await getDocs(collection(db, 'calendar_events'));
+      const eventsList = [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-          // Parse 'Dates' field from scraper (e.g. '07/10/2026 - 07/12/2026' or '07/10/2026')
-          if (d['Dates']) {
-            const parts = d['Dates'].split('-').map(s => s.trim());
+      const twoWeeksAgo = new Date(today);
+      twoWeeksAgo.setDate(today.getDate() - 14);
+
+      querySnapshot.forEach((doc) => {
+        const d = doc.data();
+        let loadIn = d.loadIn;
+        let loadOut = d.loadOut;
+
+        if (d['Dates']) {
+          const datesStr = d['Dates'];
+          if (datesStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+            loadIn = datesStr;
+            if (d.City && d.City.match(/^\d{4}-\d{2}-\d{2}/)) {
+              loadOut = d.City;
+            } else {
+              loadOut = datesStr;
+            }
+          } else {
+            const parts = datesStr.split('-').map(s => s.trim());
             if (parts.length === 2) {
               loadIn = parts[0];
               loadOut = parts[1];
@@ -81,33 +125,94 @@ export default function CalendarScreen() {
               loadOut = parts[0];
             }
           }
+        }
 
-          const endDate = parseDate(loadOut);
-          if (endDate >= twoWeeksAgo) {
-            eventsList.push({ 
-              id: doc.id,
-              name: d['Title'] || d.name,
-              venue: d['Venue'] || d.venue,
-              location: d['City'] || d.location,
-              loadIn,
-              loadOut,
-              type: d.type || 'CONVENTION'
-            });
+        const endDate = parseDate(loadOut);
+        if (!endDate || endDate >= twoWeeksAgo) {
+          eventsList.push({
+            id: doc.id,
+            name: d.Title || d.name,
+            venue: d.Venue || d.venue,
+            hall: d.hall || '',
+            location: (d['City'] && d['City'].match(/^\d{4}-\d{2}-\d{2}/)) ? 'NEW ORLEANS, LA' : (d['City'] || d.location),
+            loadIn,
+            loadOut,
+            type: d.type || 'Event',
+            url: d.url || '',
+            originalData: d
+          });
+        }
+      });
+      
+      eventsList.sort((a, b) => {
+        const dA = parseDate(a.loadIn);
+        const dB = parseDate(b.loadIn);
+        if (!dA) return 1;
+        if (!dB) return -1;
+        return dA - dB;
+      });
+      setEvents(eventsList);
+      await AsyncStorage.setItem('cache_calendar', JSON.stringify(eventsList));
+    } catch (err) {
+      console.error("Error fetching calendar:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+    
+    let unsubDoc = null;
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setSavedEvents(new Set(data.savedEvents || []));
+          } else {
+            setDoc(userDocRef, { savedGigs: [], savedEvents: [] }, { merge: true });
           }
         });
-        
-        eventsList.sort((a, b) => parseDate(a.loadIn) - parseDate(b.loadIn));
-        setEvents(eventsList);
-      } catch (error) {
-        console.error("Error fetching calendar events: ", error);
-      } finally {
-        setLoading(false);
+      } else {
+        setSavedEvents(new Set());
+        if (unsubDoc) unsubDoc();
       }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubDoc) unsubDoc();
     };
-    fetchEvents();
   }, []);
 
-  const filteredEvents = activeVenue === 'all' ? events : events.filter(e => e.venue === activeVenue);
+  const toggleSaveEvent = async (eventId) => {
+    if (!user) return;
+    const isSaved = savedEvents.has(eventId);
+    const userDocRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userDocRef, {
+        savedEvents: isSaved ? arrayRemove(eventId) : arrayUnion(eventId)
+      });
+    } catch (err) {
+      console.error("Error toggling save event:", err);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEvents(true);
+  };
+
+  const filteredEvents = events.filter(e => {
+    const matchesVenue = activeVenue === 'all' || e.venue === activeVenue;
+    const matchesSearch = (e.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesVenue && matchesSearch;
+  });
 
   const openURL = (url) => {
     if (url) {
@@ -134,6 +239,22 @@ export default function CalendarScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search conventions..."
+          placeholderTextColor={Colors.light.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+            <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
         <TouchableOpacity 
           style={[styles.filterPill, activeVenue === 'all' && styles.filterPillActive]} 
@@ -155,7 +276,7 @@ export default function CalendarScreen() {
     </View>
   );
 
-const EventCard = React.memo(({ item, index, onPress }) => {
+const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleSaveEvent }) => {
   const venueConfig = VENUES[item.venue] || { label: item.venue, color: '#888' };
   const start = parseDate(item.loadIn);
   const end = parseDate(item.loadOut);
@@ -177,7 +298,21 @@ const EventCard = React.memo(({ item, index, onPress }) => {
       </View>
       
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Text style={[styles.cardTitle, { flex: 1, paddingRight: 8 }]} numberOfLines={2}>{item.name}</Text>
+          {user && (
+            <TouchableOpacity 
+              onPress={() => toggleSaveEvent(item.id)} 
+              style={{ padding: 4, marginTop: -4 }}
+            >
+              <Ionicons 
+                name={savedEvents.has(item.id) ? "heart" : "heart-outline"} 
+                size={22} 
+                color={savedEvents.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+              />
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={styles.cardDetailRow}>
           <Ionicons name="location" size={12} color={venueConfig.color} />
           <Text style={styles.cardDetailText} numberOfLines={1}>{venueConfig.label}{item.hall ? ` - ${item.hall}` : ''}</Text>
@@ -204,8 +339,15 @@ const EventCard = React.memo(({ item, index, onPress }) => {
   }, []);
 
   const renderEventItem = React.useCallback(({ item, index }) => (
-    <EventCard item={item} index={index} onPress={handlePressEvent} />
-  ), [handlePressEvent]);
+    <EventCard 
+      item={item} 
+      index={index} 
+      onPress={handlePressEvent} 
+      user={user} 
+      savedEvents={savedEvents} 
+      toggleSaveEvent={toggleSaveEvent} 
+    />
+  ), [handlePressEvent, user, savedEvents]);
 
   const renderAgendaList = () => {
     if (filteredEvents.length === 0) return <Text style={styles.emptyText}>No upcoming events found.</Text>;
@@ -216,6 +358,9 @@ const EventCard = React.memo(({ item, index, onPress }) => {
         keyExtractor={item => item.id}
         renderItem={renderEventItem}
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+        }
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
@@ -284,6 +429,9 @@ const EventCard = React.memo(({ item, index, onPress }) => {
           <ScrollView 
             style={styles.gridBodyContinuous}
             contentContainerStyle={{ flexGrow: 1 }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+            }
           >
             {(() => {
               let globalMaxLevel = 0;
@@ -295,6 +443,7 @@ const EventCard = React.memo(({ item, index, onPress }) => {
                 const weekEvents = filteredEvents.filter(e => {
                   const eStart = parseDate(e.loadIn);
                   const eEnd = parseDate(e.loadOut);
+                  if (!eStart || !eEnd) return false;
                   eStart.setHours(0,0,0,0);
                   eEnd.setHours(23,59,59,999);
                   return (eStart <= weekEnd && eEnd >= weekStart);
@@ -433,7 +582,18 @@ const EventCard = React.memo(({ item, index, onPress }) => {
               colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]} 
               style={styles.modalHeader}
             >
-              <Text style={styles.modalTitle}>{selectedEvent.name}</Text>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%'}}>
+                <Text style={[styles.modalTitle, {flex: 1, paddingRight: 10}]}>{selectedEvent.name}</Text>
+                {user && (
+                  <TouchableOpacity onPress={() => toggleSaveEvent(selectedEvent.id)} style={{ padding: 4 }}>
+                    <Ionicons 
+                      name={savedEvents.has(selectedEvent.id) ? "heart" : "heart-outline"} 
+                      size={28} 
+                      color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : Colors.light.gold} 
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
               <View style={[styles.badge, { backgroundColor: venueConfig.color + '1a', borderColor: venueConfig.color }]}>
                 <View style={[styles.filterDot, { backgroundColor: venueConfig.color }]} />
                 <Text style={[styles.badgeText, { color: venueConfig.color }]}>{venueConfig.label}</Text>
@@ -515,7 +675,16 @@ const EventCard = React.memo(({ item, index, onPress }) => {
       </LinearGradient>
 
       {loading ? (
-        <View style={{flex: 1, justifyContent: 'center'}}><ActivityIndicator size="large" color="#D3A625" /></View>
+        <View style={{flex: 1, paddingHorizontal: 16, paddingTop: 10}}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
+      ) : error ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="cloud-offline-outline" size={48} color="#888" />
+          <Text style={[styles.emptyText, { marginTop: 16, textAlign: 'center' }]}>Unable to connect.{"\n"}Please check your network and try again.</Text>
+        </View>
       ) : (
         <View style={{flex: 1, paddingHorizontal: 16}}>
           {activeView === 'list' ? renderAgendaList() : renderMonthGrid()}
@@ -623,6 +792,28 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.glassBackground,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 45,
+    color: Colors.light.text,
+    fontFamily: 'Poppins',
+    fontSize: 14,
+  },
+  clearButton: {
+    padding: 5,
   },
   
   // Event Cards

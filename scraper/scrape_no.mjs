@@ -120,7 +120,14 @@ import fs from 'fs';
                 city = city.replace(/\s+/g, ' ');
 
                 if (city.toUpperCase().includes('NEW ORLEANS')) {
-                    results.push({ title, venue, dates, city });
+                    let loadIn = dates;
+                    let loadOut = dates;
+                    if (dates.includes('-')) {
+                        const parts = dates.split('-');
+                        loadIn = parts[0].trim();
+                        loadOut = parts[1].trim();
+                    }
+                    results.push({ title, venue, loadIn, loadOut, city });
                 }
             });
             return results;
@@ -166,8 +173,8 @@ import fs from 'fs';
     await browser.close();
     
     console.log("Saving to new_orleans_events.tsv...");
-    const header = ['Title', 'Venue', 'Dates', 'City'].join('\t') + '\n';
-    const rows = allEvents.map(e => `${e.title}\t${e.venue}\t${e.dates}\t${e.city}`).join('\n');
+    const header = ['Title', 'Venue', 'loadIn', 'loadOut', 'City'].join('\t') + '\n';
+    const rows = allEvents.map(e => `${e.title}\t${e.venue}\t${e.loadIn}\t${e.loadOut}\t${e.city}`).join('\n');
     fs.writeFileSync('new_orleans_events.tsv', header + rows);
     console.log(`Done! Exported ${allEvents.length} events.`);
 })();

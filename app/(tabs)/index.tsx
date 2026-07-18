@@ -1,6 +1,6 @@
 import React from 'react';
-import HomeScreen from '../../src/screens/HomeScreen';
+import CalendarScreen from '../../src/screens/CalendarScreen';
 
-export default function HomeTab() {
-  return <HomeScreen />;
+export default function CalendarTab() {
+  return <CalendarScreen />;
 }

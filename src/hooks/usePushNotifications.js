@@ -34,13 +34,13 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+      
       return;
     }
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
     if (!projectId) {
-      console.log('Project ID not found');
+      
     }
     try {
       const pushTokenString = (
@@ -50,10 +50,10 @@ async function registerForPushNotificationsAsync() {
       ).data;
       token = pushTokenString;
     } catch (e) {
-      console.error(e);
+      
     }
   } else {
-    console.log('Must use physical device for push notifications');
+    
   }
 
   return token;
@@ -78,7 +78,7 @@ export function usePushNotifications() {
               platform: Platform.OS
             }, { merge: true });
           } catch (error) {
-            console.error("Error saving push token to Firebase", error);
+            
           }
         }
       })
@@ -89,7 +89,7 @@ export function usePushNotifications() {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log(response);
+      
     });
 
     return () => {
