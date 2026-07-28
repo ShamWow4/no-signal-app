@@ -43,6 +43,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "204567994817-7p50nk88442t2e05tlpf5blmbb0q00kp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nosignal.app",
+            "certificate_hash": "fea6b3e800c25e8b2f93bdf7e760bfcb8f2d8c6e"
+          }
+        },
+        {
           "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -37,10 +37,22 @@ export default function DirectoryScreen() {
           });
         });
         
-        // Sort alphabetically by name
-        companyList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        // Deduplicate companyList by normalized company name
+        const seenCompanies = new Set();
+        const uniqueCompanies = [];
+
+        for (const comp of companyList) {
+          const normName = (comp.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (normName && !seenCompanies.has(normName)) {
+            seenCompanies.add(normName);
+            uniqueCompanies.push(comp);
+          }
+        }
         
-        setCompanies(companyList);
+        // Sort alphabetically by name
+        uniqueCompanies.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        
+        setCompanies(uniqueCompanies);
       } catch (error) {
         console.error("Error fetching labor directory: ", error);
       } finally {
@@ -109,20 +121,23 @@ export default function DirectoryScreen() {
   const handleLink = (type, value) => {
     if (!value) return;
     
-    let url = value;
+    let url = value.trim();
     if (type === 'phone') {
-      url = Platform.OS === 'android' ? `tel:${value}` : `telprompt:${value}`;
+      const cleanPhone = value.replace(/[^0-9+]/g, '');
+      url = Platform.OS === 'android' ? `tel:${cleanPhone}` : `telprompt:${cleanPhone}`;
     } else if (type === 'email') {
       url = `mailto:${value}`;
-    }
-    
-    Linking.canOpenURL(url).then(supported => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        console.log(`Don't know how to open URI: ${url}`);
+    } else if (type === 'website') {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
       }
-    });
+    }
+
+    if (Platform.OS === 'web') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url).catch(err => console.log(`Error opening URI: ${url}`, err));
+    }
   };
 
   const renderItem = ({ item, index }) => (

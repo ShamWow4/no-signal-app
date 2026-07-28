@@ -5,24 +5,44 @@ import fs from 'fs';
     const response = await fetch('https://mccno.com/wp-content/uploads/events_json/full_calendar_json.json');
     const events = await response.json();
     
-    console.log(`Found ${events.length} events in JSON! Formatting to TSV...`);
+    console.log(`Found ${events.length} raw event entries in JSON! Deduplicating & formatting...`);
     
-    const header = ['Title', 'Venue', 'loadIn', 'loadOut', 'City'].join('\t') + '\n';
+    const uniqueEventsMap = new Map();
     
-    const rows = events.map(e => {
-        const title = e.title ? e.title.replace(/\s+/g, ' ') : '';
-        const venue = e.venue ? e.venue.replace(/\s+/g, ' ') : 'MCCNO';
+    for (const e of events) {
+        if (!e.title) continue;
+        const cleanTitle = e.title.trim().replace(/\s+/g, ' ');
+        const normKey = cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
         
-        // Extract start and end directly from the JSON dates
-        // e.startDT or e.start look like "2026-07-16T00:00:00"
         const loadIn = e.startDT || e.start || '';
         const loadOut = e.endDT || e.end || '';
-        
-        const city = 'NEW ORLEANS, LA';
-        
-        return `${title}\t${venue}\t${loadIn}\t${loadOut}\t${city}`;
-    }).join('\n');
+        const rawHall = e.venue ? e.venue.trim().replace(/\s+/g, ' ') : '';
+        const venue = 'NOMCC';
+
+        if (uniqueEventsMap.has(normKey)) {
+            const existing = uniqueEventsMap.get(normKey);
+            // Combine venue halls if different
+            if (rawHall && !existing.hall.includes(rawHall)) {
+                existing.hall = `${existing.hall}, ${rawHall}`;
+            }
+        } else {
+            uniqueEventsMap.set(normKey, {
+                title: cleanTitle,
+                venue,
+                hall: rawHall,
+                loadIn,
+                loadOut,
+                city: 'NEW ORLEANS, LA'
+            });
+        }
+    }
+    
+    const uniqueEvents = Array.from(uniqueEventsMap.values());
+    console.log(`Deduplicated to ${uniqueEvents.length} unique events.`);
+    
+    const header = ['Title', 'Venue', 'loadIn', 'loadOut', 'City', 'hall'].join('\t') + '\n';
+    const rows = uniqueEvents.map(e => `${e.title}\t${e.venue}\t${e.loadIn}\t${e.loadOut}\t${e.city}\t${e.hall}`).join('\n');
     
     fs.writeFileSync('mccno_events.tsv', header + rows);
-    console.log(`Done! Exported to mccno_events.tsv`);
+    console.log(`Done! Saved ${uniqueEvents.length} clean events to mccno_events.tsv`);
 })();

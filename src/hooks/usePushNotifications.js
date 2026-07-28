@@ -49,7 +49,7 @@ async function registerForPushNotificationsAsync() {
         })
       ).data;
       token = pushTokenString;
-    } catch (e) {
+    } catch (_e) {
       
     }
   } else {
@@ -77,7 +77,7 @@ export function usePushNotifications() {
               createdAt: new Date(),
               platform: Platform.OS
             }, { merge: true });
-          } catch (error) {
+          } catch (_error) {
             
           }
         }
@@ -88,15 +88,17 @@ export function usePushNotifications() {
       setNotification(notification);
     });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((_response) => {
       
     });
 
     return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
     };
   }, []);
 

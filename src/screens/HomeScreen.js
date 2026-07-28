@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
@@ -7,36 +7,12 @@ import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const FALLBACK_FEED = [
-  {
-    id: '1',
-    type: 'announcement',
-    title: 'Fall Courses Registration Open',
-    date: 'Oct 1, 2026',
-    excerpt: 'Sign up now for our upcoming Live Video Switching and Resolume Arena training modules.',
-  },
-  {
-    id: '2',
-    type: 'news',
-    title: 'NVA Supports MCCNO Tech Convention',
-    date: 'Sep 28, 2026',
-    excerpt: 'Our recent graduates successfully ran A/V for the massive 3-day tech convention at the convention center!',
-  },
-  {
-    id: '3',
-    type: 'event',
-    title: 'Upcoming Community Meetup',
-    date: 'Sep 15, 2026',
-    excerpt: 'Join us for a networking session and hands-on gear showcase this Friday.',
-  },
-];
-
 export default function HomeScreen() {
 
   const [feedData, setFeedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(false);
+  const [, setError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
 
   const fetchFeed = async (isRefresh = false) => {
@@ -56,7 +32,7 @@ export default function HomeScreen() {
       } else {
         setFeedData([]);
       }
-    } catch (err) {
+    } catch (_err) {
       setError(true);
     } finally {
       setLoading(false);
@@ -65,6 +41,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFeed();
   }, []);
 
@@ -83,8 +60,15 @@ export default function HomeScreen() {
   };
 
   const openLink = (url) => {
-    if (url) {
-      Linking.openURL(url).catch(() => {});
+    if (!url) return;
+    let clean = url.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      clean = `https://${clean}`;
+    }
+    if (Platform.OS === 'web') {
+      window.open(clean, '_blank');
+    } else {
+      Linking.openURL(clean).catch(() => {});
     }
   };
 
@@ -131,7 +115,7 @@ export default function HomeScreen() {
         Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
         Animated.timing(translateY, { toValue: 0, duration: 600, useNativeDriver: true })
       ]).start();
-    }, []);
+    }, [fadeAnim, translateY]);
 
     return (
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
@@ -180,7 +164,7 @@ export default function HomeScreen() {
           useNativeDriver: true,
         })
       ]).start();
-    }, []);
+    }, [fadeAnim, index, translateY]);
 
     return (
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>

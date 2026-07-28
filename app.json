@@ -23,7 +23,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nosignal.app"
+      "package": "com.nosignal.app",
+      "versionCode": 3
     },
     "web": {
       "output": "static",
@@ -46,6 +47,8 @@
         "expo-build-properties",
         {
           "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
             "kotlinVersion": "2.1.20"
           }
         }

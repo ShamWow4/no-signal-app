@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking, ScrollView, Modal, Dimensions, RefreshControl, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, ScrollView, Modal, RefreshControl, TextInput, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -33,13 +33,7 @@ function parseDate(str) {
   return null;
 }
 
-function getDurationDays(start, end) {
-  if (!start || !end) return 1;
-  const s = parseDate(start);
-  const e = parseDate(end);
-  if (!s || !e) return 1;
-  return Math.max(1, Math.round((e - s) / 86400000));
-}
+
 
 function formatGoogleDate(dateStr) {
   if (!dateStr) return '';
@@ -60,7 +54,7 @@ export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeView, setActiveView] = useState('list'); // Default to list view
+  const [activeView, setActiveView] = useState('calendar'); // Default to calendar view
   const [activeVenue, setActiveVenue] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -68,7 +62,6 @@ export default function CalendarScreen() {
   
   // State for Month Grid Navigation
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
 
   const [refreshing, setRefreshing] = useState(false);
   
@@ -76,16 +69,36 @@ export default function CalendarScreen() {
   const [savedEvents, setSavedEvents] = useState(new Set());
 
   const dynamicVenues = useMemo(() => {
-    const uniqueVenues = Array.from(new Set(events.map(e => e.venue).filter(v => v))).sort();
-    const colors = ['#4a90e2', '#50b86c', '#e8954a', '#c0574a', '#9b6bb5', '#d3a625', '#45b8ac', '#e08283', '#7b90d2', '#f3715c'];
+    let uniqueVenues = Array.from(new Set(events.map(e => e.venue).filter(v => v))).sort();
+    
+    // Ensure NOMCC is included and exclude standalone room/hall names
+    uniqueVenues = uniqueVenues.filter(venue => {
+      const v = venue.toLowerCase();
+      if (v.includes('hall') || v.includes('theater') || v.includes('ballroom') || v.includes('la nouvelle') || v.includes('auditorium')) {
+        return false;
+      }
+      return true;
+    });
+
+    // Make sure NOMCC is always listed first if present
+    if (uniqueVenues.includes('NOMCC')) {
+      uniqueVenues = ['NOMCC', ...uniqueVenues.filter(v => v !== 'NOMCC')];
+    }
+
+    const colors = ['#D3A625', '#4a90e2', '#50b86c', '#e8954a', '#c0574a', '#9b6bb5', '#45b8ac', '#e08283', '#7b90d2', '#f3715c'];
     
     const venueMap = {};
     uniqueVenues.forEach((venue, index) => {
-      // Use original venue as label if it's short, otherwise truncate it nicely
-      const label = venue.length > 20 ? venue.substring(0, 17) + '...' : venue;
+      let label = venue;
+      if (venue === 'NOMCC' || venue.includes('Morial') || venue.includes('MCCNO')) {
+        label = 'NOMCC';
+      } else if (venue.length > 20) {
+        label = venue.substring(0, 17) + '...';
+      }
+
       venueMap[venue] = {
         label: label,
-        color: colors[index % colors.length]
+        color: (venue === 'NOMCC' || label === 'NOMCC') ? '#D3A625' : colors[index % colors.length]
       };
     });
     return venueMap;
@@ -96,7 +109,17 @@ export default function CalendarScreen() {
       if (!isRefresh) {
         const cachedData = await AsyncStorage.getItem('cache_calendar');
         if (cachedData) {
-          setEvents(JSON.parse(cachedData));
+          const parsed = JSON.parse(cachedData);
+          const seenCache = new Set();
+          const cleanCache = parsed.filter(e => {
+            const k = (e.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (k && !seenCache.has(k)) {
+              seenCache.add(k);
+              return true;
+            }
+            return false;
+          });
+          setEvents(cleanCache);
           setLoading(false);
         }
       }
@@ -111,10 +134,10 @@ export default function CalendarScreen() {
 
       querySnapshot.forEach((doc) => {
         const d = doc.data();
-        let loadIn = d.loadIn;
-        let loadOut = d.loadOut;
+        let loadIn = d.loadIn || d['Show Start'] || d['ShowStart'];
+        let loadOut = d.loadOut || d['Show End'] || d['ShowEnd'];
 
-        if (d['Dates']) {
+        if (!loadIn && d['Dates']) {
           const datesStr = d['Dates'];
           if (datesStr.match(/^\d{4}-\d{2}-\d{2}/)) {
             loadIn = datesStr;
@@ -135,13 +158,36 @@ export default function CalendarScreen() {
           }
         }
 
+        if (!loadOut && loadIn) {
+          loadOut = loadIn;
+        }
+
         const endDate = parseDate(loadOut);
         if (!endDate || endDate >= twoWeeksAgo) {
+          let venueStr = d.Venue || d.venue || 'NOMCC';
+          let hallStr = d.hall || '';
+
+          const vLower = venueStr.toLowerCase();
+          if (vLower.includes('marriott')) {
+            venueStr = 'New Orleans Marriott';
+          } else if (vLower.includes('morial') || 
+              vLower.includes('mccno') || 
+              vLower.includes('nomcc') || 
+              vLower.includes('hall') || 
+              vLower.includes('ballroom') || 
+              vLower.includes('la nouvelle') || 
+              vLower.includes('auditorium')) {
+            if (!hallStr && (vLower.includes('hall') || vLower.includes('ballroom') || vLower.includes('la nouvelle') || vLower.includes('auditorium'))) {
+              hallStr = venueStr;
+            }
+            venueStr = 'NOMCC';
+          }
+
           eventsList.push({
             id: doc.id,
             name: d.Title || d.name,
-            venue: d.Venue || d.venue,
-            hall: d.hall || '',
+            venue: venueStr,
+            hall: hallStr,
             location: (d['City'] && d['City'].match(/^\d{4}-\d{2}-\d{2}/)) ? 'NEW ORLEANS, LA' : (d['City'] || d.location),
             loadIn,
             loadOut,
@@ -152,15 +198,28 @@ export default function CalendarScreen() {
         }
       });
       
-      eventsList.sort((a, b) => {
+      // Deduplicate eventsList by normalized title key
+      const seenEventKeys = new Set();
+      const uniqueEventsList = [];
+
+      for (const event of eventsList) {
+        const normTitle = (event.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (normTitle && !seenEventKeys.has(normTitle)) {
+          seenEventKeys.add(normTitle);
+          uniqueEventsList.push(event);
+        }
+      }
+
+      uniqueEventsList.sort((a, b) => {
         const dA = parseDate(a.loadIn);
         const dB = parseDate(b.loadIn);
         if (!dA) return 1;
         if (!dB) return -1;
         return dA - dB;
       });
-      setEvents(eventsList);
-      await AsyncStorage.setItem('cache_calendar', JSON.stringify(eventsList));
+      setEvents(uniqueEventsList);
+      await AsyncStorage.setItem('cache_calendar', JSON.stringify(uniqueEventsList));
     } catch (err) {
       console.error("Error fetching calendar:", err);
       setError(true);
@@ -171,6 +230,7 @@ export default function CalendarScreen() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEvents();
     
     let unsubDoc = null;
@@ -198,7 +258,7 @@ export default function CalendarScreen() {
     };
   }, []);
 
-  const toggleSaveEvent = async (eventId) => {
+  const toggleSaveEvent = React.useCallback(async (eventId) => {
     if (!user) return;
     const isSaved = savedEvents.has(eventId);
     const userDocRef = doc(db, 'users', user.uid);
@@ -209,25 +269,43 @@ export default function CalendarScreen() {
     } catch (err) {
       console.error("Error toggling save event:", err);
     }
-  };
+  }, [user, savedEvents]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchEvents(true);
   };
 
-  const filteredEvents = events.filter(e => {
-    if (activeVenue === 'saved') {
-      return savedEvents.has(e.id) && (e.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEvents = useMemo(() => {
+    let result = events;
+    if (activeVenue !== 'all') {
+      if (activeVenue === 'saved') {
+        result = result.filter(e => savedEvents.has(e.id));
+      } else {
+        result = result.filter(e => e.venue === activeVenue);
+      }
     }
-    const matchesVenue = activeVenue === 'all' || e.venue === activeVenue;
-    const matchesSearch = (e.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesVenue && matchesSearch;
-  });
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(e => 
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.venue && e.venue.toLowerCase().includes(q)) ||
+        (e.location && e.location.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [events, activeVenue, searchQuery, savedEvents]);
 
   const openURL = (url) => {
-    if (url) {
-      Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    if (!url) return;
+    let clean = url.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://') && !clean.startsWith('tel:') && !clean.startsWith('mailto:')) {
+      clean = `https://${clean}`;
+    }
+    if (Platform.OS === 'web') {
+      window.open(clean, '_blank');
+    } else {
+      Linking.openURL(clean).catch(err => console.error("Couldn't load page", err));
     }
   };
 
@@ -235,18 +313,18 @@ export default function CalendarScreen() {
     <View style={styles.controlsContainer}>
       <View style={styles.viewToggle}>
         <TouchableOpacity 
-          style={[styles.viewBtn, activeView === 'list' && styles.viewBtnActive]} 
-          onPress={() => setActiveView('list')}
-        >
-          <Ionicons name="list" size={16} color={activeView === 'list' ? '#000' : '#888'} />
-          <Text style={[styles.viewBtnText, activeView === 'list' && styles.viewBtnTextActive]}>AGENDA</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
           style={[styles.viewBtn, activeView === 'calendar' && styles.viewBtnActive]} 
           onPress={() => setActiveView('calendar')}
         >
           <Ionicons name="calendar-outline" size={16} color={activeView === 'calendar' ? '#000' : '#888'} />
           <Text style={[styles.viewBtnText, activeView === 'calendar' && styles.viewBtnTextActive]}>MONTH</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.viewBtn, activeView === 'list' && styles.viewBtnActive]} 
+          onPress={() => setActiveView('list')}
+        >
+          <Ionicons name="list" size={16} color={activeView === 'list' ? '#000' : '#888'} />
+          <Text style={[styles.viewBtnText, activeView === 'list' && styles.viewBtnTextActive]}>AGENDA</Text>
         </TouchableOpacity>
       </View>
 
@@ -293,13 +371,9 @@ export default function CalendarScreen() {
     </View>
   );
 
-const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleSaveEvent }) => {
-  const venueConfig = dynamicVenues[item.venue] || { label: item.venue, color: '#888' };
+const EventCard = React.memo(({ item, index, onPress }) => {
   const start = parseDate(item.loadIn);
   const end = parseDate(item.loadOut);
-  const month = start.toLocaleString('default', { month: 'short' }).toUpperCase();
-  const day = start.getDate();
-  const duration = getDurationDays(item.loadIn, item.loadOut);
   
   return (
     <Animated.View entering={FadeInDown.delay((index % 10) * 50).duration(500)}>
@@ -313,32 +387,6 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
         style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
         resizeMode="contain"
       />
-      <View style={styles.cardDateBlock}>
-        <Text style={styles.cardMonth}>{month}</Text>
-        <Text style={styles.cardDay}>{day}</Text>
-        <Text style={styles.cardDuration}>{duration} {duration === 1 ? 'DAY' : 'DAYS'}</Text>
-      </View>
-      
-      <View style={styles.cardContent}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Text style={[styles.cardTitle, { flex: 1, paddingRight: 8 }]} numberOfLines={2}>{item.name}</Text>
-          {user && (
-            <TouchableOpacity 
-              onPress={() => toggleSaveEvent(item.id)} 
-              style={{ padding: 4, marginTop: -4 }}
-            >
-              <Ionicons 
-                name={savedEvents.has(item.id) ? "heart" : "heart-outline"} 
-                size={22} 
-                color={savedEvents.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-        <View style={styles.cardDetailRow}>
-          <Ionicons name="location" size={12} color={venueConfig.color} />
-          <Text style={styles.cardDetailText} numberOfLines={1}>{venueConfig.label}{item.hall ? ` - ${item.hall}` : ''}</Text>
-        </View>
         <View style={styles.cardDetailRow}>
           <Ionicons name="calendar" size={12} color="#888" />
           <Text style={styles.cardDetailText}>
@@ -350,11 +398,11 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
             <Text style={styles.typeTagText}>{item.type}</Text>
           </View>
         )}
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </Animated.View>
   );
 });
+EventCard.displayName = 'EventCard';
 
   const handlePressEvent = React.useCallback((item) => {
     setSelectedEvent(item);
@@ -369,7 +417,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
       savedEvents={savedEvents} 
       toggleSaveEvent={toggleSaveEvent} 
     />
-  ), [handlePressEvent, user, savedEvents]);
+  ), [handlePressEvent, user, savedEvents, toggleSaveEvent]);
 
   const renderAgendaList = () => {
     if (filteredEvents.length === 0) return <Text style={styles.emptyText}>No upcoming events found.</Text>;
@@ -689,9 +737,10 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
       >
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleLight}>CONVENTION</Text>
-            <Text style={styles.headerTitleBold}>CALENDAR</Text>
+            <Text style={styles.headerTitleLight}>NO</Text>
+            <Text style={styles.headerTitleBold}>SIGNAL</Text>
           </View>
+          <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
           {renderFilters()}
         </SafeAreaView>
       </LinearGradient>
@@ -727,22 +776,30 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerTitleContainer: {
-    marginLeft: 20,
-    marginTop: 0,
-    marginBottom: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 5,
   },
   headerTitleLight: {
-    fontSize: 22,
+    fontSize: 26,
     fontFamily: 'Cinzel',
     color: '#aaa',
-    letterSpacing: 4,
-    marginBottom: -8, // pull calendar up tightly
+    letterSpacing: 6,
+    marginBottom: -10,
   },
   headerTitleBold: {
-    fontSize: 34,
+    fontSize: 42,
     fontFamily: 'CinzelSemiBold',
     color: Colors.light.gold,
-    letterSpacing: 2,
+    letterSpacing: 4,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    fontFamily: 'Cinzel',
+    letterSpacing: 3,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   controlsContainer: {
     flexDirection: 'column',

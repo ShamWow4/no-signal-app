@@ -1,13 +1,40 @@
 import fs from 'fs';
 
+function normalizeText(str) {
+  if (!str) return '';
+  return str
+    .toString()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/&amp;/g, '&')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function parseDateStr(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().split('T')[0];
+  }
+  return str.toString().replace(/[^0-9]/g, '');
+}
+
+function getEventKey(event) {
+  const title = normalizeText(event.name || event.Title || '');
+  const venue = normalizeText(event.venue || event.Venue || '');
+  const loadIn = parseDateStr(event.loadIn || event['Load In'] || event['Show Start'] || event['Dates'] || '');
+  const loadOut = parseDateStr(event.loadOut || event['Load Out'] || event['Show End'] || '');
+  return `${title}|${venue}|${loadIn}|${loadOut}`;
+}
+
 const data = JSON.parse(fs.readFileSync('all_scraped_events.json', 'utf8'));
 
-// Find unique events based on name, venue, dates
 const uniqueEvents = [];
 const seen = new Set();
 
 for (const event of data) {
-  const key = `${event.name}|${event.venue}|${event.loadIn}|${event.loadOut}`;
+  const key = getEventKey(event);
+  if (key.replace(/\|/g, '') === '') continue;
   if (!seen.has(key)) {
     seen.add(key);
     uniqueEvents.push(event);
@@ -41,3 +68,4 @@ for (const event of uniqueEvents) {
 
 fs.writeFileSync('all_scraped_events.csv', csvRows.join('\n'));
 console.log('✅ Deduplication complete! JSON and CSV updated.');
+

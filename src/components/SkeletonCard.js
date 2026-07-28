@@ -15,7 +15,7 @@ export default function SkeletonCard() {
       -1, // infinite loop
       true // reverse
     );
-  }, []);
+  }, [opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

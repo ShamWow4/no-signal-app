@@ -50,3 +50,5 @@ scratch*
 *.APK
 *.aab
 *.AAB
+gradle-9.2.0-bin*
+*.zip
