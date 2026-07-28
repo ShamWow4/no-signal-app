@@ -1,129 +1,257 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { google } from 'googleapis';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { google } from 'googleapis';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase
-const SERVICE_ACCOUNT_FILE = path.join(__dirname, '../serviceAccountKey.json');
-if (!fs.existsSync(SERVICE_ACCOUNT_FILE)) {
-  console.error(`Error: Cannot find ${SERVICE_ACCOUNT_FILE}`);
-  process.exit(1);
-}
-
-const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_FILE, 'utf8'));
-if (getApps().length === 0) {
-  initializeApp({ credential: cert(serviceAccount) });
-}
-const db = getFirestore();
-
-// Google Sheets setup
+// ============================================================================
+// CONFIGURATION & PATHS
+// ============================================================================
 const SPREADSHEET_ID = '1q3UNaTuyHbJ630R8UPZyxcGow00HQGaaRZ6YiSOEB1A';
-const CREDENTIALS_PATH = path.join(__dirname, 'google-credentials.json');
+const CREDENTIALS_PATH = fs.existsSync(path.join(__dirname, 'google-credentials.json'))
+    ? path.join(__dirname, 'google-credentials.json')
+    : (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json'))
+        ? path.join(__dirname, 'serviceAccountKey.json')
+        : path.join(__dirname, '../serviceAccountKey.json'));
 
-// Generate a deterministic MD5 hash for IDs
-function generateId(string) {
-    return crypto.createHash('md5').update(string).digest('hex');
+const SERVICE_ACCOUNT_PATH = fs.existsSync(path.join(__dirname, 'serviceAccountKey.json'))
+    ? path.join(__dirname, 'serviceAccountKey.json')
+    : path.join(__dirname, '../serviceAccountKey.json');
+
+
+
+/**
+ * Mapping of Google Sheets tabs to target Firebase Firestore collections.
+ * Each entry defines the source tab, target collection, and unique ID resolver.
+ */
+const SYNC_CONFIGS = [
+    {
+        tab: 'calendar_events',
+        collection: 'calendar_events',
+        getId: item => item['Title'] || item['name'] || null
+    },
+    {
+        tab: 'news_feed',
+        collection: 'av_news',
+        getId: item => item['Title'] || null
+    },
+    {
+        tab: 'gig_alerts',
+        collection: 'av_gigs',
+        getId: item => (item['Job Title'] ? `${item['Job Title']}_${item['Company'] || ''}` : null)
+    },
+    {
+        tab: 'labor_directory',
+        collection: 'labor_directory',
+        getId: item => item['Company Name'] || null
+    },
+    {
+        tab: 'av_training',
+        collection: 'av_training',
+        getId: item => item['Course Title'] || null
+    },
+    {
+        tab: 'Union Events',
+        collection: 'union_events',
+        getId: item => (item['Event Title'] ? `${item['Event Title']}_${item['Date'] || ''}` : null)
+    }
+];
+
+// ============================================================================
+// FIREBASE & GOOGLE API INITIALIZATION
+// ============================================================================
+function initFirestore() {
+    if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+        throw new Error(`Firebase service account file not found: ${SERVICE_ACCOUNT_PATH}`);
+    }
+
+    if (getApps().length === 0) {
+        const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
+        initializeApp({ credential: cert(serviceAccount) });
+    }
+
+    return getFirestore();
 }
 
-async function getSheetData(sheets, range) {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: range,
-        });
-        
-        const rows = response.data.values;
-        if (!rows || rows.length === 0) return [];
-        
-        const headers = rows[0];
-        const data = [];
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            const obj = {};
-            headers.forEach((h, index) => {
-                obj[h.trim()] = row[index] ? row[index].trim() : '';
-            });
-            data.push(obj);
-        }
-        return data;
-    } catch (error) {
-        console.error(`Error fetching data from ${range}:`, error.message);
-        return [];
-    }
-}
-
-async function pushToCollection(collectionName, data, idFieldGetter) {
-    if (data.length === 0) {
-        console.log(`No data to push to ${collectionName}.`);
-        return 0;
-    }
-    
-    console.log(`Pushing ${data.length} items to ${collectionName}...`);
-    const batch = db.batch();
-    const collectionRef = db.collection(collectionName);
-    
-    let count = 0;
-    let newItemsCount = 0;
-
-    for (const item of data) {
-        const idString = idFieldGetter(item);
-        if (!idString) continue;
-        
-        const docId = generateId(idString);
-        const docRef = collectionRef.doc(docId);
-        
-        // We could check if doc exists to count new items, but to save reads 
-        // we'll just overwrite/merge everything.
-        batch.set(docRef, item, { merge: true });
-        count++;
-        
-        if (count % 400 === 0) {
-            await batch.commit();
-            console.log(`Committed ${count} items...`);
-        }
-    }
-    if (count % 400 !== 0) {
-        await batch.commit();
-    }
-    console.log(`Successfully pushed ${count} items to ${collectionName}.`);
-    return count;
-}
-
-async function run() {
-    console.log("Authenticating with Google Sheets...");
+function initGoogleSheets() {
     if (!fs.existsSync(CREDENTIALS_PATH)) {
-        console.error(`Error: Credentials file not found at ${CREDENTIALS_PATH}`);
-        return;
+        throw new Error(`Google API credentials not found: ${CREDENTIALS_PATH}`);
     }
 
     const auth = new google.auth.GoogleAuth({
         keyFile: CREDENTIALS_PATH,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    const syncConfigs = [
-        { tab: 'calendar_events', collection: 'calendar_events', getId: item => item['Title'] ? item['Title'] + (item['Dates']||'') : null },
-        { tab: 'news_feed', collection: 'av_news', getId: item => item['Title'] ? item['Title'] + (item['Date']||'') : null },
-        { tab: 'gig_alerts', collection: 'av_gigs', getId: item => item['Job Title'] ? item['Job Title'] + (item['Company']||'') : null },
-        { tab: 'labor_directory', collection: 'labor_directory', getId: item => item['Company Name'] ? item['Company Name'] : null },
-        { tab: 'av_training', collection: 'av_training', getId: item => item['Course Title'] ? item['Course Title'] : null }
-    ];
-
-    for (const config of syncConfigs) {
-        console.log(`\nFetching data from ${config.tab}...`);
-        const data = await getSheetData(sheets, `'${config.tab}'!A:Z`);
-        await pushToCollection(config.collection, data, config.getId);
-    }
-
-    console.log("\nSync complete!");
+    return google.sheets({ version: 'v4', auth });
 }
 
-run().catch(console.error);
+// ============================================================================
+// HELPER UTILITIES
+// ============================================================================
+
+/**
+ * Normalizes text for deterministic ID generation by stripping accents, special chars, & casing.
+ */
+function normalizeText(text) {
+    if (!text) return '';
+    return text
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Generates a deterministic MD5 hash for a given unique input string.
+ */
+function generateDocumentId(input) {
+    const normalized = normalizeText(input);
+    return crypto.createHash('md5').update(normalized).digest('hex');
+}
+
+/**
+ * Fetches and formats rows from a specific Google Sheets tab into key-value objects.
+ */
+async function fetchSheetData(sheets, tabName) {
+    const range = `'${tabName}'!A:Z`;
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range
+        });
+
+        const rows = response.data.values;
+        if (!rows || rows.length <= 1) return [];
+
+        const [headers, ...dataRows] = rows;
+        const cleanHeaders = headers.map(h => h.trim());
+
+        return dataRows.map(row => {
+            const item = {};
+            cleanHeaders.forEach((header, idx) => {
+                item[header] = row[idx] ? row[idx].trim() : '';
+            });
+            return item;
+        });
+    } catch (error) {
+        if (error.message?.includes('Unable to parse range')) {
+            console.log(`ℹ️  Tab '${tabName}' not found in spreadsheet. Skipping.`);
+        } else {
+            console.error(`⚠️ Error reading tab '${tabName}':`, error.message);
+        }
+        return [];
+    }
+}
+
+/**
+ * Pushes formatted data objects into a Firestore collection using batched writes,
+ * and purges stale documents to guarantee zero duplicates.
+ */
+async function pushToFirestore(db, collectionName, items, getId) {
+    if (!items || items.length === 0) {
+        console.log(`ℹ️  No data to sync for collection '${collectionName}'.`);
+        return 0;
+    }
+
+    console.log(`📦 Syncing ${items.length} items to Firestore collection '${collectionName}'...`);
+    const collectionRef = db.collection(collectionName);
+    
+    // Fetch all existing doc IDs in Firestore to purge stale items
+    const existingSnapshot = await collectionRef.get();
+    const existingDocIds = new Set(existingSnapshot.docs.map(doc => doc.id));
+    const newDocIds = new Set();
+
+    let currentBatch = db.batch();
+    let pendingCount = 0;
+    let totalSynced = 0;
+
+    // 1. Deduplicate items array by normalized document ID
+    const uniqueItemsMap = new Map();
+    for (const item of items) {
+        const uniqueKey = getId(item);
+        if (!uniqueKey) continue;
+        const docId = generateDocumentId(uniqueKey);
+        if (!uniqueItemsMap.has(docId)) {
+            uniqueItemsMap.set(docId, item);
+        }
+    }
+
+    // 2. Set/update documents in batches
+    for (const [docId, item] of uniqueItemsMap.entries()) {
+        const docRef = collectionRef.doc(docId);
+        newDocIds.add(docId);
+
+        currentBatch.set(docRef, item, { merge: true });
+        pendingCount++;
+        totalSynced++;
+
+        if (pendingCount >= 400) {
+            await currentBatch.commit();
+            currentBatch = db.batch();
+            pendingCount = 0;
+        }
+    }
+
+    if (pendingCount > 0) {
+        await currentBatch.commit();
+        console.log(`   └─ Committed final write batch of ${pendingCount} items`);
+    }
+
+    // 3. Purge stale / old duplicate document IDs not present in current sheet source
+    const staleDocIds = [...existingDocIds].filter(id => !newDocIds.has(id));
+    if (staleDocIds.length > 0) {
+        console.log(`   🧹 Purging ${staleDocIds.length} stale/duplicate documents from '${collectionName}'...`);
+        let purgeBatch = db.batch();
+        let purgeCount = 0;
+        for (const staleId of staleDocIds) {
+            purgeBatch.delete(collectionRef.doc(staleId));
+            purgeCount++;
+            if (purgeCount >= 400) {
+                await purgeBatch.commit();
+                purgeBatch = db.batch();
+                purgeCount = 0;
+            }
+        }
+        if (purgeCount > 0) {
+            await purgeBatch.commit();
+        }
+    }
+
+    console.log(`✅ Successfully synced ${totalSynced} clean documents to '${collectionName}'.`);
+    return totalSynced;
+}
+
+// ============================================================================
+// MAIN PIPELINE EXECUTION
+// ============================================================================
+async function runSyncPipeline() {
+    console.log('====================================================');
+    console.log('🔥 FIREBASE FIRESTORE SYNC STARTED 🔥');
+    console.log('====================================================\n');
+
+    const db = initFirestore();
+    const sheets = initGoogleSheets();
+
+    for (const config of SYNC_CONFIGS) {
+        console.log(`\n▶ Fetching '${config.tab}' from Google Sheets...`);
+        const items = await fetchSheetData(sheets, config.tab);
+        await pushToFirestore(db, config.collection, items, config.getId);
+    }
+
+    console.log('\n====================================================');
+    console.log('🎉 FIREBASE SYNC COMPLETE! All collections updated. 🎉');
+    console.log('====================================================');
+}
+
+runSyncPipeline().catch(err => {
+    console.error('❌ Fatal error in Firebase sync pipeline:', err);
+    process.exit(1);
+});

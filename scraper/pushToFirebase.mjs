@@ -41,9 +41,20 @@ function parseTSV(filePath) {
     return data;
 }
 
-// Generate a deterministic MD5 hash for IDs
+function normalizeText(str) {
+    if (!str) return '';
+    return str
+        .toString()
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/&amp;/g, '&')
+        .replace(/[^a-z0-9]/g, '');
+}
+
+// Generate a deterministic MD5 hash for normalized IDs
 function generateId(string) {
-    return crypto.createHash('md5').update(string).digest('hex');
+    const normalized = normalizeText(string);
+    return crypto.createHash('md5').update(normalized).digest('hex');
 }
 
 async function pushToCollection(collectionName, data, idFieldGetter) {

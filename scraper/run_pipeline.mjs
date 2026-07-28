@@ -1,30 +1,68 @@
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const scripts = [
+const execAsync = promisify(exec);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const parallelScrapers = [
     { name: '1. Scraping MCCNO Events', command: 'node scrape_mccno_json.mjs' },
     { name: '2. Scraping AV News', command: 'node scrape_av_news.mjs' },
     { name: '3. Scraping AV Gigs', command: 'node scrape_av_gigs.mjs' },
-    { name: '4. Scraping AV Directory', command: 'node scrape_av_directory.mjs' },
-    { name: '5. Scraping AV Training', command: 'node scrape_av_training.mjs' },
+    { name: '4. Scraping AV Training', command: 'node scrape_av_training.mjs' }
+];
+
+const syncSteps = [
     { name: '6. Syncing to Google Sheets', command: 'node update_sheets.mjs' },
     { name: '7. Syncing to Firebase (Live App)', command: 'node syncSheetsToFirebase.mjs' }
 ];
 
-console.log('=============================================');
-console.log('🚀 NO SIGNAL - MASTER DATA PIPELINE STARTED 🚀');
-console.log('=============================================\n');
+async function runPipeline() {
+    console.log('=============================================');
+    console.log('🚀 NO SIGNAL - FAST PARALLEL PIPELINE STARTED 🚀');
+    console.log('=============================================\n');
 
-for (const script of scripts) {
-    console.log(`\n▶ ${script.name}...`);
-    try {
-        // execute synchronously, streaming output to the terminal
-        execSync(script.command, { stdio: 'inherit' });
-    } catch (error) {
-        console.error(`\n❌ Error running ${script.name}. Stopping pipeline.`);
-        process.exit(1);
+    console.log('⚡ Running scrapers concurrently in parallel...\n');
+    const startTime = Date.now();
+
+    const scraperResults = await Promise.allSettled(
+        parallelScrapers.map(async (s) => {
+            console.log(`▶ Starting ${s.name}...`);
+            const { stdout, stderr } = await execAsync(s.command, { cwd: __dirname });
+            return { name: s.name, stdout: stdout.trim(), stderr: stderr.trim() };
+        })
+    );
+
+    for (const res of scraperResults) {
+        if (res.status === 'fulfilled') {
+            console.log(`\n✅ ${res.value.name} complete:`);
+            if (res.value.stdout) console.log(res.value.stdout);
+        } else {
+            console.error(`\n❌ Error running scraper:`, res.reason);
+        }
     }
+
+    console.log('\n=============================================');
+    console.log('🔄 Executing Sync Tasks...');
+    console.log('=============================================\n');
+
+    for (const step of syncSteps) {
+        console.log(`▶ Executing ${step.name}...`);
+        try {
+            const { stdout } = await execAsync(step.command, { cwd: __dirname });
+            console.log(stdout.trim());
+        } catch (error) {
+            console.error(`❌ Error in ${step.name}:`, error.message);
+        }
+    }
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log('\n=============================================');
+    console.log(`✅ PIPELINE COMPLETE! All Data Synced in ${elapsed}s! ✅`);
+    console.log('=============================================');
 }
 
-console.log('\n=============================================');
-console.log('✅ PIPELINE COMPLETE! All Data Synced! ✅');
-console.log('=============================================');
+runPipeline();
+

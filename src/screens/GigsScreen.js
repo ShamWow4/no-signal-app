@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, ScrollView, Animated as RNAnimated, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, ScrollView, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -39,8 +39,21 @@ export default function GigsScreen() {
           id: doc.id,
           ...doc.data()
         }));
-        setGigsData(fetchedGigs);
-        await AsyncStorage.setItem('cache_gigs', JSON.stringify(fetchedGigs));
+
+        const seenGigKeys = new Set();
+        const uniqueGigs = [];
+        for (const gig of fetchedGigs) {
+          const normTitle = (gig['Job Title'] || gig.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const normCompany = (gig['Company'] || gig.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const key = `${normTitle}_${normCompany}`;
+          if (normTitle && !seenGigKeys.has(key)) {
+            seenGigKeys.add(key);
+            uniqueGigs.push(gig);
+          }
+        }
+
+        setGigsData(uniqueGigs);
+        await AsyncStorage.setItem('cache_gigs', JSON.stringify(uniqueGigs));
       } else {
         setGigsData([]);
         await AsyncStorage.setItem('cache_gigs', JSON.stringify([]));
@@ -55,6 +68,7 @@ export default function GigsScreen() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchGigs();
     
     let unsubDoc = null;
@@ -102,8 +116,15 @@ export default function GigsScreen() {
   };
 
   const handleApply = (url) => {
-    if (url) {
-      Linking.openURL(url).catch(() => {});
+    if (!url) return;
+    let clean = url.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      clean = `https://${clean}`;
+    }
+    if (Platform.OS === 'web') {
+      window.open(clean, '_blank');
+    } else {
+      Linking.openURL(clean).catch(() => {});
     }
   };
 

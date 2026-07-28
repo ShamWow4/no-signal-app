@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, TextInput, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, RefreshControl, TextInput, ScrollView, Image, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -14,12 +14,13 @@ import SkeletonCard from '../components/SkeletonCard';
 export default function EducationScreen() {
   const [courses, setCourses] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [, setError] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeCategory, setActiveCategory] = React.useState('All');
   const [refreshing, setRefreshing] = React.useState(false);
   const [user, setUser] = React.useState(null);
   const [savedCourses, setSavedCourses] = React.useState(new Set());
+  const [selectedCourse, setSelectedCourse] = React.useState(null);
 
   const fetchTraining = async (isRefresh = false) => {
     try {
@@ -39,8 +40,19 @@ export default function EducationScreen() {
           id: doc.id,
           ...doc.data()
         }));
-        setCourses(fetchedCourses);
-        await AsyncStorage.setItem('cache_education', JSON.stringify(fetchedCourses));
+
+        const seenCourseKeys = new Set();
+        const uniqueCourses = [];
+        for (const course of fetchedCourses) {
+          const normTitle = (course['Course Title'] || course.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (normTitle && !seenCourseKeys.has(normTitle)) {
+            seenCourseKeys.add(normTitle);
+            uniqueCourses.push(course);
+          }
+        }
+
+        setCourses(uniqueCourses);
+        await AsyncStorage.setItem('cache_education', JSON.stringify(uniqueCourses));
       } else {
         setCourses([]);
         await AsyncStorage.setItem('cache_education', JSON.stringify([]));
@@ -55,6 +67,7 @@ export default function EducationScreen() {
   };
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTraining();
   }, []);
 
@@ -103,19 +116,19 @@ export default function EducationScreen() {
   };
 
   const openLink = (url) => {
-    if (url) {
-      Linking.openURL(url).catch(() => {});
+    if (!url) return;
+    let clean = url.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      clean = `https://${clean}`;
+    }
+    if (Platform.OS === 'web') {
+      window.open(clean, '_blank');
+    } else {
+      Linking.openURL(clean).catch(() => {});
     }
   };
 
-  const getIconForCategory = (cat) => {
-    const lower = (cat || '').toLowerCase();
-    if (lower.includes('audio') || lower.includes('sound')) return 'mic-outline';
-    if (lower.includes('video') || lower.includes('camera')) return 'videocam-outline';
-    if (lower.includes('light')) return 'bulb-outline';
-    if (lower.includes('network') || lower.includes('it')) return 'globe-outline';
-    return 'school-outline';
-  };
+
 
   const dynamicCategories = Array.from(new Set(courses.map(c => c['Type']).filter(t => t))).sort();
   const categories = ['All', 'Saved', ...dynamicCategories];
@@ -130,107 +143,179 @@ export default function EducationScreen() {
     return matchesSearch && course['Type'] === activeCategory;
   });
 
-  const renderHeroCourse = (item) => (
-    <Animated.View entering={FadeInDown.duration(500)}>
-      <LinearGradient
-        colors={['#1F1F1F', '#000000']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={[styles.heroCard, Shadows.medium, { overflow: 'hidden' }]}
-      >
-        <Image 
-          source={require('../../assets/images/nola-av-logo.png.png')} 
-          style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: Colors.light.gold, right: -40, bottom: -40 }]} 
-          resizeMode="contain"
-        />
-        <View style={styles.cardHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={[styles.categoryBadge, { backgroundColor: 'rgba(211, 166, 37, 0.2)' }]}>
-              <Text style={[styles.categoryText, { color: Colors.light.gold, fontWeight: 'bold' }]}>FEATURED</Text>
-            </View>
-            <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={16} color={Colors.light.gold} style={{ marginLeft: 8 }} />
-          </View>
-          {user && (
-            <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
-              <Ionicons 
-                name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
-                size={28} 
-                color={savedCourses.has(item.id) ? "#FF3B30" : "rgba(255,255,255,0.5)"} 
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-        <Text style={[styles.courseTitle, { color: '#FFF', fontSize: 26, marginTop: 10 }]}>{item['Course Title']}</Text>
-        <View style={[styles.instructorRow, { marginTop: 10 }]}>
-          <Ionicons name="person" size={14} color="#888" />
-          <Text style={[styles.instructorText, { color: '#CCC', fontSize: 16 }]}>{item['Platform/Instructor']}</Text>
-        </View>
-        {item['Duration'] && (
-          <Text style={[styles.courseDescription, { color: '#AAA' }]}>Duration: {item['Duration']}</Text>
-        )}
-        <TouchableOpacity onPress={() => openLink(item['Link'])}>
+  const renderHeroCourse = (item) => {
+    const costText = item['Cost'] || item.cost || 'Free';
+    const isFree = costText.toLowerCase().includes('free');
+    const descText = item['Description'] || item.description || '';
+    const durationText = item['Duration'] || item.duration || 'Self-Paced';
+
+    return (
+      <Animated.View entering={FadeInDown.duration(500)}>
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={() => setSelectedCourse(item)}
+        >
           <LinearGradient
-            colors={[Colors.light.gold, '#B8860B']}
+            colors={['#1F1F1F', '#000000']}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.actionButton, { marginTop: 10, borderWidth: 0 }]}
+            end={{ x: 0, y: 1 }}
+            style={[styles.heroCard, Shadows.medium, { overflow: 'hidden' }]}
           >
-            <Text style={[styles.actionButtonText, { color: '#000', fontFamily: 'PoppinsSemiBold' }]}>Start Learning</Text>
+            <Image 
+              source={require('../../assets/images/nola-av-logo.png.png')} 
+              style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: Colors.light.gold, right: -40, bottom: -40 }]} 
+              resizeMode="contain"
+            />
+            <View style={styles.cardHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <View style={[styles.categoryBadge, { backgroundColor: 'rgba(211, 166, 37, 0.2)' }]}>
+                  <Text style={[styles.categoryText, { color: Colors.light.gold, fontWeight: 'bold' }]}>FEATURED</Text>
+                </View>
+                <View style={[styles.categoryBadge, { backgroundColor: isFree ? 'rgba(76, 217, 100, 0.2)' : 'rgba(255, 149, 0, 0.2)', borderColor: isFree ? '#4CD964' : '#FF9500' }]}>
+                  <Text style={[styles.categoryText, { color: isFree ? '#4CD964' : '#FF9500', fontWeight: 'bold' }]}>{costText.toUpperCase()}</Text>
+                </View>
+              </View>
+              {user && (
+                <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
+                  <Ionicons 
+                    name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
+                    size={28} 
+                    color={savedCourses.has(item.id) ? "#FF3B30" : "rgba(255,255,255,0.5)"} 
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            <Text style={[styles.courseTitle, { color: '#FFF', fontSize: 24, marginTop: 10 }]}>{item['Course Title'] || item.title}</Text>
+            
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, flexWrap: 'wrap', gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="business" size={14} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Text style={{ color: '#CCC', fontSize: 14, fontFamily: 'Poppins' }}>{item['Platform/Instructor'] || item['Provider'] || 'AV Industry'}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="time-outline" size={14} color="#aaa" style={{ marginRight: 4 }} />
+                <Text style={{ color: '#aaa', fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
+              </View>
+            </View>
+
+            {descText ? (
+              <Text style={[styles.courseDescription, { color: '#AAA', marginTop: 10, lineHeight: 20 }]} numberOfLines={3}>
+                {descText}
+              </Text>
+            ) : null}
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+              <TouchableOpacity 
+                style={{ flex: 1, backgroundColor: 'rgba(212, 175, 55, 0.2)', borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: Colors.light.gold }}
+                onPress={() => setSelectedCourse(item)}
+              >
+                <Text style={{ color: Colors.light.gold, fontFamily: 'PoppinsSemiBold', fontSize: 13 }}>Course Details</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ flex: 1, borderRadius: 10, overflow: 'hidden' }}
+                onPress={() => openLink(item['Link'] || item.link)}
+              >
+                <LinearGradient
+                  colors={[Colors.light.gold, '#B8860B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ paddingVertical: 10, alignItems: 'center' }}
+                >
+                  <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 13 }}>Start Learning</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
-      </LinearGradient>
-    </Animated.View>
-  );
+      </Animated.View>
+    );
+  };
 
   const renderCourse = ({ item, index }) => {
     if (index === 0 && activeCategory === 'All' && !searchQuery) {
       return renderHeroCourse(item);
     }
     
+    const costText = item['Cost'] || item.cost || 'Free';
+    const isFree = costText.toLowerCase().includes('free');
+    const descText = item['Description'] || item.description || '';
+    const durationText = item['Duration'] || item.duration || 'Self-Paced';
+
     return (
-      <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
-        <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
-          <Image 
-            source={require('../../assets/images/nola-av-logo.png.png')} 
-            style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: Colors.light.gold }]} 
-            resizeMode="contain"
-          />
-          <View style={styles.cardHeader}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>{(item['Type'] || 'General').toUpperCase()}</Text>
+      <Animated.View entering={FadeInDown.delay(index * 80).duration(400)}>
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={() => setSelectedCourse(item)}
+        >
+          <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
+            <Image 
+              source={require('../../assets/images/nola-av-logo.png.png')} 
+              style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: Colors.light.gold }]} 
+              resizeMode="contain"
+            />
+            <View style={styles.cardHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryText}>{(item['Type'] || 'General AV').toUpperCase()}</Text>
+                </View>
+                <View style={[styles.categoryBadge, { backgroundColor: isFree ? 'rgba(76, 217, 100, 0.15)' : 'rgba(255, 149, 0, 0.15)', borderColor: isFree ? 'rgba(76, 217, 100, 0.4)' : 'rgba(255, 149, 0, 0.4)' }]}>
+                  <Text style={[styles.categoryText, { color: isFree ? '#4CD964' : '#FF9500' }]}>{costText.toUpperCase()}</Text>
+                </View>
               </View>
-              <Ionicons name={getIconForCategory(item['Type'] || item['Course Title'])} size={16} color={Colors.light.gold} style={{ marginLeft: 8 }} />
+              {user && (
+                <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
+                  <Ionicons 
+                    name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
+                    size={24} 
+                    color={savedCourses.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+                  />
+                </TouchableOpacity>
+              )}
             </View>
-            {user && (
-              <TouchableOpacity onPress={() => toggleSaveCourse(item.id)} style={{ padding: 4, zIndex: 10 }}>
-                <Ionicons 
-                  name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
-                  size={24} 
-                  color={savedCourses.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
-                />
+
+            <Text style={styles.courseTitle}>{item['Course Title'] || item.title}</Text>
+            
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="business" size={14} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Text style={styles.instructorText}>{item['Platform/Instructor'] || item['Provider'] || 'AV Industry'}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="time-outline" size={14} color="#888" style={{ marginRight: 4 }} />
+                <Text style={{ color: Colors.light.textSecondary, fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
+              </View>
+            </View>
+
+            {descText ? (
+              <Text style={[styles.courseDescription, { lineHeight: 20, marginBottom: 14 }]} numberOfLines={3}>
+                {descText}
+              </Text>
+            ) : null}
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+              <TouchableOpacity 
+                style={{ flex: 1, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: 8, paddingVertical: 8, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)' }}
+                onPress={() => setSelectedCourse(item)}
+              >
+                <Text style={{ color: Colors.light.gold, fontFamily: 'PoppinsSemiBold', fontSize: 12 }}>View Specs</Text>
               </TouchableOpacity>
-            )}
+              <TouchableOpacity 
+                style={{ flex: 1, borderRadius: 8, overflow: 'hidden' }}
+                onPress={() => openLink(item['Link'] || item.link)}
+              >
+                <LinearGradient
+                  colors={[Colors.light.gold, '#B8860B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ paddingVertical: 8, alignItems: 'center' }}
+                >
+                  <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 12 }}>Launch Course</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.courseTitle}>{item['Course Title']}</Text>
-          <View style={styles.instructorRow}>
-            <Ionicons name="person" size={14} color="#888" />
-            <Text style={styles.instructorText}>{item['Platform/Instructor']}</Text>
-          </View>
-          {item['Duration'] && (
-            <Text style={styles.courseDescription}>Duration: {item['Duration']}</Text>
-          )}
-          <TouchableOpacity onPress={() => openLink(item['Link'])}>
-            <LinearGradient
-              colors={[Colors.light.gold, '#B8860B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.actionButton, { borderWidth: 0 }]}
-            >
-              <Text style={[styles.actionButtonText, { color: '#000' }]}>View Course</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </Animated.View>
     );
   };
@@ -306,11 +391,142 @@ export default function EducationScreen() {
         />
       )}
 
+      {selectedCourse && (
+        <Modal
+          visible={!!selectedCourse}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setSelectedCourse(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setSelectedCourse(null)}
+              >
+                <Ionicons name="close" size={24} color="#FFF" />
+              </TouchableOpacity>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryText}>{(selectedCourse['Type'] || 'General AV').toUpperCase()}</Text>
+                  </View>
+                  <View style={[styles.categoryBadge, { backgroundColor: (selectedCourse['Cost'] || '').toLowerCase().includes('free') ? 'rgba(76, 217, 100, 0.2)' : 'rgba(255, 149, 0, 0.2)', borderColor: (selectedCourse['Cost'] || '').toLowerCase().includes('free') ? '#4CD964' : '#FF9500' }]}>
+                    <Text style={[styles.categoryText, { color: (selectedCourse['Cost'] || '').toLowerCase().includes('free') ? '#4CD964' : '#FF9500' }]}>{(selectedCourse['Cost'] || 'Free').toUpperCase()}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.modalTitle}>{selectedCourse['Course Title'] || selectedCourse.title}</Text>
+
+                <View style={styles.modalMetaRow}>
+                  <View style={styles.modalMetaItem}>
+                    <Ionicons name="business" size={16} color={Colors.light.gold} />
+                    <Text style={styles.modalMetaText}>{selectedCourse['Platform/Instructor'] || selectedCourse['Provider'] || 'AV Industry'}</Text>
+                  </View>
+                  <View style={styles.modalMetaItem}>
+                    <Ionicons name="time-outline" size={16} color={Colors.light.gold} />
+                    <Text style={styles.modalMetaText}>{selectedCourse['Duration'] || selectedCourse.duration || 'Self-Paced'}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.modalSection}>
+                  <Text style={styles.modalSectionTitle}>Course Overview & Specifications</Text>
+                  <Text style={styles.modalDescription}>
+                    {selectedCourse['Description'] || selectedCourse.description || 'Comprehensive professional AV training module covering technical fundamentals, hands-on system setup, and industry best practices.'}
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={{ marginTop: 24, borderRadius: 12, overflow: 'hidden' }}
+                  onPress={() => {
+                    const link = selectedCourse['Link'] || selectedCourse.link;
+                    setSelectedCourse(null);
+                    openLink(link);
+                  }}
+                >
+                  <LinearGradient
+                    colors={[Colors.light.gold, '#B8860B']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ paddingVertical: 14, alignItems: 'center' }}
+                  >
+                    <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 16 }}>Launch Course Portal</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      )}
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#181818',
+    borderRadius: 20,
+    padding: 24,
+    maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    boxShadow: '0px 10px 30px rgba(0,0,0,0.8)',
+  },
+  modalCloseButton: {
+    alignSelf: 'flex-end',
+    padding: 4,
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.gold,
+    marginBottom: 12,
+  },
+  modalMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#282828',
+  },
+  modalMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalMetaText: {
+    color: '#DDD',
+    fontSize: 14,
+    fontFamily: 'Poppins',
+    marginLeft: 6,
+  },
+  modalSection: {
+    marginTop: 8,
+  },
+  modalSectionTitle: {
+    fontSize: 14,
+    fontFamily: 'PoppinsSemiBold',
+    color: Colors.light.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 15,
+    fontFamily: 'OpenSans',
+    color: '#CCC',
+    lineHeight: 24,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,

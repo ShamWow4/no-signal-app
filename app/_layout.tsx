@@ -5,21 +5,22 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Cinzel_400Regular, Cinzel_600SemiBold } from '@expo-google-fonts/cinzel';
 import { Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { OpenSans_400Regular, OpenSans_600SemiBold } from '@expo-google-fonts/open-sans';
-import { Platform, Linking } from 'react-native';
+import { Platform, Linking, LogBox } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../src/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { LogBox } from 'react-native';
 
 LogBox.ignoreLogs([
   'Listening to push token changes is not yet fully supported on web',
   '"shadow*" style props are deprecated',
 ]);
 
-SplashScreen.preventAutoHideAsync();
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -89,7 +90,7 @@ export default function RootLayout() {
     OpenSansSemiBold: OpenSans_600SemiBold,
   });
 
-  const [expoPushToken, setExpoPushToken] = useState('');
+  const [, setExpoPushToken] = useState('');
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -144,7 +145,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && Platform.OS !== 'web') {
     return null;
   }
 

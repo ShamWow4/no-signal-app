@@ -53,7 +53,7 @@ export default function DonorsScreen() {
         style={styles.header}
       >
         <Text style={styles.eyebrow}>SUPPORT NVA</Text>
-        <Text style={styles.title}>Invest in NOLA's AV Future</Text>
+        <Text style={styles.title}>{"Invest in NOLA's AV Future"}</Text>
         <Text style={styles.subtitle}>
           Your contribution directly funds free and low-cost training for New Orleans youth and aspiring professionals who deserve access to the AV industry.
         </Text>

@@ -220,7 +220,7 @@ export default function SavedItemsScreen() {
            contentContainerStyle={styles.listContent}
            showsVerticalScrollIndicator={false}
            ListEmptyComponent={
-             <Text style={styles.emptyText}>You haven't saved any {activeTab} yet.</Text>
+             <Text style={styles.emptyText}>You haven&apos;t saved any {activeTab} yet.</Text>
            }
          />
        )}

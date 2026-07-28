@@ -1,0 +1,47 @@
+# Dependencies & Node
+node_modules/
+
+# Native and local Gradle/IDE files
+android/
+ios/
+gradle*/
+.idea/
+.claude/
+.junie/
+.vscode/
+
+# Web Dev & Extra directories
+Web Dev/
+Photon/
+functions/
+data/
+
+# Build and Expo output
+.expo/
+dist/
+web-build/
+*.apk
+*.aab
+*.AAB
+*.zip
+
+# Environment and Credentials
+.env*.local
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+serviceAccountKey.json
+google-credentials.json
+
+# Scrapers and large data files
+scraper/*.json
+scraper/*.tsv
+
+# Debug and Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
