@@ -80,7 +80,10 @@ async function registerForPushNotificationsAsync() {
   return token;
 }
 
+import OfflineBanner from '../src/components/OfflineBanner';
+
 export default function RootLayout() {
+
   const [fontsLoaded] = useFonts({
     Cinzel: Cinzel_400Regular,
     CinzelSemiBold: Cinzel_600SemiBold,
@@ -151,10 +154,12 @@ export default function RootLayout() {
 
   return (
     <>
+      <OfflineBanner />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="light" />
     </>
   );
+
 }
