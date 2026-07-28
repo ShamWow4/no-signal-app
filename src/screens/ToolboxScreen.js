@@ -6,17 +6,16 @@ import {
   ScrollView, 
   TouchableOpacity, 
   TextInput, 
-  Switch, 
   Platform 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Shadows } from '../constants/theme';
+import { Colors } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ToolboxScreen() {
-  const [activeTab, setActiveTab] = useState('dmx'); // 'dmx' | 'delay' | 'led'
+  const [activeTab, setActiveTab] = useState('dmx'); // 'dmx' | 'delay' | 'led' | 'power' | 'projection'
 
   // ============================================================================
   // 1. DMX 512 CALCULATOR STATE & LOGIC
@@ -24,7 +23,6 @@ export default function ToolboxScreen() {
   const [dmxAddress, setDmxAddress] = useState('147');
   const dmxNum = Math.min(512, Math.max(1, parseInt(dmxAddress, 10) || 1));
   const dipValues = [1, 2, 4, 8, 16, 32, 64, 128, 256];
-  
   const getDipState = (val) => (dmxNum & val) !== 0;
 
   const handleDmxChange = (delta) => {
@@ -37,16 +35,13 @@ export default function ToolboxScreen() {
   // ============================================================================
   const [distance, setDistance] = useState('75');
   const [unit, setUnit] = useState('feet'); // 'feet' | 'meters'
-  const [tempF, setTempF] = useState('72'); // Temperature in Fahrenheit
+  const [tempF, setTempF] = useState('72'); // Fahrenheit
 
   const distNum = parseFloat(distance) || 0;
   const tempNum = parseFloat(tempF) || 72;
   
-  // Speed of sound in feet/sec = 1087 * sqrt(1 + (tempF - 32)/459.67)
   const speedOfSoundFtPerSec = 1087 * Math.sqrt(1 + (tempNum - 32) / 459.67);
   const distInFeet = unit === 'feet' ? distNum : distNum * 3.28084;
-  
-  // Delay in milliseconds = (Distance in feet / Speed of Sound in ft/s) * 1000
   const delayMs = speedOfSoundFtPerSec > 0 ? (distInFeet / speedOfSoundFtPerSec) * 1000 : 0;
   const samples48k = Math.round(delayMs * 48);
   const samples96k = Math.round(delayMs * 96);
@@ -56,18 +51,16 @@ export default function ToolboxScreen() {
   // ============================================================================
   const [tilesWide, setTilesWide] = useState('12');
   const [tilesHigh, setTilesHigh] = useState('7');
-  const [pixelPitch, setPixelPitch] = useState('2.6'); // mm
-  const [tileDimMm, setTileDimMm] = useState('500'); // 500mm x 500mm
+  const [pixelPitch, setPixelPitch] = useState('2.6');
+  const [tileDimMm] = useState('500');
 
   const wTiles = Math.max(1, parseInt(tilesWide, 10) || 1);
   const hTiles = Math.max(1, parseInt(tilesHigh, 10) || 1);
   const pitch = parseFloat(pixelPitch) || 2.6;
   const tileMm = parseFloat(tileDimMm) || 500;
 
-  // Pixels per tile = tileMm / pitch
   const pixelsPerTileW = Math.round(tileMm / pitch);
   const pixelsPerTileH = Math.round(tileMm / pitch);
-
   const totalWidthPx = wTiles * pixelsPerTileW;
   const totalHeightPx = hTiles * pixelsPerTileH;
   const megapixels = ((totalWidthPx * totalHeightPx) / 1000000).toFixed(2);
@@ -77,17 +70,74 @@ export default function ToolboxScreen() {
   const totalWidthFt = (totalWidthMeters * 3.28084).toFixed(2);
   const totalHeightFt = (totalHeightMeters * 3.28084).toFixed(2);
 
-  // Aspect ratio calculation
-  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-  const divisor = gcd(totalWidthPx, totalHeightPx);
-  const aspectW = Math.round(totalWidthPx / divisor);
-  const aspectH = Math.round(totalHeightPx / divisor);
   const decimalRatio = (totalWidthPx / totalHeightPx).toFixed(2);
-
-  // Estimated max power draw (~120W per 500x500 tile max)
   const totalWatts = wTiles * hTiles * 120;
   const amps120v = (totalWatts / 120).toFixed(1);
   const amps208v = (totalWatts / 208).toFixed(1);
+
+  // ============================================================================
+  // 4. OHM'S LAW & CABLE VOLTAGE DROP LOGIC
+  // ============================================================================
+  const [volts, setVolts] = useState('120');
+  const [amps, setAmps] = useState('15');
+  const [cableFeet, setCableFeet] = useState('150');
+  const [wireGauge, setWireGauge] = useState('12'); // '14' | '12' | '10' | '8' | '4/0'
+
+  // Copper resistance per 1000 ft
+  const gaugeResMap = {
+    '14': 3.07,
+    '12': 1.93,
+    '10': 1.21,
+    '8': 0.764,
+    '4/0': 0.062
+  };
+
+  const vIn = parseFloat(volts) || 120;
+  const aIn = parseFloat(amps) || 0;
+  const lengthIn = parseFloat(cableFeet) || 0;
+  const resPer1k = gaugeResMap[wireGauge] || 1.93;
+
+  const powerWatts = vIn * aIn;
+  const loadResistance = aIn > 0 ? (vIn / aIn).toFixed(2) : '0';
+
+  // 2-way circuit distance multiplier (2 * length)
+  const vDrop = ((2 * lengthIn * resPer1k * aIn) / 1000);
+  const vEnd = Math.max(0, vIn - vDrop);
+  const dropPercent = vIn > 0 ? ((vDrop / vIn) * 100) : 0;
+
+  const getDropStatusColor = (pct) => {
+    if (pct < 3) return '#4E9F3D'; // Green (Safe)
+    if (pct <= 5) return '#D4AF37'; // Gold/Yellow (Warning)
+    return '#E53935'; // Red (Danger)
+  };
+
+  // ============================================================================
+  // 5. PROJECTION THROW & LUMENS LOGIC
+  // ============================================================================
+  const [screenWidthFt, setScreenWidthFt] = useState('16');
+  const [lensMin, setLensMin] = useState('1.2');
+  const [lensMax, setLensMax] = useState('1.8');
+  const [ambientLight, setAmbientLight] = useState('ballroom'); // 'dark' | 'ballroom' | 'stage'
+
+  const sWidth = parseFloat(screenWidthFt) || 16;
+  const lMin = parseFloat(lensMin) || 1.2;
+  const lMax = parseFloat(lensMax) || 1.8;
+
+  // Assuming 16:9 ratio -> Screen Height = Screen Width / 1.777
+  const sHeight = sWidth / 1.7777;
+  const screenAreaSqFt = sWidth * sHeight;
+
+  const minThrow = (sWidth * lMin).toFixed(1);
+  const maxThrow = (sWidth * lMax).toFixed(1);
+
+  // Recommended ANSI Lumens per sq ft based on ambient light
+  const lumensPerSqFt = {
+    'dark': 35,      // Cinema / Dark auditorium
+    'ballroom': 65,  // Hotel Ballroom / Conference
+    'stage': 100     // Bright Stage / Trade Show
+  }[ambientLight] || 65;
+
+  const recLumens = Math.round(screenAreaSqFt * lumensPerSqFt);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -100,31 +150,49 @@ export default function ToolboxScreen() {
         <Text style={styles.headerSubtitle}>0ms Offline Physics & Math Tools</Text>
       </View>
 
-      {/* Selector Tabs */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'dmx' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('dmx')}
-        >
-          <Ionicons name="options-outline" size={18} color={activeTab === 'dmx' ? Colors.light.gold : '#aaa'} />
-          <Text style={[styles.tabButtonText, activeTab === 'dmx' && styles.tabButtonTextActive]}>DMX DIP</Text>
-        </TouchableOpacity>
+      {/* Horizontal Scroll Selector Tabs */}
+      <View style={styles.tabBarContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarScroll}>
+          <TouchableOpacity 
+            style={[styles.tabButton, activeTab === 'dmx' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('dmx')}
+          >
+            <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'dmx' && styles.tabButtonTextActive]}>DMX DIP</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'delay' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('delay')}
-        >
-          <Ionicons name="volume-high-outline" size={18} color={activeTab === 'delay' ? Colors.light.gold : '#aaa'} />
-          <Text style={[styles.tabButtonText, activeTab === 'delay' && styles.tabButtonTextActive]}>Speaker Delay</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabButton, activeTab === 'delay' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('delay')}
+          >
+            <Ionicons name="volume-high-outline" size={16} color={activeTab === 'delay' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'delay' && styles.tabButtonTextActive]}>Audio Delay</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'led' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('led')}
-        >
-          <Ionicons name="tv-outline" size={18} color={activeTab === 'led' ? Colors.light.gold : '#aaa'} />
-          <Text style={[styles.tabButtonText, activeTab === 'led' && styles.tabButtonTextActive]}>LED Wall</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabButton, activeTab === 'led' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('led')}
+          >
+            <Ionicons name="tv-outline" size={16} color={activeTab === 'led' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'led' && styles.tabButtonTextActive]}>LED Wall</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.tabButton, activeTab === 'power' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('power')}
+          >
+            <Ionicons name="flash-outline" size={16} color={activeTab === 'power' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'power' && styles.tabButtonTextActive]}>Ohm / Power</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.tabButton, activeTab === 'projection' && styles.tabButtonActive]}
+            onPress={() => setActiveTab('projection')}
+          >
+            <Ionicons name="videocam-outline" size={16} color={activeTab === 'projection' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'projection' && styles.tabButtonTextActive]}>Projection</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -147,7 +215,6 @@ export default function ToolboxScreen() {
                 <Text style={styles.dmxUniverseText}>/ 512</Text>
               </View>
 
-              {/* Stepper Buttons */}
               <View style={styles.stepperRow}>
                 {[-16, -10, -1, +1, +10, +16].map((step) => (
                   <TouchableOpacity 
@@ -160,7 +227,6 @@ export default function ToolboxScreen() {
                 ))}
               </View>
 
-              {/* Visual DIP Switch Box */}
               <Text style={styles.sectionLabel}>PHYSICAL DIP SWITCH POSITIONS</Text>
               <View style={styles.dipContainer}>
                 {dipValues.map((val, idx) => {
@@ -205,7 +271,6 @@ export default function ToolboxScreen() {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Acoustic Speaker Delay</Text>
 
-              {/* Distance Input & Unit Toggle */}
               <View style={styles.inputGroup}>
                 <Text style={styles.fieldLabel}>Distance from Main Speakers</Text>
                 <View style={styles.rowInput}>
@@ -214,7 +279,7 @@ export default function ToolboxScreen() {
                     value={distance}
                     onChangeText={setDistance}
                     keyboardType="numeric"
-                    placeholder="Enter distance"
+                    placeholder="75"
                     placeholderTextColor="#666"
                   />
                   <View style={styles.unitToggleGroup}>
@@ -234,7 +299,6 @@ export default function ToolboxScreen() {
                 </View>
               </View>
 
-              {/* Temperature Adjustment */}
               <View style={styles.inputGroup}>
                 <Text style={styles.fieldLabel}>Ambient Temperature (°F)</Text>
                 <TextInput
@@ -247,7 +311,6 @@ export default function ToolboxScreen() {
                 />
               </View>
 
-              {/* Results Hero Card */}
               <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
                 <Text style={styles.resultLabel}>RECOMMENDED DIGITAL DELAY</Text>
                 <Text style={styles.resultBigVal}>{delayMs.toFixed(2)} <Text style={styles.resultUnit}>ms</Text></Text>
@@ -281,7 +344,6 @@ export default function ToolboxScreen() {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>LED Video Wall Grid</Text>
 
-              {/* Pixel Pitch Selector */}
               <Text style={styles.fieldLabel}>Pixel Pitch (mm)</Text>
               <View style={styles.pitchRow}>
                 {['1.9', '2.6', '2.9', '3.9', '4.8'].map((p) => (
@@ -295,7 +357,6 @@ export default function ToolboxScreen() {
                 ))}
               </View>
 
-              {/* Grid Dimensions */}
               <View style={styles.rowInputsContainer}>
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                   <Text style={styles.fieldLabel}>Tiles Wide</Text>
@@ -317,7 +378,6 @@ export default function ToolboxScreen() {
                 </View>
               </View>
 
-              {/* Calculated Specifications Card */}
               <View style={styles.specsContainer}>
                 <View style={styles.specRow}>
                   <Text style={styles.specLabel}>Total Pixel Canvas:</Text>
@@ -333,11 +393,175 @@ export default function ToolboxScreen() {
                 </View>
                 <View style={styles.specRow}>
                   <Text style={styles.specLabel}>Aspect Ratio:</Text>
-                  <Text style={styles.specVal}>{decimalRatio}:1 ({aspectW}:{aspectH})</Text>
+                  <Text style={styles.specVal}>{decimalRatio}:1</Text>
                 </View>
                 <View style={styles.specRow}>
                   <Text style={styles.specLabel}>Est. Max Power:</Text>
                   <Text style={styles.specVal}>{totalWatts} W ({amps120v}A @ 120V / {amps208v}A @ 208V)</Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* ============================================================================ */}
+        {/* 4. OHM'S LAW & CABLE VOLTAGE DROP */}
+        {/* ============================================================================ */}
+        {activeTab === 'power' && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Ohm's Law & Voltage Drop</Text>
+
+              <View style={styles.rowInputsContainer}>
+                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                  <Text style={styles.fieldLabel}>Circuit Voltage (V)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={volts}
+                    onChangeText={setVolts}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                  <Text style={styles.fieldLabel}>Load Current (Amps)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={amps}
+                    onChangeText={setAmps}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.fieldLabel}>SOOW Cable Wire Gauge (AWG)</Text>
+              <View style={styles.pitchRow}>
+                {['14', '12', '10', '8', '4/0'].map((g) => (
+                  <TouchableOpacity 
+                    key={g} 
+                    style={[styles.pitchBtn, wireGauge === g && styles.pitchBtnActive]}
+                    onPress={() => setWireGauge(g)}
+                  >
+                    <Text style={[styles.pitchBtnText, wireGauge === g && styles.pitchBtnTextActive]}>{g} AWG</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.fieldLabel}>Cable Run Length (Feet)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={cableFeet}
+                  onChangeText={setCableFeet}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.specsContainer}>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Calculated Power Load:</Text>
+                  <Text style={styles.specVal}>{powerWatts} Watts ({(powerWatts / 1000).toFixed(2)} kW)</Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Equivalent Resistance:</Text>
+                  <Text style={styles.specVal}>{loadResistance} Ω</Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Total Voltage Drop:</Text>
+                  <Text style={[styles.specVal, { color: getDropStatusColor(dropPercent) }]}>
+                    -{vDrop.toFixed(2)} V ({dropPercent.toFixed(1)}%)
+                  </Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>End of Line Voltage:</Text>
+                  <Text style={[styles.specVal, { color: getDropStatusColor(dropPercent) }]}>
+                    {vEnd.toFixed(1)} V
+                  </Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Circuit Safety Status:</Text>
+                  <Text style={[styles.specVal, { color: getDropStatusColor(dropPercent) }]}>
+                    {dropPercent < 3 ? 'SAFE (<3% Drop)' : (dropPercent <= 5 ? 'CAUTION (3-5% Drop)' : 'DANGER (>5% Drop)')}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* ============================================================================ */}
+        {/* 5. PROJECTION THROW DISTANCE & LUMENS */}
+        {/* ============================================================================ */}
+        {activeTab === 'projection' && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Projection Throw & Lumens</Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.fieldLabel}>Screen Width (Feet)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={screenWidthFt}
+                  onChangeText={setScreenWidthFt}
+                  keyboardType="numeric"
+                  placeholder="16"
+                  placeholderTextColor="#666"
+                />
+              </View>
+
+              <View style={styles.rowInputsContainer}>
+                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                  <Text style={styles.fieldLabel}>Lens Ratio Min</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={lensMin}
+                    onChangeText={setLensMin}
+                    keyboardType="numeric"
+                    placeholder="1.2"
+                    placeholderTextColor="#666"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                  <Text style={styles.fieldLabel}>Lens Ratio Max</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={lensMax}
+                    onChangeText={setLensMax}
+                    keyboardType="numeric"
+                    placeholder="1.8"
+                    placeholderTextColor="#666"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.fieldLabel}>Venue Ambient Light Level</Text>
+              <View style={styles.pitchRow}>
+                {[
+                  { key: 'dark', label: 'Dark Room' },
+                  { key: 'ballroom', label: 'Ballroom' },
+                  { key: 'stage', label: 'Trade Show' }
+                ].map((b) => (
+                  <TouchableOpacity 
+                    key={b.key} 
+                    style={[styles.pitchBtn, ambientLight === b.key && styles.pitchBtnActive, { flex: 1, marginHorizontal: 2, alignItems: 'center' }]}
+                    onPress={() => setAmbientLight(b.key)}
+                  >
+                    <Text style={[styles.pitchBtnText, ambientLight === b.key && styles.pitchBtnTextActive]}>{b.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.specsContainer}>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Required Throw Distance:</Text>
+                  <Text style={styles.specVal}>{minThrow} ft – {maxThrow} ft</Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Screen Size (16:9):</Text>
+                  <Text style={styles.specVal}>{sWidth} ft × {sHeight.toFixed(1)} ft ({screenAreaSqFt.toFixed(0)} sq ft)</Text>
+                </View>
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Recommended Lumens:</Text>
+                  <Text style={styles.specVal}>{recLumens.toLocaleString()} ANSI Lumens</Text>
                 </View>
               </View>
             </View>
@@ -356,7 +580,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -369,25 +593,24 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   headerSubtitle: {
-    color: Colors.light.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
     marginTop: 2,
   },
-  tabBar: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
+  tabBarContainer: {
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
-    padding: 4,
+  },
+  tabBarScroll: {
+    paddingHorizontal: 16,
   },
   tabButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginRight: 8,
   },
   tabButtonActive: {
     backgroundColor: '#2A2616',
