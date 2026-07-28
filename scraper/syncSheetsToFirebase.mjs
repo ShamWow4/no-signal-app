@@ -184,10 +184,16 @@ async function pushToFirestore(db, collectionName, items, getId) {
         }
     }
 
+    const brandNewGigs = [];
+
     // 2. Set/update documents in batches
     for (const [docId, item] of uniqueItemsMap.entries()) {
         const docRef = collectionRef.doc(docId);
         newDocIds.add(docId);
+
+        if (collectionName === 'av_gigs' && !existingDocIds.has(docId)) {
+            brandNewGigs.push(item);
+        }
 
         currentBatch.set(docRef, item, { merge: true });
         pendingCount++;
@@ -204,6 +210,13 @@ async function pushToFirestore(db, collectionName, items, getId) {
         await currentBatch.commit();
         console.log(`   └─ Committed final write batch of ${pendingCount} items`);
     }
+
+    // Trigger Push Notifications for brand-new gig alerts
+    if (collectionName === 'av_gigs' && brandNewGigs.length > 0) {
+        console.log(`🚨 Found ${brandNewGigs.length} new gig alert(s)! Sending push notifications to users...`);
+        await sendGigPushNotifications(db, brandNewGigs);
+    }
+
 
     // 3. Purge stale / old duplicate document IDs not present in current sheet source
     const staleDocIds = [...existingDocIds].filter(id => !newDocIds.has(id));
@@ -228,6 +241,65 @@ async function pushToFirestore(db, collectionName, items, getId) {
     console.log(`✅ Successfully synced ${totalSynced} clean documents to '${collectionName}'.`);
     return totalSynced;
 }
+
+/**
+ * Sends Expo Push Notifications to all registered app users when new AV Gigs are detected.
+ */
+async function sendGigPushNotifications(db, newGigs) {
+    try {
+        const tokensSnapshot = await db.collection('push_tokens').get();
+        if (tokensSnapshot.empty) {
+            console.log('ℹ️  No registered push notification devices found in Firestore.');
+            return;
+        }
+
+        const tokens = tokensSnapshot.docs
+            .map(doc => doc.data().token)
+            .filter(t => typeof t === 'string' && t.startsWith('ExpoPushToken['));
+
+        if (tokens.length === 0) {
+            console.log('ℹ️  No valid Expo push tokens registered in Firestore.');
+            return;
+        }
+
+        console.log(`📲 Sending push notification to ${tokens.length} device(s) for ${newGigs.length} new gig alert(s)...`);
+
+        const messages = [];
+        for (const gig of newGigs) {
+            const gigTitle = gig['Job Title'] || gig['Title'] || 'AV Opportunity';
+            const company = gig['Company'] || gig['Source'] || 'NOLA AV';
+            const location = gig['Location'] || 'New Orleans, LA';
+
+            for (const token of tokens) {
+                messages.push({
+                    to: token,
+                    sound: 'default',
+                    title: `🚨 New Gig Alert: ${gigTitle}`,
+                    body: `${company} • ${location}`,
+                    data: { screen: 'gigs', link: gig['Link'] || '' }
+                });
+            }
+        }
+
+        for (let i = 0; i < messages.length; i += 100) {
+            const chunk = messages.slice(i, i + 100);
+            const response = await fetch('https://exp.host/--/api/v2/push/send', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Accept-encoding': 'gzip, deflate',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(chunk),
+            });
+            const result = await response.json();
+            console.log(`✅ Push notification batch sent successfully! (${chunk.length} notification(s))`);
+        }
+    } catch (err) {
+        console.error('⚠️  Error sending push notifications:', err.message);
+    }
+}
+
 
 // ============================================================================
 // MAIN PIPELINE EXECUTION
