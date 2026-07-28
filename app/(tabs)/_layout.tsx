@@ -72,6 +72,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="toolbox"
+        options={{
+          title: 'Toolbox',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'build' : 'build-outline'} size={size + 4} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="education"
         options={{
           title: 'Tech Support',
