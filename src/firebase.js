@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,9 +23,12 @@ export const auth = Platform.OS === 'web'
       persistence: getReactNativePersistence(AsyncStorage)
     });
 
-export const db = Platform.OS === 'web'
-  ? getFirestore(app)
-  : initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-    });
+// Enable persistent offline disk cache ("No Signal!" offline support)
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
+
 export const functions = getFunctions(app);
+
