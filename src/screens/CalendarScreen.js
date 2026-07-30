@@ -545,7 +545,7 @@ EventCard.displayName = 'EventCard';
                 
                 eventLayouts.forEach(layout => {
                   let level = 0;
-                  while (level < 2) { // Maximum 2 visible levels per week row to prevent grid overlap
+                  while (level < 4) { // Maximum 4 visible levels per week row to show more events while preventing overflow
                     let hasOverlap = false;
                     for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
                       if (occupiedLevels[`${level}-${c}`]) {
@@ -568,7 +568,7 @@ EventCard.displayName = 'EventCard';
               });
 
               return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts }, wIndex) => (
-                <View key={wIndex} style={[styles.weekRowContinuous, { minHeight: 64, maxHeight: 68 }]}>
+                <View key={wIndex} style={[styles.weekRowContinuous, { minHeight: 92, maxHeight: 96 }]}>
                   <View style={styles.weekCellsRow}>
                     {week.map((dateObj, dIndex) => {
                       const isCurrentMonth = dateObj.getMonth() === month;
