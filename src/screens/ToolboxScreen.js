@@ -152,7 +152,7 @@ export default function ToolboxScreen() {
   const [fps, setFps] = useState('30');
 
   const parseTcToFrames = (tcStr, fpsNum) => {
-    const parts = tcStr.split(':').map(p => parseInt(p, 10) || 0);
+    const parts = (tcStr || '').split(/[:;]/).map(p => parseInt(p, 10) || 0);
     const h = parts[0] || 0;
     const m = parts[1] || 0;
     const s = parts[2] || 0;
@@ -161,15 +161,18 @@ export default function ToolboxScreen() {
   };
 
   const formatFramesToTc = (totalFrames, fpsNum) => {
-    const f = totalFrames % fpsNum;
-    const totalSecs = Math.floor(totalFrames / fpsNum);
+    const isNegative = totalFrames < 0;
+    const absFrames = Math.abs(totalFrames);
+    const f = absFrames % fpsNum;
+    const totalSecs = Math.floor(absFrames / fpsNum);
     const s = totalSecs % 60;
     const totalMins = Math.floor(totalSecs / 60);
     const m = totalMins % 60;
     const h = Math.floor(totalMins / 60) % 24;
 
     const pad = (n) => n.toString().padStart(2, '0');
-    return `${pad(h)}:${pad(m)}:${pad(s)}:${pad(f)}`;
+    const formatted = `${pad(h)}:${pad(m)}:${pad(s)}:${pad(f)}`;
+    return isNegative ? `-${formatted}` : formatted;
   };
 
   const fpsVal = parseInt(fps, 10) || 30;
