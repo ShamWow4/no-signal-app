@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     overflow: 'hidden',
-    height: 180,
+    minHeight: 180,
     backgroundColor: Colors.light.backgroundElement,
     borderWidth: 1,
     borderColor: Colors.light.gold,
@@ -405,16 +405,13 @@ const styles = StyleSheet.create({
   heroGradient: {
     flex: 1,
     padding: 16,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   },
   heroCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 16,
+    marginBottom: 12,
   },
   heroCardTitle: {
     color: Colors.light.text,
