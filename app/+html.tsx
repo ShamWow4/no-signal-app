@@ -3,7 +3,6 @@ import type { PropsWithChildren } from 'react';
 
 /**
  * This file is web-only and used to configure the root HTML for every web page during static rendering.
- * The contents of this function only run in Node.js environments and do not have access to the DOM or browser APIs.
  */
 export default function Root({ children }: PropsWithChildren) {
   return (
@@ -16,10 +15,25 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Google Search Console Verification */}
         <meta name="google-site-verification" content="_Gt8Zct37BZosZ3glre6_SVoUPdOLM_cYQVQpX_zjd8" />
 
-        {/* 
-          Disable body scrolling on web. This makes ScrollView components work closer to how they do on native. 
-          However, body scrolling is often nice to have for web. If you want to enable it, remove this line.
-        */}
+        {/* Base Fallback CSS to prevent raw unstyled image overflow on slow networks */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
+          }
+          a {
+            color: #d3a625;
+            text-decoration: none;
+          }
+        ` }} />
+
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>
