@@ -504,7 +504,6 @@ EventCard.displayName = 'EventCard';
             }
           >
             {(() => {
-              let globalMaxLevel = 0;
               const weeksData = weeks.map((week) => {
                 const weekStart = week[0];
                 const weekEnd = new Date(week[6]);
@@ -546,7 +545,7 @@ EventCard.displayName = 'EventCard';
                 
                 eventLayouts.forEach(layout => {
                   let level = 0;
-                  while (true) {
+                  while (level < 2) { // Maximum 2 visible levels per week row to prevent grid overlap
                     let hasOverlap = false;
                     for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
                       if (occupiedLevels[`${level}-${c}`]) {
@@ -560,7 +559,6 @@ EventCard.displayName = 'EventCard';
                         occupiedLevels[`${level}-${c}`] = true;
                       }
                       visibleLayouts.push(layout);
-                      globalMaxLevel = Math.max(globalMaxLevel, level);
                       break;
                     }
                     level++;
@@ -569,10 +567,8 @@ EventCard.displayName = 'EventCard';
                 return { week, weekStart, weekEnd, visibleLayouts };
               });
 
-              const rowHeight = Math.max(80, globalMaxLevel * 16 + 32);
-
               return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts }, wIndex) => (
-                <View key={wIndex} style={[styles.weekRowContinuous, { flex: 1, minHeight: rowHeight }]}>
+                <View key={wIndex} style={[styles.weekRowContinuous, { minHeight: 64, maxHeight: 68 }]}>
                   <View style={styles.weekCellsRow}>
                     {week.map((dateObj, dIndex) => {
                       const isCurrentMonth = dateObj.getMonth() === month;
@@ -596,7 +592,7 @@ EventCard.displayName = 'EventCard';
                       const left = `${layout.startCol * (100 / 7)}%`;
                       const rightCol = 7 - (layout.startCol + layout.duration);
                       const right = `${rightCol * (100 / 7)}%`;
-                      const top = layout.level * 16 + 24; // Standard spacing under the pinned date
+                      const top = layout.level * 16 + 22; // Controlled spacing under date numbers
                       
                       const isContinuesLeft = layout.eStart < weekStart;
                       const isContinuesRight = layout.eEnd > weekEnd;

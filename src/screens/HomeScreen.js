@@ -50,6 +50,19 @@ export default function HomeScreen() {
     fetchFeed(true);
   };
 
+  const formatSourceLabel = (src) => {
+    if (!src) return 'NEWS';
+    let s = src.toLowerCase().trim();
+    if (s.includes('avnetwork')) return 'AV NETWORK';
+    if (s.includes('commercialintegrator')) return 'COMMERCIAL INTEGRATOR';
+    if (s.includes('http://') || s.includes('https://') || s.includes('www.')) {
+      const clean = s.replace(/^https?:\/\//, '').replace(/^www\./, '');
+      const domain = clean.split('/')[0].split('.')[0];
+      return domain.toUpperCase();
+    }
+    return src.toUpperCase();
+  };
+
   const getIconForType = (type) => {
     switch (type?.toLowerCase()) {
       case 'announcement': return 'megaphone-outline';
@@ -128,7 +141,7 @@ export default function HomeScreen() {
               <View style={styles.feedTypeContainer}>
                 <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
                 <Text style={styles.feedCardType} numberOfLines={1}>
-                  {item.Source ? item.Source.toUpperCase() : 'LATEST'}
+                  {formatSourceLabel(item.Source)}
                 </Text>
               </View>
               <Text style={styles.heroCardDate}>{item.Date}</Text>
@@ -177,7 +190,7 @@ export default function HomeScreen() {
               <View style={styles.feedTypeContainer}>
                 <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
                 <Text style={styles.feedCardType} numberOfLines={1}>
-                  {item.Source ? item.Source.toUpperCase() : 'UPDATE'}
+                  {formatSourceLabel(item.Source)}
                 </Text>
               </View>
               <Text style={styles.feedCardDate}>{item.Date}</Text>

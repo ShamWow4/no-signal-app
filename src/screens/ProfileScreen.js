@@ -57,7 +57,12 @@ export default function ProfileScreen() {
         }
       }
     });
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
     return () => {
+      clearTimeout(fallbackTimer);
       unsubscribe();
       if (unsubDoc) unsubDoc();
     };
