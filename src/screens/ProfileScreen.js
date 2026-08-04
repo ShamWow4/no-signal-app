@@ -15,7 +15,7 @@ export default function ProfileScreen() {
   const [savedGigsCount, setSavedGigsCount] = useState(0);
   const [savedEventsCount, setSavedEventsCount] = useState(0);
   const [prefs, setPrefs] = useState({ gigs: true, calendar: true, news: true });
-  
+
   const router = useRouter();
 
   useEffect(() => {
@@ -24,24 +24,24 @@ export default function ProfileScreen() {
       if (currentUser) {
         setUser(currentUser);
         setDisplayName(currentUser.displayName || '');
-        
+
         const userDocRef = doc(db, 'users', currentUser.uid);
         unsubDoc = onSnapshot(userDocRef, (docSnapshot) => {
-            if (docSnapshot.exists()) {
-              const data = docSnapshot.data();
-              setSavedGigsCount(data.savedGigs?.length || 0);
-              setSavedEventsCount(data.savedEvents?.length || 0);
-              
-              setPrefs({
-                gigs: data.notificationPrefs?.gigs !== false,
-                calendar: data.notificationPrefs?.calendar !== false,
-                news: data.notificationPrefs?.news !== false,
-              });
-            } else {
-              // Create doc if it doesn't exist
-              setDoc(userDocRef, { savedGigs: [], savedEvents: [], notificationPrefs: { gigs: true, calendar: true, news: true } }, { merge: true });
-            }
-            setLoading(false);
+          if (docSnapshot.exists()) {
+            const data = docSnapshot.data();
+            setSavedGigsCount(data.savedGigs?.length || 0);
+            setSavedEventsCount(data.savedEvents?.length || 0);
+
+            setPrefs({
+              gigs: data.notificationPrefs?.gigs !== false,
+              calendar: data.notificationPrefs?.calendar !== false,
+              news: data.notificationPrefs?.news !== false,
+            });
+          } else {
+            // Create doc if it doesn't exist
+            setDoc(userDocRef, { savedGigs: [], savedEvents: [], notificationPrefs: { gigs: true, calendar: true, news: true } }, { merge: true });
+          }
+          setLoading(false);
         }, (err) => {
           console.error("Error fetching user profile:", err);
           setLoading(false);
@@ -109,7 +109,7 @@ export default function ProfileScreen() {
         colors={['rgba(255, 59, 48, 0.1)', 'transparent']}
         style={StyleSheet.absoluteFillObject}
       />
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
@@ -147,8 +147,8 @@ export default function ProfileScreen() {
                 />
               </View>
 
-              <TouchableOpacity 
-                style={styles.primaryButton} 
+              <TouchableOpacity
+                style={styles.primaryButton}
                 onPress={handleSaveProfile}
                 disabled={saving}
               >
@@ -162,7 +162,7 @@ export default function ProfileScreen() {
 
             <View style={styles.formContainer}>
               <Text style={styles.formTitle}>Notification Preferences</Text>
-              
+
               <View style={styles.prefRow}>
                 <View style={styles.prefLeft}>
                   <Ionicons name="musical-notes-outline" size={24} color="#D4AF37" style={styles.prefIcon} />
@@ -171,8 +171,8 @@ export default function ProfileScreen() {
                     <Text style={styles.prefDesc}>Be notified when new gigs drop</Text>
                   </View>
                 </View>
-                <Switch 
-                  value={prefs.gigs} 
+                <Switch
+                  value={prefs.gigs}
                   onValueChange={(val) => togglePref('gigs', val)}
                   trackColor={{ false: '#333', true: '#FF3B30' }}
                   thumbColor="#FFF"
@@ -187,8 +187,8 @@ export default function ProfileScreen() {
                     <Text style={styles.prefDesc}>Updates on conventions & events</Text>
                   </View>
                 </View>
-                <Switch 
-                  value={prefs.calendar} 
+                <Switch
+                  value={prefs.calendar}
                   onValueChange={(val) => togglePref('calendar', val)}
                   trackColor={{ false: '#333', true: '#FF3B30' }}
                   thumbColor="#FFF"
@@ -203,8 +203,8 @@ export default function ProfileScreen() {
                     <Text style={styles.prefDesc}>Tourism news & press releases</Text>
                   </View>
                 </View>
-                <Switch 
-                  value={prefs.news} 
+                <Switch
+                  value={prefs.news}
                   onValueChange={(val) => togglePref('news', val)}
                   trackColor={{ false: '#333', true: '#FF3B30' }}
                   thumbColor="#FFF"
@@ -212,14 +212,14 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={styles.adminButton} 
+            <TouchableOpacity
+              style={styles.adminButton}
               onPress={() => router.push('/admin')}
             >
-              <Ionicons name="shield-checkmark-outline" size={20} color="#D4AF37" style={{marginRight: 8}} />
+              <Ionicons name="shield-checkmark-outline" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
               <Text style={styles.adminButtonText}>Admin Broadcast</Text>
             </TouchableOpacity>
-            
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
