@@ -7,6 +7,9 @@
   "files.associations": {
     "LICENSE": "plaintext"
   },
+  "java.project.exclusionFilters": [
+    "**/node_modules/**"
+  ],
   "python.testing.unittestArgs": [
     "-v",
     "-s",
