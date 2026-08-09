@@ -18,7 +18,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Base Fallback CSS to prevent raw unstyled image overflow on slow networks */}
         <style dangerouslySetInnerHTML={{ __html: `
           body {
-            background-color: #0a0a0a;
+            background-color: #121212;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -31,6 +31,29 @@ export default function Root({ children }: PropsWithChildren) {
           a {
             color: #d3a625;
             text-decoration: none;
+          }
+
+          /* Custom Scrollbar - Dark Grey Track & Subtle Gold Thumb */
+          ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          ::-webkit-scrollbar-track {
+            background: #121212;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: rgba(211, 166, 37, 0.4);
+            border-radius: 4px;
+            border: 1px solid rgba(211, 166, 37, 0.2);
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: rgba(211, 166, 37, 0.75);
+          }
+
+          /* Firefox & Standard Scrollbar Styling */
+          * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(211, 166, 37, 0.4) #121212;
           }
         ` }} />
 

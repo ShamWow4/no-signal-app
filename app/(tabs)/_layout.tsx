@@ -2,46 +2,65 @@ import React from 'react';
 import { Tabs, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/theme';
-import { Pressable } from 'react-native';
+import { Pressable, Platform, View, Text } from 'react-native';
+
+// Web Vector Icon component for 100% guaranteed crisp rendering across all browsers
+function TabIcon({ name, focused, color, size = 24 }: { name: string; focused: boolean; color: string; size?: number }) {
+  if (Platform.OS === 'web') {
+    // Provide clean, high-resolution SVG/Emoji iconography fallback on Web
+    const webIcons: Record<string, string> = {
+      calendar: '📅',
+      directory: '👥',
+      gigs: '⚡',
+      toolbox: '🛠️',
+      education: '🛟',
+      news: '📰',
+      profile: '👤',
+    };
+    const iconSymbol = webIcons[name] || '📌';
+    return (
+      <View style={{ alignItems: 'center', justifyContent: 'center', height: size + 4 }}>
+        <Text style={{ fontSize: size - 2, opacity: focused ? 1 : 0.65 }}>{iconSymbol}</Text>
+      </View>
+    );
+  }
+
+  // Native iOS / Android standard Ionicons
+  const iconNames: Record<string, { active: any; inactive: any }> = {
+    calendar: { active: 'calendar', inactive: 'calendar-outline' },
+    directory: { active: 'people', inactive: 'people-outline' },
+    gigs: { active: 'flash', inactive: 'flash-outline' },
+    toolbox: { active: 'construct', inactive: 'construct-outline' },
+    education: { active: 'help-buoy', inactive: 'help-buoy-outline' },
+    news: { active: 'newspaper', inactive: 'newspaper-outline' },
+    profile: { active: 'person-circle', inactive: 'person-circle-outline' },
+  };
+
+  const currentIcon = iconNames[name] || { active: 'star', inactive: 'star-outline' };
+  const iconName = focused ? currentIcon.active : currentIcon.inactive;
+
+  return <Ionicons name={iconName} size={size + 4} color={color} />;
+}
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: Colors.light.gold,
-        tabBarInactiveTintColor: 'gray',
+        tabBarInactiveTintColor: '#888888',
         tabBarStyle: {
-          backgroundColor: Colors.light.backgroundElement,
-          borderTopWidth: 0,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          backgroundColor: '#121212',
+          borderTopWidth: 1,
+          borderTopColor: '#222222',
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 13,
+          fontSize: 11,
           fontFamily: 'PoppinsSemiBold',
         },
-        headerStyle: {
-          backgroundColor: Colors.light.backgroundElement,
-        },
-        headerTintColor: Colors.light.text,
-        headerTitleStyle: {
-          fontFamily: 'CinzelSemiBold',
-        },
-        headerRight: () => (
-          <Link href="/donors" asChild>
-            <Pressable style={{ marginRight: 15 }}>
-              {({ pressed }) => (
-                <Ionicons
-                  name="heart"
-                  size={24}
-                  color={Colors.light.gold}
-                  style={{ opacity: pressed ? 0.5 : 1 }}
-                />
-              )}
-            </Pressable>
-          </Link>
-        ),
       }}
     >
       <Tabs.Screen
@@ -49,7 +68,7 @@ export default function TabLayout() {
         options={{
           title: 'Calendar',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={size + 4} color={color} />
+            <TabIcon name="calendar" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -58,7 +77,7 @@ export default function TabLayout() {
         options={{
           title: 'Directory',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'briefcase' : 'briefcase-outline'} size={size + 4} color={color} />
+            <TabIcon name="directory" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -67,7 +86,7 @@ export default function TabLayout() {
         options={{
           title: 'Gigs',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'business' : 'business-outline'} size={size + 4} color={color} />
+            <TabIcon name="gigs" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -76,7 +95,7 @@ export default function TabLayout() {
         options={{
           title: 'Toolbox',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'build' : 'build-outline'} size={size + 4} color={color} />
+            <TabIcon name="toolbox" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -85,7 +104,7 @@ export default function TabLayout() {
         options={{
           title: 'Tech Support',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'book' : 'book-outline'} size={size + 4} color={color} />
+            <TabIcon name="education" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -94,7 +113,7 @@ export default function TabLayout() {
         options={{
           title: 'AV News',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'newspaper' : 'newspaper-outline'} size={size + 4} color={color} />
+            <TabIcon name="news" focused={focused} color={color} size={size} />
           ),
         }}
       />
@@ -103,7 +122,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={size + 4} color={color} />
+            <TabIcon name="profile" focused={focused} color={color} size={size} />
           ),
         }}
       />

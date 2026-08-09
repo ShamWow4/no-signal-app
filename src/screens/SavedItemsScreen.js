@@ -139,11 +139,15 @@ export default function SavedItemsScreen() {
           </View>
         </View>
         <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
-        {(item['Company'] || item['Location']) && (
-          <Text style={styles.gigCardCompany}>
-            {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
-          </Text>
-        )}
+        {item['Company'] ? (
+          <Text style={styles.gigCardCompany}>{item['Company']}</Text>
+        ) : null}
+        {item['Location'] ? (
+          <View style={styles.gigLocationRow}>
+            <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+            <Text style={styles.gigCardLocation}>{item['Location']}</Text>
+          </View>
+        ) : null}
         <LinearGradient
           colors={['rgba(212, 175, 55, 0.9)', 'rgba(179, 139, 34, 0.9)']}
           start={{ x: 0, y: 0 }}
@@ -251,7 +255,9 @@ const styles = StyleSheet.create({
   gigTypeContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   gigCardType: { color: Colors.light.gold, fontSize: 11, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
   gigCardTitle: { color: Colors.light.text, fontSize: 20, fontFamily: 'CinzelSemiBold', marginBottom: 4 },
-  gigCardCompany: { color: Colors.light.textSecondary, fontSize: 14, fontFamily: 'Poppins', marginBottom: 12 },
+  gigCardCompany: { color: '#FFFFFF', fontSize: 15, fontFamily: 'PoppinsSemiBold', letterSpacing: 0.2, marginTop: 2, marginBottom: 2 },
+  gigLocationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  gigCardLocation: { color: Colors.light.textSecondary, fontSize: 13, fontFamily: 'OpenSans' },
   applyContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24, alignSelf: 'flex-start' },
   applyText: { color: '#000', fontSize: 14, fontFamily: 'PoppinsSemiBold', marginRight: 6 },
   

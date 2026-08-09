@@ -3,8 +3,9 @@ import fs from 'fs';
 
 (async () => {
     console.log("Starting browser...");
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
     console.log("Navigating to EventNow...");
     await page.goto('https://eventnow.encoreglobal.com/landingpage/newexhibit/index/', {waitUntil: 'networkidle2'});
@@ -28,8 +29,8 @@ import fs from 'fs';
     await page.evaluate(() => {
         if (window.jQuery) {
             // Some datepickers require removing readonly temporarily
-            window.jQuery('#startDate').removeAttr('readonly').val('07/06/2026').trigger('change');
-            window.jQuery('#endDate').removeAttr('readonly').val('09/04/2026').trigger('change');
+            window.jQuery('#startDate').removeAttr('readonly').val('08/01/2026').trigger('change');
+            window.jQuery('#endDate').removeAttr('readonly').val('12/31/2026').trigger('change');
         }
     });
     
