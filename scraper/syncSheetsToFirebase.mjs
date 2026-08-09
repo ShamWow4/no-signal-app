@@ -12,59 +12,50 @@ const __dirname = path.dirname(__filename);
 // ============================================================================
 // CONFIGURATION & PATHS
 // ============================================================================
+// Permanent Master Spreadsheet ID (Option 1)
 const SPREADSHEET_ID = '1q3UNaTuyHbJ630R8UPZyxcGow00HQGaaRZ6YiSOEB1A';
+
 const CREDENTIALS_PATH = fs.existsSync(path.join(__dirname, 'google-credentials.json'))
     ? path.join(__dirname, 'google-credentials.json')
-    : (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json'))
-        ? path.join(__dirname, 'serviceAccountKey.json')
-        : path.join(__dirname, '../serviceAccountKey.json'));
+    : (fs.existsSync(path.join(__dirname, '../google-credentials.json'))
+        ? path.join(__dirname, '../google-credentials.json')
+        : path.join(__dirname, 'serviceAccountKey.json'));
 
 const SERVICE_ACCOUNT_PATH = fs.existsSync(path.join(__dirname, 'serviceAccountKey.json'))
     ? path.join(__dirname, 'serviceAccountKey.json')
     : path.join(__dirname, '../serviceAccountKey.json');
 
-
-
 /**
  * Mapping of Google Sheets tabs to target Firebase Firestore collections.
- * Each entry defines the source tab, target collection, and unique ID resolver.
  */
 const SYNC_CONFIGS = [
     {
-        tab: 'calendar_events',
+        tabNames: ['calendar_events', 'Master Calendar', 'Master calendar'],
         collection: 'calendar_events',
-        getId: item => item['Title'] || item['name'] || null
+        getId: item => item['Title'] || item['Event'] || item['name'] || null
     },
     {
-        tab: 'news_feed',
+        tabNames: ['news_feed', 'Newsletter_AV News', 'Newsletter_AV news'],
         collection: 'av_news',
-        getId: item => item['Title'] || null
+        getId: item => item['Title'] || item['Article'] || null
     },
     {
-        tab: 'gig_alerts',
+        tabNames: ['gig_alerts', 'Newsletter_Gigs', 'Newsletter_gigs'],
         collection: 'av_gigs',
-        getId: item => (item['Job Title'] ? `${item['Job Title']}_${item['Company'] || ''}` : null)
+        getId: item => (item['Job Title'] ? `${item['Job Title']}_${item['Company'] || ''}` : item['Title'] || null)
     },
     {
-        tab: 'labor_directory',
+        tabNames: ['labor_directory', 'Newsletter_AV Directory', 'Newsletter_AV directory'],
         collection: 'labor_directory',
-        getId: item => item['Company Name'] || null
+        getId: item => item['Company Name'] || item['Company'] || null
     },
     {
-        tab: 'av_training',
+        tabNames: ['av_training', 'Newsletter_AV Training'],
         collection: 'av_training',
-        getId: item => item['Course Title'] || null
-    },
-    {
-        tab: 'Union Events',
-        collection: 'union_events',
-        getId: item => (item['Event Title'] ? `${item['Event Title']}_${item['Date'] || ''}` : null)
+        getId: item => item['Course Title'] || item['Title'] || null
     }
 ];
 
-// ============================================================================
-// FIREBASE & GOOGLE API INITIALIZATION
-// ============================================================================
 function initFirestore() {
     if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
         throw new Error(`Firebase service account file not found: ${SERVICE_ACCOUNT_PATH}`);
@@ -85,19 +76,12 @@ function initGoogleSheets() {
 
     const auth = new google.auth.GoogleAuth({
         keyFile: CREDENTIALS_PATH,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
 
     return google.sheets({ version: 'v4', auth });
 }
 
-// ============================================================================
-// HELPER UTILITIES
-// ============================================================================
-
-/**
- * Normalizes text for deterministic ID generation by stripping accents, special chars, & casing.
- */
 function normalizeText(text) {
     if (!text) return '';
     return text
@@ -109,19 +93,93 @@ function normalizeText(text) {
         .replace(/[^a-z0-9]/g, '');
 }
 
-/**
- * Generates a deterministic MD5 hash for a given unique input string.
- */
 function generateDocumentId(input) {
     const normalized = normalizeText(input);
     return crypto.createHash('md5').update(normalized).digest('hex');
 }
 
-/**
- * Fetches and formats rows from a specific Google Sheets tab into key-value objects.
- */
-async function fetchSheetData(sheets, tabName) {
-    const range = `'${tabName}'!A:Z`;
+function canonicalizeItem(item, collectionName) {
+    if (!item) return item;
+    const cleanItem = { ...item };
+    
+    if (collectionName === 'labor_directory') {
+        const companyName = item['Company Name'] || item['Company'] || item['company_name'] || item['name'] || '';
+        const website = item['Website'] || item['Company Website'] || item['website'] || item['url'] || '';
+        const phone = item['Contact Phone'] || item['Contact phone number'] || item['Contact Phon'] || item['Contact phone numt'] || item['phone'] || item['phoneNumber'] || '';
+        const contact = item['Contact Name'] || item['Contact'] || item['contact'] || '';
+        const position = item['Position'] || item['position'] || '';
+
+        cleanItem['Company Name'] = companyName;
+        cleanItem['Company'] = companyName;
+        cleanItem['Website'] = website;
+        cleanItem['Company Website'] = website;
+        cleanItem['Contact Phone'] = phone;
+        cleanItem['Contact phone number'] = phone;
+        cleanItem['Contact Name'] = contact;
+        cleanItem['Position'] = position;
+    }
+
+    if (collectionName === 'calendar_events') {
+        const title = item['Title'] || item['Event'] || item['name'] || item['title'] || '';
+        
+        let rawLoadIn = item['Load-In Date'] || item['Load-In'] || item['loadIn'] || item['Load In Date'] || item['Show Start'] || item['Start Date'] || item['Dates'] || '';
+        let rawLoadOut = item['Load-Out Date'] || item['Load-Out'] || item['loadOut'] || item['Load Out Date'] || item['Show End'] || item['End Date'] || '';
+
+        // If rawLoadIn contains a date range string (e.g. "08/03/2026 - 08/07/2026")
+        if (typeof rawLoadIn === 'string' && (rawLoadIn.includes(' - ') || rawLoadIn.includes(' – ') || rawLoadIn.includes(' — ') || rawLoadIn.toLowerCase().includes(' to '))) {
+            const parts = rawLoadIn.split(/[-–—]| to /i).map(s => s.trim());
+            if (parts.length >= 2) {
+                rawLoadIn = parts[0];
+                if (!rawLoadOut || rawLoadOut === item['Load-In Date']) {
+                    rawLoadOut = parts[1];
+                }
+            }
+        }
+
+        const loadIn = rawLoadIn;
+        const loadOut = rawLoadOut || loadIn;
+        const venue = item['Venue'] || item['venue'] || '';
+        const hall = item['Hall / Room'] || item['hall'] || '';
+        const city = item['City'] || item['city'] || 'NEW ORLEANS, LA';
+        const source = item['Source'] || item['source'] || 'Scraped';
+
+        cleanItem['Title'] = title;
+        cleanItem['name'] = title;
+        cleanItem['Load-In Date'] = loadIn;
+        cleanItem['loadIn'] = loadIn;
+        cleanItem['Load-Out Date'] = loadOut;
+        cleanItem['loadOut'] = loadOut;
+        cleanItem['Venue'] = venue;
+        cleanItem['venue'] = venue;
+        cleanItem['Hall / Room'] = hall;
+        cleanItem['hall'] = hall;
+        cleanItem['City'] = city;
+        cleanItem['city'] = city;
+        cleanItem['Source'] = source;
+        cleanItem['source'] = source;
+    }
+    
+    return cleanItem;
+}
+
+async function fetchSheetData(sheets, candidateTabNames) {
+    let existingSheetTitle = candidateTabNames[0];
+    try {
+        const spreadsheetInfo = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+        const existingTitles = spreadsheetInfo.data.sheets.map(s => s.properties.title);
+        
+        for (const name of candidateTabNames) {
+            const found = existingTitles.find(t => t.toLowerCase().trim() === name.toLowerCase().trim());
+            if (found) {
+                existingSheetTitle = found;
+                break;
+            }
+        }
+    } catch (e) {
+        existingSheetTitle = candidateTabNames[0];
+    }
+
+    const range = `'${existingSheetTitle}'!A:Z`;
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
@@ -132,29 +190,23 @@ async function fetchSheetData(sheets, tabName) {
         if (!rows || rows.length <= 1) return [];
 
         const [headers, ...dataRows] = rows;
-        const cleanHeaders = headers.map(h => h.trim());
+        const cleanHeaders = headers.map(h => h ? h.trim() : '');
 
         return dataRows.map(row => {
             const item = {};
             cleanHeaders.forEach((header, idx) => {
-                item[header] = row[idx] ? row[idx].trim() : '';
+                if (header) {
+                    item[header] = row[idx] ? row[idx].trim() : '';
+                }
             });
             return item;
         });
     } catch (error) {
-        if (error.message?.includes('Unable to parse range')) {
-            console.log(`ℹ️  Tab '${tabName}' not found in spreadsheet. Skipping.`);
-        } else {
-            console.error(`⚠️ Error reading tab '${tabName}':`, error.message);
-        }
+        console.error(`⚠️ Error reading tab '${existingSheetTitle}':`, error.message);
         return [];
     }
 }
 
-/**
- * Pushes formatted data objects into a Firestore collection using batched writes,
- * and purges stale documents to guarantee zero duplicates.
- */
 async function pushToFirestore(db, collectionName, items, getId) {
     if (!items || items.length === 0) {
         console.log(`ℹ️  No data to sync for collection '${collectionName}'.`);
@@ -164,7 +216,6 @@ async function pushToFirestore(db, collectionName, items, getId) {
     console.log(`📦 Syncing ${items.length} items to Firestore collection '${collectionName}'...`);
     const collectionRef = db.collection(collectionName);
     
-    // Fetch all existing doc IDs in Firestore to purge stale items
     const existingSnapshot = await collectionRef.get();
     const existingDocIds = new Set(existingSnapshot.docs.map(doc => doc.id));
     const newDocIds = new Set();
@@ -173,7 +224,6 @@ async function pushToFirestore(db, collectionName, items, getId) {
     let pendingCount = 0;
     let totalSynced = 0;
 
-    // 1. Deduplicate items array by normalized document ID
     const uniqueItemsMap = new Map();
     for (const item of items) {
         const uniqueKey = getId(item);
@@ -184,18 +234,12 @@ async function pushToFirestore(db, collectionName, items, getId) {
         }
     }
 
-    const brandNewGigs = [];
-
-    // 2. Set/update documents in batches
     for (const [docId, item] of uniqueItemsMap.entries()) {
         const docRef = collectionRef.doc(docId);
         newDocIds.add(docId);
 
-        if (collectionName === 'av_gigs' && !existingDocIds.has(docId)) {
-            brandNewGigs.push(item);
-        }
-
-        currentBatch.set(docRef, item, { merge: true });
+        const cleanDoc = canonicalizeItem(item, collectionName);
+        currentBatch.set(docRef, cleanDoc, { merge: true });
         pendingCount++;
         totalSynced++;
 
@@ -211,14 +255,6 @@ async function pushToFirestore(db, collectionName, items, getId) {
         console.log(`   └─ Committed final write batch of ${pendingCount} items`);
     }
 
-    // Trigger Push Notifications for brand-new gig alerts
-    if (collectionName === 'av_gigs' && brandNewGigs.length > 0) {
-        console.log(`🚨 Found ${brandNewGigs.length} new gig alert(s)! Sending push notifications to users...`);
-        await sendGigPushNotifications(db, brandNewGigs);
-    }
-
-
-    // 3. Purge stale / old duplicate document IDs not present in current sheet source
     const staleDocIds = [...existingDocIds].filter(id => !newDocIds.has(id));
     if (staleDocIds.length > 0) {
         console.log(`   🧹 Purging ${staleDocIds.length} stale/duplicate documents from '${collectionName}'...`);
@@ -242,88 +278,28 @@ async function pushToFirestore(db, collectionName, items, getId) {
     return totalSynced;
 }
 
-/**
- * Sends Expo Push Notifications to all registered app users when new AV Gigs are detected.
- */
-async function sendGigPushNotifications(db, newGigs) {
+async function main() {
+    console.log("====================================================");
+    console.log("🔥 FIREBASE FIRESTORE SYNC STARTED 🔥");
+    console.log("====================================================\n");
+
     try {
-        const tokensSnapshot = await db.collection('push_tokens').get();
-        if (tokensSnapshot.empty) {
-            console.log('ℹ️  No registered push notification devices found in Firestore.');
-            return;
+        const db = initFirestore();
+        const sheets = initGoogleSheets();
+
+        for (const config of SYNC_CONFIGS) {
+            console.log(`\n▶ Fetching '${config.collection}' from Google Sheets...`);
+            const items = await fetchSheetData(sheets, config.tabNames);
+            await pushToFirestore(db, config.collection, items, config.getId);
         }
 
-        const tokens = tokensSnapshot.docs
-            .map(doc => doc.data().token)
-            .filter(t => typeof t === 'string' && t.startsWith('ExpoPushToken['));
-
-        if (tokens.length === 0) {
-            console.log('ℹ️  No valid Expo push tokens registered in Firestore.');
-            return;
-        }
-
-        console.log(`📲 Sending push notification to ${tokens.length} device(s) for ${newGigs.length} new gig alert(s)...`);
-
-        const messages = [];
-        for (const gig of newGigs) {
-            const gigTitle = gig['Job Title'] || gig['Title'] || 'AV Opportunity';
-            const company = gig['Company'] || gig['Source'] || 'NOLA AV';
-            const location = gig['Location'] || 'New Orleans, LA';
-
-            for (const token of tokens) {
-                messages.push({
-                    to: token,
-                    sound: 'default',
-                    title: `🚨 New Gig Alert: ${gigTitle}`,
-                    body: `${company} • ${location}`,
-                    data: { screen: 'gigs', link: gig['Link'] || '' }
-                });
-            }
-        }
-
-        for (let i = 0; i < messages.length; i += 100) {
-            const chunk = messages.slice(i, i + 100);
-            const response = await fetch('https://exp.host/--/api/v2/push/send', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Accept-encoding': 'gzip, deflate',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(chunk),
-            });
-            const result = await response.json();
-            console.log(`✅ Push notification batch sent successfully! (${chunk.length} notification(s))`);
-        }
-    } catch (err) {
-        console.error('⚠️  Error sending push notifications:', err.message);
+        console.log("\n====================================================");
+        console.log("🎉 FIREBASE SYNC COMPLETE! All collections updated. 🎉");
+        console.log("====================================================\n");
+    } catch (error) {
+        console.error("❌ Fatal error during Firebase sync:", error.message);
+        process.exit(1);
     }
 }
 
-
-// ============================================================================
-// MAIN PIPELINE EXECUTION
-// ============================================================================
-async function runSyncPipeline() {
-    console.log('====================================================');
-    console.log('🔥 FIREBASE FIRESTORE SYNC STARTED 🔥');
-    console.log('====================================================\n');
-
-    const db = initFirestore();
-    const sheets = initGoogleSheets();
-
-    for (const config of SYNC_CONFIGS) {
-        console.log(`\n▶ Fetching '${config.tab}' from Google Sheets...`);
-        const items = await fetchSheetData(sheets, config.tab);
-        await pushToFirestore(db, config.collection, items, config.getId);
-    }
-
-    console.log('\n====================================================');
-    console.log('🎉 FIREBASE SYNC COMPLETE! All collections updated. 🎉');
-    console.log('====================================================');
-}
-
-runSyncPipeline().catch(err => {
-    console.error('❌ Fatal error in Firebase sync pipeline:', err);
-    process.exit(1);
-});
+main();

@@ -10,26 +10,28 @@ import { Platform } from 'react-native';
 export const Colors = {
   light: {
     text: '#ffffff',
-    background: '#0a0a0a',
-    backgroundElement: 'rgba(22, 22, 22, 0.8)',
+    background: '#121212',
+    backgroundElement: 'rgba(28, 28, 28, 0.8)',
     backgroundSelected: '#2a2a2a',
-    textSecondary: 'rgba(255,255,255,0.7)',
+    textSecondary: 'rgba(255, 255, 255, 0.7)',
     gold: '#D4AF37',
+    goldMuted: '#A88B2A',
     goldBright: '#F3E5AB',
-    border: 'rgba(212, 175, 55, 0.2)', // Gold tint border
-    glassBackground: 'rgba(30, 30, 30, 0.65)',
+    border: 'rgba(212, 175, 55, 0.18)', // Muted gold tint border
+    glassBackground: 'rgba(32, 32, 35, 0.65)',
     glassBorder: 'rgba(255, 255, 255, 0.08)',
   },
   dark: {
     text: '#ffffff',
-    background: '#0a0a0a',
-    backgroundElement: 'rgba(22, 22, 22, 0.8)',
+    background: '#121212',
+    backgroundElement: 'rgba(28, 28, 28, 0.8)',
     backgroundSelected: '#2a2a2a',
-    textSecondary: 'rgba(255,255,255,0.7)',
+    textSecondary: 'rgba(255, 255, 255, 0.7)',
     gold: '#D4AF37',
+    goldMuted: '#A88B2A',
     goldBright: '#F3E5AB',
-    border: 'rgba(212, 175, 55, 0.2)',
-    glassBackground: 'rgba(30, 30, 30, 0.65)',
+    border: 'rgba(212, 175, 55, 0.18)',
+    glassBackground: 'rgba(32, 32, 35, 0.65)',
     glassBorder: 'rgba(255, 255, 255, 0.08)',
   },
 } as const;

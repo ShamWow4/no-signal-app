@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Linking, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Pressable, Linking, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -8,6 +8,40 @@ import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+
+function ActionButton({ icon, label, onPress, disabled }) {
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ hovered }) => [
+        styles.actionButton,
+        disabled && styles.actionButtonDisabled,
+        !disabled && hovered && styles.actionButtonHovered,
+      ]}
+    >
+      {({ hovered }) => (
+        <>
+          <Ionicons
+            name={icon}
+            size={13}
+            color={disabled ? 'rgba(255, 255, 255, 0.2)' : (hovered ? '#000000' : Colors.light.gold)}
+            style={{ marginRight: 4 }}
+          />
+          <Text
+            style={[
+              styles.actionText,
+              disabled && styles.actionTextDisabled,
+              !disabled && hovered && styles.actionTextHovered,
+            ]}
+          >
+            {label}
+          </Text>
+        </>
+      )}
+    </Pressable>
+  );
+}
 
 export default function DirectoryScreen() {
   const [companies, setCompanies] = useState([]);
@@ -26,9 +60,9 @@ export default function DirectoryScreen() {
           const d = doc.data();
           companyList.push({ 
             id: doc.id,
-            name: d['Company Name'] || d.name,
-            website: d['Company Website'] || d.website,
-            phone: d['Contact phone number'] || d.phone,
+            name: d['Company Name'] || d['Company'] || d.name,
+            website: d['Website'] || d['Company Website'] || d.website || d.url,
+            phone: d['Contact Phone'] || d['Contact phone number'] || d['Contact Phon'] || d['Contact phone numt'] || d.phone || d.phoneNumber || d.contactPhone,
             contact: d['Contact Name'] || d.contact,
             position: d['Position'] || d.position,
             type: d.type || 'COMPANY',
@@ -124,9 +158,13 @@ export default function DirectoryScreen() {
     let url = value.trim();
     if (type === 'phone') {
       const cleanPhone = value.replace(/[^0-9+]/g, '');
-      url = Platform.OS === 'android' ? `tel:${cleanPhone}` : `telprompt:${cleanPhone}`;
+      url = `tel:${cleanPhone}`;
+      if (Platform.OS === 'web') {
+        window.open(url, '_self');
+        return;
+      }
     } else if (type === 'email') {
-      url = `mailto:${value}`;
+      url = `mailto:${value.trim()}`;
     } else if (type === 'website') {
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = `https://${url}`;
@@ -134,76 +172,80 @@ export default function DirectoryScreen() {
     }
 
     if (Platform.OS === 'web') {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       Linking.openURL(url).catch(err => console.log(`Error opening URI: ${url}`, err));
     }
   };
 
+  const renderTableHeader = () => (
+    <View style={styles.tableHeader}>
+      <Text style={styles.tableHeaderLabel}>COMPANY / CATEGORY</Text>
+      <Text style={styles.tableHeaderActionsLabel}>CONTACT OPTIONS</Text>
+    </View>
+  );
+
   const renderItem = ({ item, index }) => (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(500)}>
-      <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
-        <Image 
-          source={require('../../assets/images/nola-av-logo.png.png')} 
-          style={[styles.watermarkIcon, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
-          resizeMode="contain"
-        />
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleContainer}>
-            <Text style={styles.companyName}>{item.name}</Text>
-            <Text style={styles.companyType}>{item.type}</Text>
+    <Animated.View entering={FadeInDown.delay(index * 30).duration(400)}>
+      <Pressable
+        style={({ hovered }) => [
+          styles.tableRow,
+          Shadows.subtle,
+          hovered && styles.tableRowHovered,
+        ]}
+      >
+        <View style={styles.rowInfoContainer}>
+          <View style={styles.rowTitleCategory}>
+            <Text style={styles.companyName} numberOfLines={1}>{item.name}</Text>
+            <View style={styles.typeBadge}>
+              <Text style={styles.companyType}>{item.type}</Text>
+            </View>
           </View>
+
+          {(item.contact || item.position || item.description) && (
+            <View style={styles.rowSubContainer}>
+              {item.contact ? (
+                <Text style={styles.contactDetails} numberOfLines={1}>
+                  <Ionicons name="person-outline" size={12} color={Colors.light.gold} /> {item.contact}
+                  {item.position ? ` • ${item.position}` : ''}
+                </Text>
+              ) : item.description ? (
+                <Text style={styles.descriptionSnippet} numberOfLines={1}>{item.description}</Text>
+              ) : null}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.rowActionsRight}>
+          <ActionButton
+            icon="call"
+            label="Call"
+            disabled={!item.phone}
+            onPress={() => handleLink('phone', item.phone)}
+          />
+          <ActionButton
+            icon="mail"
+            label="Email"
+            disabled={!item.email}
+            onPress={() => handleLink('email', item.email)}
+          />
+          <ActionButton
+            icon="globe"
+            label="Website"
+            disabled={!item.website}
+            onPress={() => handleLink('website', item.website)}
+          />
           {user && (
-            <TouchableOpacity onPress={() => toggleSaveCompany(item.id)} style={{ padding: 4, zIndex: 10 }}>
+            <TouchableOpacity onPress={() => toggleSaveCompany(item.id)} style={styles.heartButton}>
               <Ionicons 
                 name={savedCompanies.has(item.id) ? "heart" : "heart-outline"} 
-                size={22} 
+                size={20} 
                 color={savedCompanies.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
               />
             </TouchableOpacity>
           )}
         </View>
-        
-        {item.description && (
-          <Text style={styles.description}>{item.description}</Text>
-        )}
-
-        {(item.contact || item.position) && (
-          <View style={styles.contactInfoContainer}>
-            {item.contact ? <Text style={styles.contactName}>{item.contact}</Text> : null}
-            {item.position ? <Text style={styles.contactPosition}>{item.position}</Text> : null}
-          </View>
-        )}
-
-        <View style={styles.actionRow}>
-          {item.phone && (
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleLink('phone', item.phone)}>
-              <View style={styles.actionIconContainer}>
-                <Ionicons name="call" size={16} color={Colors.light.gold} />
-              </View>
-              <Text style={styles.actionText}>Call</Text>
-            </TouchableOpacity>
-          )}
-          
-          {item.email && (
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleLink('email', item.email)}>
-              <View style={styles.actionIconContainer}>
-                <Ionicons name="mail" size={16} color={Colors.light.gold} />
-              </View>
-              <Text style={styles.actionText}>Email</Text>
-            </TouchableOpacity>
-          )}
-          
-          {item.website && (
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleLink('website', item.website)}>
-              <View style={styles.actionIconContainer}>
-                <Ionicons name="globe" size={16} color={Colors.light.gold} />
-              </View>
-              <Text style={styles.actionText}>Website</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      </Pressable>
     </Animated.View>
   );
 
@@ -260,6 +302,7 @@ export default function DirectoryScreen() {
         <FlatList
           data={filteredCompanies}
           keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderTableHeader}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
@@ -351,101 +394,134 @@ const styles = StyleSheet.create({
   filterPillTextActive: {
     color: '#000',
   },
-  watermarkIcon: {
-    position: 'absolute',
-    right: -20,
-    bottom: -20,
-    transform: [{ rotate: '-15deg' }],
-    zIndex: 0,
-  },
   list: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  card: {
-    backgroundColor: Colors.light.glassBackground,
-    borderRadius: 16,
-    marginBottom: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
-    elevation: 4,
-  },
-  cardHeader: {
+  tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 8,
   },
-  cardTitleContainer: {
-    flex: 1,
-  },
-  companyName: {
-    fontSize: 22,
-    fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
-    marginBottom: 4,
-  },
-  companyType: {
-    fontSize: 12,
+  tableHeaderLabel: {
+    fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
     color: Colors.light.textSecondary,
-    textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
-  description: {
-    fontSize: 14,
-    fontFamily: 'OpenSans',
-    color: '#CCC',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  contactInfoContainer: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: 'rgba(212, 175, 55, 0.05)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.2)',
-  },
-  contactName: {
-    fontSize: 15,
+  tableHeaderActionsLabel: {
+    fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.text,
-  },
-  contactPosition: {
-    fontSize: 13,
-    fontFamily: 'Poppins',
     color: Colors.light.textSecondary,
-    marginTop: 2,
+    letterSpacing: 1.5,
+    marginRight: 50,
   },
-  actionRow: {
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.light.glassBackground,
+    borderRadius: 12,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
+  },
+  tableRowHovered: {
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    boxShadow: '0px 4px 16px rgba(212, 175, 55, 0.15)',
+  },
+  rowInfoContainer: {
+    flex: 1,
+    marginRight: 16,
+    justifyContent: 'center',
+  },
+  rowTitleCategory: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    paddingTop: 16,
-    gap: 12,
+    gap: 8,
+  },
+  companyName: {
+    fontSize: 16,
+    fontFamily: 'CinzelSemiBold',
+    color: Colors.light.gold,
+  },
+  typeBadge: {
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+  },
+  companyType: {
+    fontSize: 10,
+    fontFamily: 'PoppinsSemiBold',
+    color: Colors.light.goldBright,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  rowSubContainer: {
+    marginTop: 4,
+  },
+  contactDetails: {
+    fontSize: 12,
+    fontFamily: 'Poppins',
+    color: Colors.light.textSecondary,
+  },
+  descriptionSnippet: {
+    fontSize: 12,
+    fontFamily: 'OpenSans',
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  rowActionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  actionIconContainer: {
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 6,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    minWidth: 78,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+  },
+  actionButtonHovered: {
+    backgroundColor: Colors.light.gold,
+    borderColor: Colors.light.goldBright,
+  },
+  actionButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   actionText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'PoppinsSemiBold',
     color: Colors.light.gold,
+  },
+  actionTextHovered: {
+    color: '#000000',
+  },
+  actionTextDisabled: {
+    color: 'rgba(255, 255, 255, 0.2)',
+  },
+  heartButton: {
+    padding: 6,
+    marginLeft: 2,
   },
   loadingContainer: {
     flex: 1,
@@ -463,3 +539,4 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
 });
+

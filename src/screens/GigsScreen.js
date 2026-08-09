@@ -141,9 +141,9 @@ export default function GigsScreen() {
             style={styles.heroGradient}
           >
             <View style={styles.heroCardHeader}>
-              <View style={styles.gigTypeContainer}>
-                <Ionicons name="flame" size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
-                <Text style={styles.gigCardType}>HOT GIG</Text>
+              <View style={styles.hotGigBadge}>
+                <Ionicons name="flame" size={14} color="#FF453A" style={{ marginRight: 6 }} />
+                <Text style={styles.hotGigText}>HOT GIG</Text>
               </View>
               {user && (
                 <TouchableOpacity onPress={() => toggleSaveGig(item.id)} style={{ padding: 4 }}>
@@ -156,11 +156,15 @@ export default function GigsScreen() {
               )}
             </View>
             <Text style={styles.heroCardTitle}>{item['Job Title']}</Text>
-            {(item['Company'] || item['Location']) && (
-              <Text style={styles.heroCardCompany}>
-                {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
-              </Text>
-            )}
+            {item['Company'] ? (
+              <Text style={styles.heroCardCompany}>{item['Company']}</Text>
+            ) : null}
+            {item['Location'] ? (
+              <View style={styles.heroLocationRow}>
+                <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Text style={styles.heroCardLocation}>{item['Location']}</Text>
+              </View>
+            ) : null}
             <View style={[styles.applyContainer, { backgroundColor: Colors.light.gold, marginTop: 16 }]}>
               <Text style={[styles.applyText, { color: '#000' }]}>Apply Now</Text>
               <Ionicons name="arrow-forward" size={16} color="#000" />
@@ -246,11 +250,15 @@ export default function GigsScreen() {
               )}
             </View>
             <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
-            {(item['Company'] || item['Location']) && (
-              <Text style={styles.gigCardCompany}>
-                {item['Company']}{item['Company'] && item['Location'] ? ' • ' : ''}{item['Location']}
-              </Text>
-            )}
+            {item['Company'] ? (
+              <Text style={styles.gigCardCompany}>{item['Company']}</Text>
+            ) : null}
+            {item['Location'] ? (
+              <View style={styles.gigLocationRow}>
+                <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Text style={styles.gigCardLocation}>{item['Location']}</Text>
+              </View>
+            ) : null}
             
             {isRemote && (
               <View style={styles.gigSalaryBadge}>
@@ -413,6 +421,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  hotGigBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 69, 58, 0.18)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
+    boxShadow: '0px 2px 8px rgba(255, 69, 58, 0.25)',
+  },
+  hotGigText: {
+    color: '#FF6B4A',
+    fontSize: 11,
+    fontFamily: 'PoppinsBold',
+    letterSpacing: 1.2,
+  },
   heroCardTitle: {
     color: Colors.light.text,
     fontSize: 22,
@@ -420,9 +445,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heroCardCompany: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'PoppinsSemiBold',
+    letterSpacing: 0.2,
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  heroLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  heroCardLocation: {
     color: Colors.light.textSecondary,
-    fontSize: 14,
-    fontFamily: 'Poppins',
+    fontSize: 13,
+    fontFamily: 'OpenSans',
   },
   watermarkIcon: {
     position: 'absolute',
@@ -476,10 +514,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   gigCardCompany: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'PoppinsSemiBold',
+    letterSpacing: 0.2,
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  gigLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  gigCardLocation: {
     color: Colors.light.textSecondary,
-    fontSize: 14,
-    fontFamily: 'Poppins',
-    marginBottom: 12,
+    fontSize: 13,
+    fontFamily: 'OpenSans',
   },
   gigSalaryBadge: {
     flexDirection: 'row',

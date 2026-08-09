@@ -95,7 +95,7 @@ export default function HomeScreen() {
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitleLight}>NO</Text>
-          <Text style={styles.headerTitleBold}>SIGNAL</Text>
+          <Text style={styles.headerTitleBold}>SIGNAL!</Text>
         </View>
         <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
         <Text style={styles.feedHeader}>Latest Transmissions</Text>

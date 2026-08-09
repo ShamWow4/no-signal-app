@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, ScrollView, Modal, RefreshControl, TextInput, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, ScrollView, Modal, RefreshControl, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -13,21 +13,132 @@ import SkeletonCard from '../components/SkeletonCard';
 
 function parseDate(str) {
   if (!str) return null;
-  // If it's already an ISO string or includes T, try to parse it
-  if (str.includes('T')) {
-    const d = new Date(str);
+
+  // Handle Date instances
+  if (str instanceof Date) {
+    return isNaN(str.getTime()) ? null : str;
+  }
+
+  // Handle Firestore Timestamp objects (.toDate() method or seconds)
+  if (typeof str === 'object') {
+    if (typeof str.toDate === 'function') {
+      const d = str.toDate();
+      return isNaN(d.getTime()) ? null : d;
+    }
+    if (str.seconds !== undefined) {
+      const d = new Date(str.seconds * 1000);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    if (str._seconds !== undefined) {
+      const d = new Date(str._seconds * 1000);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  }
+
+  // Handle number timestamps
+  if (typeof str === 'number') {
+    const d = new Date(str > 1e11 ? str : str * 1000);
     return isNaN(d.getTime()) ? null : d;
   }
-  
-  // Custom parsing for 'MM/DD/YYYY' etc. Let JS parse it naturally.
-  let d = new Date(str);
-  if (!isNaN(d.getTime())) return d;
 
-  // Fallback for YYYY-MM-DD missing T
-  if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
-    const isoStr = str.replace(' ', 'T');
-    const fallbackD = new Date(isoStr);
-    if (!isNaN(fallbackD.getTime())) return fallbackD;
+  if (typeof str !== 'string') {
+    str = String(str);
+  }
+
+  let clean = str.trim().replace(/^["']|["']$/g, '');
+  if (!clean) return null;
+
+  // 1. ISO string with time (e.g. "2026-08-03T14:30:00" or "2026-08-03T14:30:00Z")
+  if (clean.includes('T')) {
+    const d = new Date(clean);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // 2. YYYY-MM-DD or YYYY/MM/DD (e.g. "2026-08-03" or "2026/08/03") -> Parse as local date to prevent UTC offset day shifts
+  const isoMatch = clean.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (isoMatch) {
+    const y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10) - 1;
+    const d = parseInt(isoMatch[3], 10);
+    if (m >= 0 && m <= 11 && d >= 1 && d <= 31) {
+      return new Date(y, m, d);
+    }
+  }
+
+  // 3. MM/DD/YYYY, M/D/YYYY, MM-DD-YYYY, M-D-YYYY, MM/DD/YY (e.g. "08/03/2026", "8/3/2026", "08/03/26")
+  const usMatch = clean.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (usMatch) {
+    const m = parseInt(usMatch[1], 10) - 1;
+    const d = parseInt(usMatch[2], 10);
+    let y = parseInt(usMatch[3], 10);
+    if (y < 100) {
+      y += (y > 50 ? 1900 : 2000);
+    }
+    if (m >= 0 && m <= 11 && d >= 1 && d <= 31) {
+      return new Date(y, m, d);
+    }
+  }
+
+  const monthMap = {
+    jan: 0, january: 0,
+    feb: 1, february: 1,
+    mar: 2, march: 2,
+    apr: 3, april: 3,
+    may: 4,
+    jun: 5, june: 5,
+    jul: 6, july: 6,
+    aug: 7, august: 7,
+    sep: 8, sept: 8, september: 8,
+    oct: 9, october: 9,
+    nov: 10, november: 10,
+    dec: 11, december: 11
+  };
+
+  // Strip ordinal suffixes (1st, 2nd, 3rd, 4th) and extra punctuation
+  const textClean = clean
+    .replace(/(\d+)(st|nd|rd|th)/gi, '$1')
+    .replace(/,/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 4. Textual format: Month Day Year (e.g. "Aug 3 2026", "August 03 2026", "Aug 3")
+  const textMatch = textClean.match(/^([a-zA-Z]+)\s+(\d{1,2})(?:\s+(\d{2,4}))?$/);
+  if (textMatch) {
+    const mStr = textMatch[1].toLowerCase();
+    if (monthMap[mStr] !== undefined) {
+      const m = monthMap[mStr];
+      const d = parseInt(textMatch[2], 10);
+      let y = textMatch[3] ? parseInt(textMatch[3], 10) : new Date().getFullYear();
+      if (y < 100) {
+        y += (y > 50 ? 1900 : 2000);
+      }
+      if (d >= 1 && d <= 31) {
+        return new Date(y, m, d);
+      }
+    }
+  }
+
+  // 5. Textual format: Day Month Year (e.g. "3 Aug 2026", "03 August 2026", "3 Aug")
+  const dayFirstMatch = textClean.match(/^(\d{1,2})\s+([a-zA-Z]+)(?:\s+(\d{2,4}))?$/);
+  if (dayFirstMatch) {
+    const mStr = dayFirstMatch[2].toLowerCase();
+    if (monthMap[mStr] !== undefined) {
+      const d = parseInt(dayFirstMatch[1], 10);
+      const m = monthMap[mStr];
+      let y = dayFirstMatch[3] ? parseInt(dayFirstMatch[3], 10) : new Date().getFullYear();
+      if (y < 100) {
+        y += (y > 50 ? 1900 : 2000);
+      }
+      if (d >= 1 && d <= 31) {
+        return new Date(y, m, d);
+      }
+    }
+  }
+
+  // 6. Native JS Date fallback
+  const dNative = new Date(clean);
+  if (!isNaN(dNative.getTime())) {
+    return dNative;
   }
 
   return null;
@@ -134,26 +245,39 @@ export default function CalendarScreen() {
 
       querySnapshot.forEach((doc) => {
         const d = doc.data();
-        let loadIn = d.loadIn || d['Show Start'] || d['ShowStart'];
-        let loadOut = d.loadOut || d['Show End'] || d['ShowEnd'];
+        let loadIn = d.loadIn || d['Load-In Date'] || d['Load-In'] || d['load_in'] || d['Show Start'] || d['ShowStart'] || d['Start Date'] || d.startDate || d.start_date;
+        let loadOut = d.loadOut || d['Load-Out Date'] || d['Load-Out'] || d['load_out'] || d['Show End'] || d['ShowEnd'] || d['End Date'] || d.endDate || d.end_date;
 
         if (!loadIn && d['Dates']) {
           const datesStr = d['Dates'];
-          if (datesStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+          if (typeof datesStr === 'string' && datesStr.match(/^\d{4}-\d{2}-\d{2}/)) {
             loadIn = datesStr;
-            if (d.City && d.City.match(/^\d{4}-\d{2}-\d{2}/)) {
+            if (d.City && typeof d.City === 'string' && d.City.match(/^\d{4}-\d{2}-\d{2}/)) {
               loadOut = d.City;
             } else {
               loadOut = datesStr;
             }
-          } else {
-            const parts = datesStr.split('-').map(s => s.trim());
+          } else if (typeof datesStr === 'string') {
+            const parts = datesStr.split(/[-–—]| to /i).map(s => s.trim());
             if (parts.length === 2) {
               loadIn = parts[0];
               loadOut = parts[1];
             } else if (parts.length === 1) {
               loadIn = parts[0];
               loadOut = parts[0];
+            }
+          } else {
+            loadIn = datesStr;
+          }
+        }
+
+        // Handle case where loadIn contains a date range string (e.g., "Aug 3, 2026 - Aug 7, 2026")
+        if (typeof loadIn === 'string' && (loadIn.includes(' - ') || loadIn.includes(' – ') || loadIn.includes(' — ') || loadIn.includes(' to '))) {
+          const parts = loadIn.split(/[-–—]| to /i).map(s => s.trim());
+          if (parts.length >= 2) {
+            loadIn = parts[0];
+            if (!loadOut || loadOut === d.loadIn || loadOut === d['Load-In Date']) {
+              loadOut = parts[1];
             }
           }
         }
@@ -162,7 +286,7 @@ export default function CalendarScreen() {
           loadOut = loadIn;
         }
 
-        const endDate = parseDate(loadOut);
+        const endDate = parseDate(loadOut) || parseDate(loadIn);
         if (!endDate || endDate >= twoWeeksAgo) {
           let venueStr = d.Venue || d.venue || 'NOMCC';
           let hallStr = d.hall || '';
@@ -183,9 +307,12 @@ export default function CalendarScreen() {
             venueStr = 'NOMCC';
           }
 
+          const eventTitle = d.Title || d.title || d.name || d['Event Name'] || d['Event'] || 'Untitled Event';
+
           eventsList.push({
             id: doc.id,
-            name: d.Title || d.name,
+            name: eventTitle,
+            title: eventTitle,
             venue: venueStr,
             hall: hallStr,
             location: (d['City'] && d['City'].match(/^\d{4}-\d{2}-\d{2}/)) ? 'NEW ORLEANS, LA' : (d['City'] || d.location),
@@ -212,8 +339,8 @@ export default function CalendarScreen() {
       }
 
       uniqueEventsList.sort((a, b) => {
-        const dA = parseDate(a.loadIn);
-        const dB = parseDate(b.loadIn);
+        const dA = parseDate(a.loadIn) || parseDate(a.loadOut);
+        const dB = parseDate(b.loadIn) || parseDate(b.loadOut);
         if (!dA) return 1;
         if (!dB) return -1;
         return dA - dB;
@@ -328,21 +455,6 @@ export default function CalendarScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search conventions..."
-          placeholderTextColor={Colors.light.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
         <TouchableOpacity 
@@ -371,10 +483,32 @@ export default function CalendarScreen() {
     </View>
   );
 
-const EventCard = React.memo(({ item, index, onPress }) => {
-  const start = parseDate(item.loadIn);
-  const end = parseDate(item.loadOut);
+const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleSaveEvent }) => {
+  const start = parseDate(item.loadIn) || parseDate(item.loadOut);
+  const end = parseDate(item.loadOut) || parseDate(item.loadIn);
+  const isSaved = savedEvents ? savedEvents.has(item.id) : false;
+
+  const startMonth = start ? start.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+  const startDay = start ? start.getDate() : '';
   
+  let durationText = '1 DAY';
+  if (start && end) {
+    const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const diffDays = Math.round((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1;
+    if (diffDays > 1) {
+      durationText = `${diffDays} DAYS`;
+    }
+  }
+
+  const titleText = item.name || item.title || item.Title || 'Untitled Event';
+  const venueText = item.venue || item.Venue || 'New Orleans, LA';
+  const hallText = item.hall || item['Hall / Room'] || '';
+  const locationText = hallText ? `${venueText} (${hallText})` : venueText;
+  const sourceTag = item.source || item.Source || item.type || 'EVENT';
+
+  const isSameDay = start && end && start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth() && start.getDate() === end.getDate();
+
   return (
     <Animated.View entering={FadeInDown.delay((index % 10) * 50).duration(500)}>
       <TouchableOpacity 
@@ -382,22 +516,58 @@ const EventCard = React.memo(({ item, index, onPress }) => {
         activeOpacity={0.7}
         onPress={() => onPress(item)}
       >
-      <Image 
-        source={require('../../assets/images/nola-av-logo.png.png')} 
-        style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
-        resizeMode="contain"
-      />
-        <View style={styles.cardDetailRow}>
-          <Ionicons name="calendar" size={12} color="#888" />
-          <Text style={styles.cardDetailText}>
-            {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}
-          </Text>
+        <Image 
+          source={require('../../assets/images/nola-av-logo.png.png')} 
+          style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
+          resizeMode="contain"
+        />
+        
+        {/* Left Date Block */}
+        <View style={styles.cardDateBlock}>
+          <Text style={styles.cardMonth}>{startMonth}</Text>
+          <Text style={styles.cardDay}>{startDay}</Text>
+          <Text style={styles.cardDuration}>{durationText}</Text>
         </View>
-        {item.type && (
-          <View style={[styles.typeTag, { borderColor: '#333' }]}>
-            <Text style={styles.typeTagText}>{item.type}</Text>
+
+        {/* Center Content Block */}
+        <View style={styles.cardContent}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Text style={styles.cardTitle} numberOfLines={2}>{titleText}</Text>
+            {user && (
+              <TouchableOpacity 
+                onPress={() => toggleSaveEvent && toggleSaveEvent(item.id)} 
+                style={{ padding: 4, zIndex: 10 }}
+              >
+                <Ionicons 
+                  name={isSaved ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={isSaved ? "#FF3B30" : Colors.light.textSecondary} 
+                />
+              </TouchableOpacity>
+            )}
           </View>
-        )}
+
+          <View style={styles.cardDetailRow}>
+            <Ionicons name="location-sharp" size={14} color={Colors.light.gold} />
+            <Text style={[styles.cardDetailText, { color: Colors.light.text, fontFamily: 'PoppinsSemiBold' }]} numberOfLines={1}>
+              {locationText}
+            </Text>
+          </View>
+
+          <View style={styles.cardDetailRow}>
+            <Ionicons name="calendar-outline" size={14} color="#aaa" />
+            <Text style={styles.cardDetailText}>
+              {start ? start.toLocaleDateString('en-US', { month: 'short', day: 'numeric'}) : ''}
+              {!isSameDay && end ? ` - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}` : (start ? `, ${start.getFullYear()}` : '')}
+            </Text>
+          </View>
+
+          {sourceTag ? (
+            <View style={[styles.typeTag, { borderColor: 'rgba(212, 175, 55, 0.2)', backgroundColor: 'rgba(212, 175, 55, 0.05)' }]}>
+              <Text style={[styles.typeTagText, { color: Colors.light.gold }]}>{sourceTag}</Text>
+            </View>
+          ) : null}
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -510,19 +680,38 @@ EventCard.displayName = 'EventCard';
                 weekEnd.setHours(23, 59, 59, 999);
 
                 const weekEvents = filteredEvents.filter(e => {
-                  const eStart = parseDate(e.loadIn);
-                  const eEnd = parseDate(e.loadOut);
-                  if (!eStart || !eEnd) return false;
+                  const rawStart = parseDate(e.loadIn) || parseDate(e.loadOut);
+                  const rawEnd = parseDate(e.loadOut) || parseDate(e.loadIn);
+                  if (!rawStart && !rawEnd) return false;
+
+                  const eStart = new Date(rawStart || rawEnd);
                   eStart.setHours(0,0,0,0);
+                  const eEnd = new Date(rawEnd || rawStart);
                   eEnd.setHours(23,59,59,999);
+
+                  if (eEnd < eStart) {
+                    const tmp = new Date(eStart);
+                    eStart.setTime(eEnd.getTime());
+                    eEnd.setTime(tmp.getTime());
+                  }
+
                   return (eStart <= weekEnd && eEnd >= weekStart);
                 });
 
                 const eventLayouts = weekEvents.map(e => {
-                  const eStart = parseDate(e.loadIn);
+                  const rawStart = parseDate(e.loadIn) || parseDate(e.loadOut);
+                  const rawEnd = parseDate(e.loadOut) || parseDate(e.loadIn);
+
+                  const eStart = new Date(rawStart || rawEnd);
                   eStart.setHours(0,0,0,0);
-                  const eEnd = parseDate(e.loadOut);
+                  const eEnd = new Date(rawEnd || rawStart);
                   eEnd.setHours(23,59,59,999);
+
+                  if (eEnd < eStart) {
+                    const tmp = new Date(eStart);
+                    eStart.setTime(eEnd.getTime());
+                    eEnd.setTime(tmp.getTime());
+                  }
                   
                   const drawStart = eStart < weekStart ? weekStart : eStart;
                   const drawEnd = eEnd > weekEnd ? weekEnd : eEnd;
@@ -533,7 +722,7 @@ EventCard.displayName = 'EventCard';
                   
                   const startCol = Math.floor((utcDrawStart - utcWeekStart) / 86400000);
                   const endCol = Math.floor((utcDrawEnd - utcWeekStart) / 86400000);
-                  const duration = endCol - startCol + 1;
+                  const duration = Math.max(1, endCol - startCol + 1);
                   
                   return { event: e, startCol, duration, eStart, eEnd };
                 });
@@ -568,7 +757,7 @@ EventCard.displayName = 'EventCard';
               });
 
               return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts }, wIndex) => (
-                <View key={wIndex} style={[styles.weekRowContinuous, { minHeight: 92, maxHeight: 96 }]}>
+                <View key={wIndex} style={styles.weekRowContinuous}>
                   <View style={styles.weekCellsRow}>
                     {week.map((dateObj, dIndex) => {
                       const isCurrentMonth = dateObj.getMonth() === month;
@@ -589,10 +778,9 @@ EventCard.displayName = 'EventCard';
                   <View style={styles.weekEventsLayer}>
                     {visibleLayouts.map(layout => {
                       const venueConfig = dynamicVenues[layout.event.venue] || { color: '#888' };
-                      const left = `${layout.startCol * (100 / 7)}%`;
-                      const rightCol = 7 - (layout.startCol + layout.duration);
-                      const right = `${rightCol * (100 / 7)}%`;
-                      const top = layout.level * 16 + 22; // Controlled spacing under date numbers
+                      const leftPct = layout.startCol * (100 / 7);
+                      const widthPct = layout.duration * (100 / 7);
+                      const top = layout.level * 20 + 26; // 20px pitch vertical stacking
                       
                       const isContinuesLeft = layout.eStart < weekStart;
                       const isContinuesRight = layout.eEnd > weekEnd;
@@ -601,13 +789,16 @@ EventCard.displayName = 'EventCard';
                         <TouchableOpacity 
                           key={layout.event.id}
                           onPress={() => setSelectedEvent(layout.event)}
+                          activeOpacity={0.8}
+                          title={`${layout.event.name || layout.event.title || layout.event.Title || 'Untitled Event'} (${layout.event.venue || ''})`}
                           style={[
                             styles.absoluteEventBar, 
                             { 
                               backgroundColor: venueConfig.color,
-                              left, right, top,
-                              marginLeft: isContinuesLeft ? 0 : 2,
-                              marginRight: isContinuesRight ? 0 : 2,
+                              left: `${leftPct}%`,
+                              width: `${widthPct}%`,
+                              top: top,
+                              height: 18, // 18px bar height
                               borderTopLeftRadius: isContinuesLeft ? 0 : 4,
                               borderBottomLeftRadius: isContinuesLeft ? 0 : 4,
                               borderTopRightRadius: isContinuesRight ? 0 : 4,
@@ -615,9 +806,9 @@ EventCard.displayName = 'EventCard';
                             }
                           ]}
                         >
-                          {(!isContinuesLeft || layout.startCol === 0) && (
-                            <Text style={styles.absoluteEventText} numberOfLines={1}>{layout.event.name}</Text>
-                          )}
+                          <Text style={styles.absoluteEventText} numberOfLines={1}>
+                            {layout.event.name || layout.event.title || layout.event.Title || 'Untitled Event'}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
@@ -633,10 +824,21 @@ EventCard.displayName = 'EventCard';
 
   const renderModal = () => {
     if (!selectedEvent) return null;
-    const venueConfig = dynamicVenues[selectedEvent.venue] || { label: selectedEvent.venue, color: '#888' };
-    const start = parseDate(selectedEvent.loadIn);
-    const end = parseDate(selectedEvent.loadOut);
-    
+    const titleText = selectedEvent.name || selectedEvent.title || selectedEvent.Title || 'Untitled Event';
+    const venueText = selectedEvent.venue || selectedEvent.Venue || 'New Orleans, LA';
+    const hallText = selectedEvent.hall || selectedEvent['Hall / Room'] || selectedEvent.room || selectedEvent.location || 'Not specified';
+    const venueConfig = dynamicVenues[venueText] || { label: venueText, color: Colors.light.gold };
+
+    const start = parseDate(selectedEvent.loadIn) || parseDate(selectedEvent.loadOut);
+    const end = parseDate(selectedEvent.loadOut) || parseDate(selectedEvent.loadIn);
+
+    const startDateStr = start 
+      ? start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) 
+      : 'TBD';
+    const endDateStr = end 
+      ? end.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) 
+      : 'TBD';
+
     return (
       <Modal visible={!!selectedEvent} animationType="slide" transparent={true} onRequestClose={() => setSelectedEvent(null)}>
         <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setSelectedEvent(null)}>
@@ -648,57 +850,67 @@ EventCard.displayName = 'EventCard';
               colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]} 
               style={styles.modalHeader}
             >
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%'}}>
-                <Text style={[styles.modalTitle, {flex: 1, paddingRight: 10}]}>{selectedEvent.name}</Text>
-                {user && (
-                  <TouchableOpacity onPress={() => toggleSaveEvent(selectedEvent.id)} style={{ padding: 4 }}>
-                    <Ionicons 
-                      name={savedEvents.has(selectedEvent.id) ? "heart" : "heart-outline"} 
-                      size={28} 
-                      color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : Colors.light.gold} 
-                    />
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: 12}}>
+                <Text style={[styles.modalTitle, {flex: 1, paddingRight: 10}]}>{titleText}</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                  {user && (
+                    <TouchableOpacity onPress={() => toggleSaveEvent(selectedEvent.id)} style={{ padding: 4 }}>
+                      <Ionicons 
+                        name={savedEvents.has(selectedEvent.id) ? "heart" : "heart-outline"} 
+                        size={26} 
+                        color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : Colors.light.gold} 
+                      />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => setSelectedEvent(null)} style={styles.modalCloseIconBtn} activeOpacity={0.7}>
+                    <Ionicons name="close" size={22} color="#ffffff" />
                   </TouchableOpacity>
-                )}
+                </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: venueConfig.color + '1a', borderColor: venueConfig.color }]}>
-                <View style={[styles.filterDot, { backgroundColor: venueConfig.color }]} />
-                <Text style={[styles.badgeText, { color: venueConfig.color }]}>{venueConfig.label}</Text>
+              <View style={[styles.badge, { backgroundColor: (venueConfig.color || Colors.light.gold) + '1a', borderColor: venueConfig.color || Colors.light.gold }]}>
+                <View style={[styles.filterDot, { backgroundColor: venueConfig.color || Colors.light.gold }]} />
+                <Text style={[styles.badgeText, { color: venueConfig.color || Colors.light.gold }]}>{venueConfig.label || venueText}</Text>
               </View>
             </LinearGradient>
             
             <View style={styles.modalBody}>
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="business" size={20} color="#D3A625" />
+                  <Ionicons name="business" size={20} color={Colors.light.gold} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>VENUE</Text>
-                  <Text style={styles.modalValue}>{selectedEvent.venue}</Text>
+                  <Text style={styles.modalValue}>{venueText}</Text>
                 </View>
               </View>
               
-              {selectedEvent.hall && (
-                <View style={styles.modalInfoRow}>
-                  <View style={styles.modalIconBox}>
-                    <Ionicons name="location" size={20} color="#D3A625" />
-                  </View>
-                  <View style={styles.modalInfoContent}>
-                    <Text style={styles.modalLabel}>HALL / LOCATION</Text>
-                    <Text style={styles.modalValue}>{selectedEvent.hall}</Text>
-                  </View>
+              <View style={styles.modalInfoRow}>
+                <View style={styles.modalIconBox}>
+                  <Ionicons name="location" size={20} color={Colors.light.gold} />
                 </View>
-              )}
+                <View style={styles.modalInfoContent}>
+                  <Text style={styles.modalLabel}>HALLS / ROOMS</Text>
+                  <Text style={styles.modalValue}>{hallText}</Text>
+                </View>
+              </View>
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="calendar" size={20} color="#D3A625" />
+                  <Ionicons name="calendar-outline" size={20} color={Colors.light.gold} />
                 </View>
                 <View style={styles.modalInfoContent}>
-                  <Text style={styles.modalLabel}>DATES</Text>
-                  <Text style={styles.modalValue}>
-                    {start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'})} - 
-                    {"\n"}{end.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'})}
-                  </Text>
+                  <Text style={styles.modalLabel}>START DATE</Text>
+                  <Text style={styles.modalValue}>{startDateStr}</Text>
+                </View>
+              </View>
+
+              <View style={styles.modalInfoRow}>
+                <View style={styles.modalIconBox}>
+                  <Ionicons name="time-outline" size={20} color={Colors.light.gold} />
+                </View>
+                <View style={styles.modalInfoContent}>
+                  <Text style={styles.modalLabel}>END DATE</Text>
+                  <Text style={styles.modalValue}>{endDateStr}</Text>
                 </View>
               </View>
             </View>
@@ -712,8 +924,13 @@ EventCard.displayName = 'EventCard';
               )}
               
               <TouchableOpacity style={styles.googleCalBtn} onPress={() => openURL(generateGoogleCalendarLink(selectedEvent))}>
-                <Ionicons name="calendar-outline" size={18} color="#D3A625" />
+                <Ionicons name="calendar-outline" size={18} color={Colors.light.gold} />
                 <Text style={styles.googleCalBtnText}>ADD TO CALENDAR</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setSelectedEvent(null)} activeOpacity={0.8}>
+                <Ionicons name="close-circle-outline" size={18} color="#aaa" />
+                <Text style={styles.modalCloseBtnText}>CLOSE</Text>
               </TouchableOpacity>
             </View>
             
@@ -734,7 +951,7 @@ EventCard.displayName = 'EventCard';
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitleLight}>NO</Text>
-            <Text style={styles.headerTitleBold}>SIGNAL</Text>
+            <Text style={styles.headerTitleBold}>SIGNAL!</Text>
           </View>
           <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
           {renderFilters()}
@@ -1031,14 +1248,19 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   weekRowContinuous: {
-    flex: 1,
+    height: 116,
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     overflow: 'hidden',
   },
   weekCellsRow: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 116,
     flexDirection: 'row',
   },
   gridCellContinuous: {
@@ -1055,6 +1277,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 5,
   },
   dateNumberWrapToday: {
     backgroundColor: Colors.light.gold,
@@ -1071,27 +1294,39 @@ const styles = StyleSheet.create({
   },
 
   weekEventsLayer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: 116,
     pointerEvents: 'box-none',
   },
   absoluteEventBar: {
     position: 'absolute',
-    height: 14,
+    height: 18,
     paddingHorizontal: 4,
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.8,
-    shadowRadius: 1,
-    elevation: 2,
+    shadowOpacity: 0.7,
+    shadowRadius: 2,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
   },
   absoluteEventText: {
     fontFamily: 'OpenSansSemiBold',
-    fontSize: 9,
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#ffffff',
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
   },
 
   // Modal styles
@@ -1216,5 +1451,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 1,
     color: Colors.light.gold,
+  },
+  modalCloseIconBtn: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+  },
+  modalCloseBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: Colors.light.glassBorder,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  modalCloseBtnText: {
+    fontFamily: 'OpenSans',
+    fontWeight: 'bold',
+    fontSize: 13,
+    letterSpacing: 1,
+    color: '#aaa',
   }
 });

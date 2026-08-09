@@ -205,24 +205,25 @@ export default function EducationScreen() {
               </Text>
             ) : null}
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+            <View style={styles.cardActionsRight}>
               <TouchableOpacity 
-                style={{ flex: 1, backgroundColor: 'rgba(212, 175, 55, 0.2)', borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: Colors.light.gold }}
+                style={styles.secondaryCtaBtn}
                 onPress={() => setSelectedCourse(item)}
               >
-                <Text style={{ color: Colors.light.gold, fontFamily: 'PoppinsSemiBold', fontSize: 13 }}>Course Details</Text>
+                <Text style={styles.secondaryCtaText}>Course Details</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={{ flex: 1, borderRadius: 10, overflow: 'hidden' }}
+                style={styles.primaryCtaBtn}
                 onPress={() => openLink(item['Link'] || item.link)}
               >
                 <LinearGradient
                   colors={[Colors.light.gold, '#B8860B']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={{ paddingVertical: 10, alignItems: 'center' }}
+                  style={styles.primaryCtaGradient}
                 >
-                  <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 13 }}>Start Learning</Text>
+                  <Text style={styles.primaryCtaText}>Start Learning</Text>
+                  <Ionicons name="arrow-forward" size={14} color="#000" />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -293,24 +294,25 @@ export default function EducationScreen() {
               </Text>
             ) : null}
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+            <View style={styles.cardActionsRight}>
               <TouchableOpacity 
-                style={{ flex: 1, backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: 8, paddingVertical: 8, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.4)' }}
+                style={styles.secondaryCtaBtn}
                 onPress={() => setSelectedCourse(item)}
               >
-                <Text style={{ color: Colors.light.gold, fontFamily: 'PoppinsSemiBold', fontSize: 12 }}>View Specs</Text>
+                <Text style={styles.secondaryCtaText}>View Specs</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={{ flex: 1, borderRadius: 8, overflow: 'hidden' }}
+                style={styles.primaryCtaBtn}
                 onPress={() => openLink(item['Link'] || item.link)}
               >
                 <LinearGradient
                   colors={[Colors.light.gold, '#B8860B']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={{ paddingVertical: 8, alignItems: 'center' }}
+                  style={styles.primaryCtaGradient}
                 >
-                  <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 12 }}>Launch Course</Text>
+                  <Text style={styles.primaryCtaText}>Launch Course</Text>
+                  <Ionicons name="arrow-forward" size={14} color="#000" />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -710,5 +712,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins',
     color: Colors.light.textSecondary,
+  },
+  cardActionsRight: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+  },
+  secondaryCtaBtn: {
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+  },
+  secondaryCtaText: {
+    color: Colors.light.gold,
+    fontFamily: 'PoppinsSemiBold',
+    fontSize: 13,
+  },
+  primaryCtaBtn: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  primaryCtaGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  primaryCtaText: {
+    color: '#000000',
+    fontFamily: 'PoppinsSemiBold',
+    fontSize: 13,
+    marginRight: 6,
   },
 });
