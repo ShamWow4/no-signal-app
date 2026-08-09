@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import CompanyIcon from '../components/CompanyIcon';
 
 export default function HomeScreen() {
 
@@ -139,7 +140,7 @@ export default function HomeScreen() {
           >
             <View style={styles.heroCardHeader}>
               <View style={styles.feedTypeContainer}>
-                <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+                <CompanyIcon name={item.Source} size={14} fallbackIcon={getIconForType(item.Source)} style={{ marginRight: 6 }} />
                 <Text style={styles.feedCardType} numberOfLines={1}>
                   {formatSourceLabel(item.Source)}
                 </Text>
@@ -188,7 +189,7 @@ export default function HomeScreen() {
           <View style={styles.feedCardContent}>
             <View style={styles.feedCardHeader}>
               <View style={styles.feedTypeContainer}>
-                <Ionicons name={getIconForType(item.Source)} size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+                <CompanyIcon name={item.Source} size={14} fallbackIcon={getIconForType(item.Source)} style={{ marginRight: 6 }} />
                 <Text style={styles.feedCardType} numberOfLines={1}>
                   {formatSourceLabel(item.Source)}
                 </Text>

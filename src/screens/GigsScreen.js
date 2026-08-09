@@ -9,6 +9,7 @@ import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CompanyIcon from '../components/CompanyIcon';
 import SkeletonCard from '../components/SkeletonCard';
 
 export default function GigsScreen() {
@@ -157,7 +158,10 @@ export default function GigsScreen() {
             </View>
             <Text style={styles.heroCardTitle}>{item['Job Title']}</Text>
             {item['Company'] ? (
-              <Text style={styles.heroCardCompany}>{item['Company']}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, marginBottom: 2 }}>
+                <CompanyIcon name={item['Company']} size={16} fallbackIcon="business-outline" style={{ marginRight: 6 }} />
+                <Text style={[styles.heroCardCompany, { marginTop: 0, marginBottom: 0 }]}>{item['Company']}</Text>
+              </View>
             ) : null}
             {item['Location'] ? (
               <View style={styles.heroLocationRow}>
@@ -251,7 +255,10 @@ export default function GigsScreen() {
             </View>
             <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
             {item['Company'] ? (
-              <Text style={styles.gigCardCompany}>{item['Company']}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, marginBottom: 2 }}>
+                <CompanyIcon name={item['Company']} size={16} fallbackIcon="business-outline" style={{ marginRight: 6 }} />
+                <Text style={[styles.gigCardCompany, { marginTop: 0, marginBottom: 0 }]}>{item['Company']}</Text>
+              </View>
             ) : null}
             {item['Location'] ? (
               <View style={styles.gigLocationRow}>

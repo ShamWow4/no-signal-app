@@ -10,6 +10,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../components/SkeletonCard';
+import CompanyIcon from '../components/CompanyIcon';
 
 export default function EducationScreen() {
   const [courses, setCourses] = React.useState([]);
@@ -190,7 +191,7 @@ export default function EducationScreen() {
             
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, flexWrap: 'wrap', gap: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="business" size={14} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <CompanyIcon name={item['Platform/Instructor'] || item['Provider']} size={14} fallbackIcon="business" style={{ marginRight: 4 }} />
                 <Text style={{ color: '#CCC', fontSize: 14, fontFamily: 'Poppins' }}>{item['Platform/Instructor'] || item['Provider'] || 'AV Industry'}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -279,7 +280,7 @@ export default function EducationScreen() {
             
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="business" size={14} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <CompanyIcon name={item['Platform/Instructor'] || item['Provider']} size={14} fallbackIcon="business" style={{ marginRight: 4 }} />
                 <Text style={styles.instructorText}>{item['Platform/Instructor'] || item['Provider'] || 'AV Industry'}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -407,7 +408,7 @@ export default function EducationScreen() {
 
                 <View style={styles.modalMetaRow}>
                   <View style={styles.modalMetaItem}>
-                    <Ionicons name="business" size={16} color={Colors.light.gold} />
+                    <CompanyIcon name={selectedCourse['Platform/Instructor'] || selectedCourse['Provider']} size={16} fallbackIcon="business" style={{ marginRight: 6 }} />
                     <Text style={styles.modalMetaText}>{selectedCourse['Platform/Instructor'] || selectedCourse['Provider'] || 'AV Industry'}</Text>
                   </View>
                   <View style={styles.modalMetaItem}>

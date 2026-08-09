@@ -7,6 +7,7 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import CompanyIcon from '../components/CompanyIcon';
 
 function parseDate(str) {
   if (!str) return null;
@@ -140,7 +141,10 @@ export default function SavedItemsScreen() {
         </View>
         <Text style={styles.gigCardTitle}>{item['Job Title']}</Text>
         {item['Company'] ? (
-          <Text style={styles.gigCardCompany}>{item['Company']}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, marginBottom: 2 }}>
+            <CompanyIcon name={item['Company']} size={16} fallbackIcon="business-outline" style={{ marginRight: 6 }} />
+            <Text style={[styles.gigCardCompany, { marginTop: 0, marginBottom: 0 }]}>{item['Company']}</Text>
+          </View>
         ) : null}
         {item['Location'] ? (
           <View style={styles.gigLocationRow}>

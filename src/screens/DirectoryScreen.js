@@ -9,6 +9,7 @@ import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import CompanyIcon from '../components/CompanyIcon';
 
 function ActionButton({ icon, label, onPress, disabled }) {
   return (
@@ -197,6 +198,7 @@ export default function DirectoryScreen() {
       >
         <View style={styles.rowInfoContainer}>
           <View style={styles.rowTitleCategory}>
+            <CompanyIcon name={item.name} website={item.website} size={20} fallbackIcon="business-outline" style={{ marginRight: 8 }} />
             <Text style={styles.companyName} numberOfLines={1}>{item.name}</Text>
             <View style={styles.typeBadge}>
               <Text style={styles.companyType}>{item.type}</Text>
