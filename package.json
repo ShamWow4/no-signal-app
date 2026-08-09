@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.7",
     "@react-navigation/native": "^7.3.7",
+    "dotenv": "^17.4.2",
     "expo": "~57.0.7",
     "expo-build-properties": "~57.0.7",
     "expo-constants": "~57.0.6",
@@ -50,7 +51,9 @@
     "eslint-config-expo": "~57.0.0",
     "firebase-admin": "^10.3.0",
     "sharp": "^0.35.3",
-    "typescript": "~6.0.3"
+    "testdriverai": "^7.11.44-test",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10"
   },
   "scripts": {
     "start": "expo start",
