@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ToolboxScreen() {
-  const [activeTab, setActiveTab] = useState('dmx'); 
+  const [activeTab, setActiveTab] = useState('dmx');
   // Tabs: 'dmx' | 'delay' | 'led' | 'power' | 'projection' | 'pag' | 'timecode' | 'spl' | 'photo'
 
   // ============================================================================
@@ -212,9 +212,30 @@ export default function ToolboxScreen() {
 
   const angleRad = (bAngle / 2) * (Math.PI / 180);
   const beamDiameterFt = (2 * throwFt * Math.tan(angleRad)).toFixed(1);
-  const beamAreaSqFt = Math.PI * Math.pow(parseFloat(beamDiameterFt) / 2, 2);
-  const footCandles = beamAreaSqFt > 0 ? (lumensNum / beamAreaSqFt).toFixed(1) : 0;
-  const lux = (footCandles * 10.764).toFixed(0);
+  // ============================================================================
+  // 10. RF ISOLATION & IMD CALCULATOR
+  // ============================================================================
+  const [freq1, setFreq1] = useState('470.125');
+  const [freq2, setFreq2] = useState('475.500');
+
+  const calculateIMD = () => {
+    const f1 = parseFloat(freq1);
+    const f2 = parseFloat(freq2);
+
+    if (!f1 || !f2 || isNaN(f1) || isNaN(f2)) {
+      return { imd1: '---', imd2: '---' };
+    }
+
+    const imd1 = (2 * f1) - f2;
+    const imd2 = (2 * f2) - f1;
+
+    return {
+      imd1: Math.abs(imd1).toFixed(3),
+      imd2: Math.abs(imd2).toFixed(3)
+    };
+  };
+
+  const { imd1, imd2 } = calculateIMD();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -224,12 +245,17 @@ export default function ToolboxScreen() {
           <Ionicons name="build" size={24} color={Colors.light.gold} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>AV TECH TOOLBOX</Text>
         </View>
-        <Text style={styles.headerSubtitle}>9 Offline Physics & Engineering Tools</Text>
+        <Text style={styles.headerSubtitle}>10 Offline Physics & Engineering Tools</Text>
       </View>
 
       {/* Horizontal Scroll Selector Tabs */}
       <View style={styles.tabBarContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarScroll}>
+          <TouchableOpacity style={[styles.tabButton, activeTab === 'rf' && styles.tabButtonActive]} onPress={() => setActiveTab('rf')}>
+            <Ionicons name="radio-outline" size={16} color={activeTab === 'rf' ? Colors.light.gold : '#aaa'} />
+            <Text style={[styles.tabButtonText, activeTab === 'rf' && styles.tabButtonTextActive]}>RF & IMD</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={[styles.tabButton, activeTab === 'dmx' && styles.tabButtonActive]} onPress={() => setActiveTab('dmx')}>
             <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? Colors.light.gold : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'dmx' && styles.tabButtonTextActive]}>DMX DIP</Text>
@@ -503,8 +529,78 @@ export default function ToolboxScreen() {
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}><Text style={styles.fieldLabel}>Throw Distance (ft)</Text><TextInput style={styles.textInput} value={throwDistFt} onChangeText={setThrowDistFt} keyboardType="numeric" /></View>
               </View>
               <View style={styles.specsContainer}>
-                <View style={styles.specRow}><Text style={styles.specLabel}>Beam Pool Diameter:</Text><Text style={styles.specVal}>{beamDiameterFt} ft ({ (parseFloat(beamDiameterFt) * 0.3048).toFixed(2) } m)</Text></View>
+                <View style={styles.specRow}><Text style={styles.specLabel}>Beam Pool Diameter:</Text><Text style={styles.specVal}>{beamDiameterFt} ft ({(parseFloat(beamDiameterFt) * 0.3048).toFixed(2)} m)</Text></View>
                 <View style={styles.specRow}><Text style={styles.specLabel}>Surface Illuminance:</Text><Text style={styles.specVal}>{footCandles} Fc ({lux} Lux)</Text></View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* 10. RF ISOLATION & IMD CALCULATOR */}
+        {activeTab === 'rf' && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>RF Isolation & 3rd-Order IMD</Text>
+              <Text style={[styles.fieldLabel, { marginBottom: 14, lineHeight: 18 }]}>
+                Enter two active frequencies (MHz) to calculate potential 3rd-order intermodulation hits. Avoid placing new wireless units on these resulting frequencies.
+              </Text>
+              <View style={styles.rowInputsContainer}>
+                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                  <Text style={styles.fieldLabel}>Frequency 1 (MHz)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={freq1}
+                    onChangeText={setFreq1}
+                    keyboardType="numeric"
+                    placeholder="e.g., 470.125"
+                    placeholderTextColor="#666"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+                  <Text style={styles.fieldLabel}>Frequency 2 (MHz)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={freq2}
+                    onChangeText={setFreq2}
+                    keyboardType="numeric"
+                    placeholder="e.g., 475.500"
+                    placeholderTextColor="#666"
+                  />
+                </View>
+              </View>
+
+              <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
+                <Text style={styles.resultLabel}>DANGER ZONES (3RD ORDER IMD)</Text>
+                <View style={{ marginVertical: 8, alignItems: 'center' }}>
+                  <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
+                  <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
+                </View>
+              </LinearGradient>
+
+              <View style={[styles.specsContainer, { marginTop: 16 }]}>
+                <Text style={[styles.specVal, { color: Colors.light.gold, fontSize: 14, marginBottom: 12 }]}>
+                  ANALYZER SOFTWARE CHEAT SHEET
+                </Text>
+
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={styles.specVal}>Shure Wireless Workbench (WWB)</Text>
+                  <Text style={styles.specLabel}>Free industry standard. Great for offline coordination & real-time monitoring of networkable gear.</Text>
+                </View>
+
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={styles.specVal}>PWS IAS</Text>
+                  <Text style={styles.specLabel}>Paid professional standard. Massive database of gear and local DTV channels for bulletproof coordination.</Text>
+                </View>
+
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={styles.specVal}>FreqFinder App</Text>
+                  <Text style={styles.specLabel}>Mobile app dedicated specifically to intermodulation calculations on the fly.</Text>
+                </View>
+
+                <View>
+                  <Text style={styles.specVal}>Signal Hound / RF Explorer Pro</Text>
+                  <Text style={styles.specLabel}>Excellent hardware/software combinations for physical spectrum analysis and sweep data.</Text>
+                </View>
               </View>
             </View>
           </Animated.View>
@@ -515,65 +611,65 @@ export default function ToolboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
-  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
-  headerTitle: { color: '#ffffff', fontSize: 20, fontFamily: 'CinzelSemiBold', letterSpacing: 1 },
-  headerSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
-  tabBarContainer: { marginBottom: 12 },
-  tabBarScroll: { paddingHorizontal: 16 },
-  tabButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.05)', marginRight: 8 },
-  tabButtonActive: { backgroundColor: '#2A2616', borderColor: Colors.light.gold, borderWidth: 1 },
-  tabButtonText: { color: '#aaa', fontSize: 12, fontWeight: '600', marginLeft: 6 },
-  tabButtonTextActive: { color: Colors.light.gold },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
-  card: { backgroundColor: Colors.light.glassBackground, borderColor: Colors.light.glassBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
-  cardTitle: { color: Colors.light.gold, fontSize: 18, fontFamily: 'CinzelSemiBold', marginBottom: 16 },
-  dmxInputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', marginBottom: 16 },
-  dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: Colors.light.gold },
-  dmxUniverseText: { color: '#888', fontSize: 20, marginLeft: 8 },
-  stepperRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  stepperBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 6 },
-  stepperBtnText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  sectionLabel: { color: '#aaa', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12, textAlign: 'center' },
-  dipContainer: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#111', padding: 12, borderRadius: 12, borderColor: '#333', borderWidth: 1 },
-  dipCol: { alignItems: 'center' },
-  dipStatusText: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 4 },
-  dipStatusOn: { color: Colors.light.gold },
-  dipBox: { width: 22, height: 48, backgroundColor: '#222', borderRadius: 4, borderColor: '#444', borderWidth: 1, justifyContent: 'space-between', padding: 2 },
-  dipBoxOn: { borderColor: Colors.light.gold },
-  dipSwitchThumb: { width: '100%', height: 18, backgroundColor: '#666', borderRadius: 2 },
-  thumbOn: { backgroundColor: Colors.light.gold },
-  thumbOff: { backgroundColor: '#444', marginTop: 'auto' },
-  dipValueText: { color: '#fff', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
-  dipNumText: { color: '#666', fontSize: 9, marginTop: 2 },
-  inputGroup: { marginBottom: 16 },
-  fieldLabel: { color: '#aaa', fontSize: 13, marginBottom: 6 },
-  textInput: { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderRadius: 8, color: '#fff', paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
-  rowInput: { flexDirection: 'row', alignItems: 'center' },
-  unitToggleGroup: { flexDirection: 'row', marginLeft: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: 8, padding: 2 },
-  unitBtn: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6 },
-  unitBtnActive: { backgroundColor: Colors.light.gold },
-  unitBtnText: { color: '#aaa', fontSize: 12, fontWeight: 'bold' },
-  unitBtnTextActive: { color: '#000' },
-  resultHero: { borderRadius: 14, padding: 20, alignItems: 'center', borderColor: Colors.light.border, borderWidth: 1, marginTop: 8 },
-  resultLabel: { color: Colors.light.gold, fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
-  resultBigVal: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', marginVertical: 4 },
-  resultUnit: { fontSize: 20, color: Colors.light.gold },
-  resultDivider: { width: '100%', height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 12 },
-  resultGrid: { flexDirection: 'row', width: '100%', justifyContent: 'space-around' },
-  resultGridCol: { alignItems: 'center' },
-  resultGridLabel: { color: '#888', fontSize: 11 },
-  resultGridVal: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginTop: 2 },
-  speedNote: { color: '#777', fontSize: 11, marginTop: 14 },
-  pitchRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-  pitchBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
-  pitchBtnActive: { backgroundColor: Colors.light.gold },
-  pitchBtnText: { color: '#aaa', fontWeight: 'bold', fontSize: 13 },
-  pitchBtnTextActive: { color: '#000' },
-  rowInputsContainer: { flexDirection: 'row', marginBottom: 16 },
-  specsContainer: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: 12, padding: 14, borderColor: '#333', borderWidth: 1 },
-  specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
-  specLabel: { color: '#aaa', fontSize: 13 },
-  specVal: { color: Colors.light.gold, fontSize: 13, fontWeight: 'bold' },
-});
+    container: { flex: 1, backgroundColor: '#0a0a0a' },
+    header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
+    headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
+    headerTitle: { color: '#ffffff', fontSize: 20, fontFamily: 'CinzelSemiBold', letterSpacing: 1 },
+    headerSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+    tabBarContainer: { marginBottom: 12 },
+    tabBarScroll: { paddingHorizontal: 16 },
+    tabButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.05)', marginRight: 8 },
+    tabButtonActive: { backgroundColor: '#2A2616', borderColor: Colors.light.gold, borderWidth: 1 },
+    tabButtonText: { color: '#aaa', fontSize: 12, fontWeight: '600', marginLeft: 6 },
+    tabButtonTextActive: { color: Colors.light.gold },
+    scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
+    card: { backgroundColor: Colors.light.glassBackground, borderColor: Colors.light.glassBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
+    cardTitle: { color: Colors.light.gold, fontSize: 18, fontFamily: 'CinzelSemiBold', marginBottom: 16 },
+    dmxInputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', marginBottom: 16 },
+    dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: Colors.light.gold },
+    dmxUniverseText: { color: '#888', fontSize: 20, marginLeft: 8 },
+    stepperRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+    stepperBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 6 },
+    stepperBtnText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+    sectionLabel: { color: '#aaa', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12, textAlign: 'center' },
+    dipContainer: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#111', padding: 12, borderRadius: 12, borderColor: '#333', borderWidth: 1 },
+    dipCol: { alignItems: 'center' },
+    dipStatusText: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 4 },
+    dipStatusOn: { color: Colors.light.gold },
+    dipBox: { width: 22, height: 48, backgroundColor: '#222', borderRadius: 4, borderColor: '#444', borderWidth: 1, justifyContent: 'space-between', padding: 2 },
+    dipBoxOn: { borderColor: Colors.light.gold },
+    dipSwitchThumb: { width: '100%', height: 18, backgroundColor: '#666', borderRadius: 2 },
+    thumbOn: { backgroundColor: Colors.light.gold },
+    thumbOff: { backgroundColor: '#444', marginTop: 'auto' },
+    dipValueText: { color: '#fff', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
+    dipNumText: { color: '#666', fontSize: 9, marginTop: 2 },
+    inputGroup: { marginBottom: 16 },
+    fieldLabel: { color: '#aaa', fontSize: 13, marginBottom: 6 },
+    textInput: { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderRadius: 8, color: '#fff', paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
+    rowInput: { flexDirection: 'row', alignItems: 'center' },
+    unitToggleGroup: { flexDirection: 'row', marginLeft: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: 8, padding: 2 },
+    unitBtn: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6 },
+    unitBtnActive: { backgroundColor: Colors.light.gold },
+    unitBtnText: { color: '#aaa', fontSize: 12, fontWeight: 'bold' },
+    unitBtnTextActive: { color: '#000' },
+    resultHero: { borderRadius: 14, padding: 20, alignItems: 'center', borderColor: Colors.light.border, borderWidth: 1, marginTop: 8 },
+    resultLabel: { color: Colors.light.gold, fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+    resultBigVal: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', marginVertical: 4 },
+    resultUnit: { fontSize: 20, color: Colors.light.gold },
+    resultDivider: { width: '100%', height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 12 },
+    resultGrid: { flexDirection: 'row', width: '100%', justifyContent: 'space-around' },
+    resultGridCol: { alignItems: 'center' },
+    resultGridLabel: { color: '#888', fontSize: 11 },
+    resultGridVal: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginTop: 2 },
+    speedNote: { color: '#777', fontSize: 11, marginTop: 14 },
+    pitchRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+    pitchBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
+    pitchBtnActive: { backgroundColor: Colors.light.gold },
+    pitchBtnText: { color: '#aaa', fontWeight: 'bold', fontSize: 13 },
+    pitchBtnTextActive: { color: '#000' },
+    rowInputsContainer: { flexDirection: 'row', marginBottom: 16 },
+    specsContainer: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: 12, padding: 14, borderColor: '#333', borderWidth: 1 },
+    specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
+    specLabel: { color: '#aaa', fontSize: 13 },
+    specVal: { color: Colors.light.gold, fontSize: 13, fontWeight: 'bold' },
+  });

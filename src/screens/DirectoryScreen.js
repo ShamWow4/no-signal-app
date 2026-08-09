@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Pressable, Linking, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Pressable, Linking, Platform, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { sendSmsNotification } from '../utils/smsService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -222,6 +223,12 @@ export default function DirectoryScreen() {
             label="Call"
             disabled={!item.phone}
             onPress={() => handleLink('phone', item.phone)}
+          />
+          <ActionButton
+            icon="chatbox-ellipses"
+            label="SMS"
+            disabled={!item.phone}
+            onPress={() => handleSMS(item.name || item.company, item.phone)}
           />
           <ActionButton
             icon="mail"
