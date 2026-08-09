@@ -5,7 +5,7 @@ import { Colors } from '../../src/constants/theme';
 import { Pressable, Platform, View, Text } from 'react-native';
 
 // Web Vector Icon component for 100% guaranteed crisp rendering across all browsers
-function TabIcon({ name, focused, color, size = 24 }: { name: string; focused: boolean; color: string; size?: number }) {
+function TabIcon({ name, focused, color, size = 24 }: { name: string; focused: boolean; color: any; size?: number }) {
   if (Platform.OS === 'web') {
     // Provide clean, high-resolution SVG/Emoji iconography fallback on Web
     const webIcons: Record<string, string> = {
@@ -130,6 +130,13 @@ export default function TabLayout() {
         name="donors"
         options={{
           title: 'Donors',
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="rf-coordination"
+        options={{
+          title: 'RF Coordination',
           href: null,
         }}
       />

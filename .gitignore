@@ -2,12 +2,22 @@
 
 # dependencies
 node_modules/
+**/node_modules/
+
+# Firebase & Cloud Functions
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+*.local
+no-signal-sms/node_modules/
 
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+android/
+ios/
 
 # Native
 .kotlin/
@@ -25,8 +35,9 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
-# macOS
+# macOS & OS
 .DS_Store
 *.pem
 
@@ -36,15 +47,11 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-
 example
 
 # generated native folders
-/ios
-/android
 serviceAccountKey.json
 Web Dev/
-functions/
 scratch*
 *.apk
 *.APK
@@ -52,3 +59,11 @@ scratch*
 *.AAB
 gradle-9.2.0-bin*
 *.zip
+
+# AI Agent Skill Directories
+.agents/
+.claude/
+.junie/
+data/skills/
+
+no-signal-sms/.env

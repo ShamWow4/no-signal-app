@@ -339,22 +339,6 @@ export default function EducationScreen() {
             Enjoy our library of Audio/Visual educational materials including courses on Audio, Video, and Lighting.
           </Text>
           
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color={Colors.light.textSecondary} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search courses or providers..."
-              placeholderTextColor={Colors.light.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-                <Ionicons name="close-circle" size={20} color={Colors.light.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-          
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
             {categories.map(cat => (
               <TouchableOpacity 
