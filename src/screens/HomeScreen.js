@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
 import CompanyIcon from '../components/CompanyIcon';
 
 export default function HomeScreen() {
@@ -87,12 +86,7 @@ export default function HomeScreen() {
   };
 
   const renderHeader = () => (
-    <LinearGradient
-      colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 0.8 }}
-      style={styles.headerGradient}
-    >
+    <View style={styles.headerGradient}>
       <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitleLight}>NO</Text>
@@ -117,7 +111,7 @@ export default function HomeScreen() {
           <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
         )}
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 
   const AnimatedHeroItem = ({ item }) => {
@@ -133,11 +127,8 @@ export default function HomeScreen() {
 
     return (
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
-        <TouchableOpacity style={[styles.heroCard, Shadows.subtle]} activeOpacity={0.8} onPress={() => openLink(item.Link)}>
-          <LinearGradient
-            colors={['rgba(212, 175, 55, 0.2)', 'rgba(0, 0, 0, 0.4)']}
-            style={styles.heroGradient}
-          >
+        <TouchableOpacity style={styles.heroCard} activeOpacity={0.8} onPress={() => openLink(item.Link)}>
+          <View style={styles.heroGradient}>
             <View style={styles.heroCardHeader}>
               <View style={styles.feedTypeContainer}>
                 <CompanyIcon name={item.Source} size={14} fallbackIcon={getIconForType(item.Source)} style={{ marginRight: 6 }} />
@@ -153,7 +144,7 @@ export default function HomeScreen() {
               <Text style={styles.readMoreText}>Read Full Story</Text>
               <Ionicons name="arrow-forward" size={16} color={Colors.light.gold} />
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     );
@@ -182,7 +173,7 @@ export default function HomeScreen() {
 
     return (
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
-        <TouchableOpacity style={[styles.feedCard, Shadows.subtle]} activeOpacity={0.7} onPress={() => openLink(item.Link)}>
+        <TouchableOpacity style={styles.feedCard} activeOpacity={0.7} onPress={() => openLink(item.Link)}>
           <View style={styles.watermarkContainer}>
             <Ionicons name={getIconForType(item.Source)} size={120} color="rgba(212, 175, 55, 0.03)" />
           </View>
@@ -271,10 +262,10 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   heroSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.light.textSecondary,
-    fontFamily: 'Cinzel',
-    letterSpacing: 2,
+    fontFamily: 'OpenSans',
+    letterSpacing: 3,
     marginLeft: 20,
     marginBottom: 20,
   },
@@ -289,13 +280,13 @@ const styles = StyleSheet.create({
   feedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     borderLeftWidth: 4,
     borderLeftColor: Colors.light.gold,
   },
@@ -349,9 +340,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     marginRight: 8,
   },
   filterPillActive: {
@@ -372,10 +363,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#111',
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.gold,
-    elevation: 8,
+    borderColor: Colors.light.cardBorder,
   },
   heroGradient: {
     padding: 24,

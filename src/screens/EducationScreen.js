@@ -7,7 +7,6 @@ import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../components/SkeletonCard';
 import CompanyIcon from '../components/CompanyIcon';
@@ -156,11 +155,8 @@ export default function EducationScreen() {
           activeOpacity={0.9} 
           onPress={() => setSelectedCourse(item)}
         >
-          <LinearGradient
-            colors={['#1F1F1F', '#000000']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={[styles.heroCard, Shadows.medium, { overflow: 'hidden' }]}
+          <View
+            style={[styles.heroCard, { overflow: 'hidden' }]}
           >
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
@@ -217,18 +213,15 @@ export default function EducationScreen() {
                 style={styles.primaryCtaBtn}
                 onPress={() => openLink(item['Link'] || item.link)}
               >
-                <LinearGradient
-                  colors={[Colors.light.gold, '#B8860B']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.primaryCtaGradient}
+                <View
+                  style={[styles.primaryCtaGradient, { backgroundColor: Colors.light.buttonPrimary }]}
                 >
                   <Text style={styles.primaryCtaText}>Start Learning</Text>
                   <Ionicons name="arrow-forward" size={14} color="#000" />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     );
@@ -250,7 +243,7 @@ export default function EducationScreen() {
           activeOpacity={0.9} 
           onPress={() => setSelectedCourse(item)}
         >
-          <View style={[styles.card, Shadows.subtle, { overflow: 'hidden' }]}>
+          <View style={[styles.card, { overflow: 'hidden' }]}>
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
               style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: Colors.light.gold }]} 
@@ -306,15 +299,12 @@ export default function EducationScreen() {
                 style={styles.primaryCtaBtn}
                 onPress={() => openLink(item['Link'] || item.link)}
               >
-                <LinearGradient
-                  colors={[Colors.light.gold, '#B8860B']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.primaryCtaGradient}
+                <View
+                  style={[styles.primaryCtaGradient, { backgroundColor: Colors.light.buttonPrimary }]}
                 >
                   <Text style={styles.primaryCtaText}>Launch Course</Text>
                   <Ionicons name="arrow-forward" size={14} color="#000" />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -325,12 +315,7 @@ export default function EducationScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
-      >
+      <View style={styles.headerGradient}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitleLight}>TECH</Text>
@@ -352,7 +337,7 @@ export default function EducationScreen() {
             ))}
           </ScrollView>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
       {loading ? (
         <View style={{flex: 1, paddingHorizontal: 16, paddingTop: 10}}>
           <SkeletonCard />
@@ -432,14 +417,11 @@ export default function EducationScreen() {
                     openLink(link);
                   }}
                 >
-                  <LinearGradient
-                    colors={[Colors.light.gold, '#B8860B']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{ paddingVertical: 14, alignItems: 'center' }}
+                  <View
+                    style={{ paddingVertical: 14, alignItems: 'center', backgroundColor: Colors.light.buttonPrimary }}
                   >
                     <Text style={{ color: '#000', fontFamily: 'PoppinsSemiBold', fontSize: 16 }}>Launch Course Portal</Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -474,7 +456,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     color: Colors.light.gold,
     marginBottom: 12,
   },
@@ -552,14 +534,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   card: {
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
-    elevation: 4,
+    borderColor: Colors.light.cardBorder,
   },
   heroCard: {
     backgroundColor: '#1F1F1F',
@@ -568,8 +548,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.4)',
-    boxShadow: '0px 8px 24px rgba(212, 175, 55, 0.15)',
-    elevation: 6,
   },
   watermarkIcon: {
     position: 'absolute',
@@ -600,7 +578,7 @@ const styles = StyleSheet.create({
   },
   courseTitle: {
     fontSize: 20,
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     color: Colors.light.text,
     marginBottom: 8,
   },
@@ -638,14 +616,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     marginHorizontal: 20,
     marginBottom: 16,
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
+    borderColor: Colors.light.cardBorder,
   },
   searchIcon: {
     marginRight: 10,
@@ -670,9 +647,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     marginRight: 8,
   },
   filterPillActive: {

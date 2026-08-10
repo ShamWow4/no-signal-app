@@ -30,7 +30,7 @@ export default function NotFoundScreen() {
       <Ionicons name="compass-outline" size={64} color={Colors.light.gold} style={{ marginBottom: 16 }} />
       <Text style={styles.title}>Page Not Found</Text>
       <Text style={styles.subtitle}>
-        The page you looking for doesn't exist or has moved.
+        The page you looking for doesn&apos;t exist or has moved.
       </Text>
       <Link href="/(tabs)" replace style={styles.button}>
         <Text style={styles.buttonText}>Return to Home</Text>
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 24,
     color: Colors.light.text,
     marginBottom: 8,

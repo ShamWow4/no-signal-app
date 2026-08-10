@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged, updateProfile, signInAnonymously } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../constants/theme';
 import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
@@ -105,9 +105,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['rgba(255, 59, 48, 0.1)', 'transparent']}
-        style={StyleSheet.absoluteFillObject}
+      <View
+        style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255, 59, 48, 0.05)' }]}
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -271,16 +270,16 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   statBox: {
-    backgroundColor: 'rgba(30, 30, 30, 0.7)',
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     width: '45%',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: Colors.light.cardBorder,
   },
   statNumber: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 32,
     color: '#FF3B30',
     marginBottom: 8,
@@ -293,12 +292,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   formContainer: {
-    backgroundColor: 'rgba(30, 30, 30, 0.7)',
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 24,
     padding: 24,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: Colors.light.cardBorder,
   },
   formTitle: {
     fontFamily: 'PoppinsSemiBold',

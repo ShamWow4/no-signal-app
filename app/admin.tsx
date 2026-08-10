@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../src/constants/theme';
 import { useRouter } from 'expo-router';
 import { functions, db } from '../src/firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -97,10 +97,6 @@ export default function AdminBroadcastScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['rgba(212, 175, 55, 0.1)', 'transparent']}
-        style={StyleSheet.absoluteFill}
-      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
@@ -256,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerTitle: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 20,
     color: '#D4AF37',
   },
@@ -311,11 +307,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formContainer: {
-    backgroundColor: 'rgba(30, 30, 30, 0.7)',
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: Colors.light.cardBorder,
   },
   sectionTitle: {
     fontFamily: 'PoppinsSemiBold',

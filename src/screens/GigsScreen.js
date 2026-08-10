@@ -7,7 +7,6 @@ import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CompanyIcon from '../components/CompanyIcon';
 import SkeletonCard from '../components/SkeletonCard';
@@ -133,14 +132,11 @@ export default function GigsScreen() {
     return (
       <Animated.View entering={FadeInDown.duration(500)}>
         <TouchableOpacity 
-          style={[styles.heroCard, Shadows.subtle]} 
+          style={styles.heroCard} 
           activeOpacity={0.8}
           onPress={() => handleApply(item['Link'])}
         >
-          <LinearGradient
-            colors={['rgba(212, 175, 55, 0.2)', 'rgba(0, 0, 0, 0.4)']}
-            style={styles.heroGradient}
-          >
+          <View style={styles.heroGradient}>
             <View style={styles.heroCardHeader}>
               <View style={styles.hotGigBadge}>
                 <Ionicons name="flame" size={14} color="#FF453A" style={{ marginRight: 6 }} />
@@ -173,7 +169,7 @@ export default function GigsScreen() {
               <Text style={[styles.applyText, { color: '#000' }]}>Apply Now</Text>
               <Ionicons name="arrow-forward" size={16} color="#000" />
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     );
@@ -181,12 +177,7 @@ export default function GigsScreen() {
 
   const renderHeader = () => (
     <View>
-      <LinearGradient
-        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
-      >
+      <View style={styles.headerGradient}>
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitleLight}>GIG</Text>
@@ -210,7 +201,7 @@ export default function GigsScreen() {
             <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
           )}
         </SafeAreaView>
-      </LinearGradient>
+      </View>
       {heroGig && (
         <View style={{ paddingTop: 10 }}>
           {renderHeroGig({ item: heroGig })}
@@ -226,7 +217,7 @@ export default function GigsScreen() {
     return (
       <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
         <TouchableOpacity 
-          style={[styles.gigCard, Shadows.subtle]} 
+          style={styles.gigCard} 
           activeOpacity={0.7}
           onPress={() => handleApply(item['Link'])}
         >
@@ -274,15 +265,10 @@ export default function GigsScreen() {
               </View>
             )}
 
-            <LinearGradient
-              colors={['rgba(212, 175, 55, 0.9)', 'rgba(179, 139, 34, 0.9)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.applyContainer, { marginTop: 16 }]}
-            >
+            <View style={[styles.applyContainer, { marginTop: 16, backgroundColor: Colors.light.buttonPrimary }]}>
               <Text style={styles.applyText}>View & Apply</Text>
               <Ionicons name="arrow-forward" size={14} color="#000" />
-            </LinearGradient>
+            </View>
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -413,7 +399,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     minHeight: 180,
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
     borderColor: Colors.light.gold,
   },
@@ -437,7 +423,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 69, 58, 0.4)',
-    boxShadow: '0px 2px 8px rgba(255, 69, 58, 0.25)',
   },
   hotGigText: {
     color: '#FF6B4A',
@@ -448,7 +433,7 @@ const styles = StyleSheet.create({
   heroCardTitle: {
     color: Colors.light.text,
     fontSize: 22,
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     marginBottom: 4,
   },
   heroCardCompany: {
@@ -476,15 +461,13 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-15deg' }],
   },
   gigCard: {
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
-    elevation: 4,
+    borderColor: Colors.light.cardBorder,
   },
   gigCardContent: {
     flex: 1,
@@ -517,7 +500,7 @@ const styles = StyleSheet.create({
   gigCardTitle: {
     color: Colors.light.text,
     fontSize: 20,
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     marginBottom: 4,
   },
   gigCardCompany: {

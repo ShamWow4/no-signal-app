@@ -4,19 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
-
 export default function PrivacyScreen() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
-      >
+      <View style={styles.headerGradient}>
         <SafeAreaView edges={['top']} style={styles.safeHeader}>
           <View style={styles.headerRow}>
             <TouchableOpacity 
@@ -32,7 +25,7 @@ export default function PrivacyScreen() {
             </View>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
@@ -156,11 +149,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
   },
   effectiveDate: {
     fontFamily: 'OpenSans',
@@ -213,7 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   homeBtn: {
-    backgroundColor: Colors.light.gold,
+    backgroundColor: Colors.light.buttonPrimary,
     paddingVertical: 12,
     borderRadius: 24,
     alignItems: 'center',

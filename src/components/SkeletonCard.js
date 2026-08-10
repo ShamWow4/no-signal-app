@@ -39,12 +39,12 @@ export default function SkeletonCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     marginBottom: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
     elevation: 4,
   },

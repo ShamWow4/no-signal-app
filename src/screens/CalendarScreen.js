@@ -6,8 +6,7 @@ import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '../constants/theme';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../components/SkeletonCard';
 
@@ -512,7 +511,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
   return (
     <Animated.View entering={FadeInDown.delay((index % 10) * 50).duration(500)}>
       <TouchableOpacity 
-        style={[styles.eventCard, Shadows.subtle, { overflow: 'hidden' }]} 
+        style={[styles.eventCard, { overflow: 'hidden' }]} 
         activeOpacity={0.7}
         onPress={() => onPress(item)}
       >
@@ -645,11 +644,8 @@ EventCard.displayName = 'EventCard';
     const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     return (
-      <View style={[styles.gridWrapper, Shadows.subtle]}>
-        <LinearGradient 
-          colors={['rgba(211, 166, 37, 0.15)', 'transparent']}
-          style={styles.gridHeader}
-        >
+      <View style={styles.gridWrapper}>
+        <View style={styles.gridHeader}>
           <TouchableOpacity onPress={prevMonth} style={styles.gridNavBtn}>
             <Ionicons name="chevron-back" size={20} color="#fff" />
           </TouchableOpacity>
@@ -657,7 +653,7 @@ EventCard.displayName = 'EventCard';
           <TouchableOpacity onPress={nextMonth} style={styles.gridNavBtn}>
             <Ionicons name="chevron-forward" size={20} color="#fff" />
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
         
         <View style={styles.weekdaysRow}>
           {weekdays.map(d => (
@@ -846,10 +842,7 @@ EventCard.displayName = 'EventCard';
             
             <View style={styles.modalDragHandle} />
             
-            <LinearGradient 
-              colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]} 
-              style={styles.modalHeader}
-            >
+            <View style={styles.modalHeader}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: 12}}>
                 <Text style={[styles.modalTitle, {flex: 1, paddingRight: 10}]}>{titleText}</Text>
                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
@@ -871,7 +864,7 @@ EventCard.displayName = 'EventCard';
                 <View style={[styles.filterDot, { backgroundColor: venueConfig.color || Colors.light.gold }]} />
                 <Text style={[styles.badgeText, { color: venueConfig.color || Colors.light.gold }]}>{venueConfig.label || venueText}</Text>
               </View>
-            </LinearGradient>
+            </View>
             
             <View style={styles.modalBody}>
               <View style={styles.modalInfoRow}>
@@ -942,12 +935,7 @@ EventCard.displayName = 'EventCard';
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
-      >
+      <View style={styles.headerGradient}>
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitleLight}>NO</Text>
@@ -956,7 +944,7 @@ EventCard.displayName = 'EventCard';
           <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
           {renderFilters()}
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {loading ? (
         <View style={{flex: 1, paddingHorizontal: 16, paddingTop: 10}}>
@@ -1009,7 +997,7 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     fontSize: 14,
     color: Colors.light.textSecondary,
-    fontFamily: 'Cinzel',
+    fontFamily: 'OpenSans',
     letterSpacing: 3,
     textAlign: 'center',
     marginBottom: 20,
@@ -1022,9 +1010,9 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     borderRadius: 24,
     alignSelf: 'flex-start',
     overflow: 'hidden',
@@ -1058,9 +1046,9 @@ const styles = StyleSheet.create({
   filterPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -1088,11 +1076,11 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
   },
   searchIcon: {
     marginRight: 10,
@@ -1111,14 +1099,12 @@ const styles = StyleSheet.create({
   // Event Cards
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     marginBottom: 16,
     overflow: 'hidden',
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
-    elevation: 4,
   },
   cardDateBlock: {
     width: 80,
@@ -1127,7 +1113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderRightWidth: 1,
-    borderRightColor: Colors.light.glassBorder,
+    borderRightColor: Colors.light.cardBorder,
   },
   cardMonth: {
     fontFamily: 'OpenSans',
@@ -1137,7 +1123,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   cardDay: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 28,
     color: '#fff',
     marginVertical: 4,
@@ -1154,7 +1140,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardTitle: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 18,
     color: Colors.light.gold,
     marginBottom: 12,
@@ -1200,14 +1186,12 @@ const styles = StyleSheet.create({
   // Grid Month Styles
   gridWrapper: {
     flex: 1,
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     borderRadius: 16,
     overflow: 'hidden',
     paddingBottom: 4,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.08)',
-    elevation: 4,
   },
   gridHeader: {
     flexDirection: 'row',
@@ -1216,10 +1200,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.glassBorder,
+    borderBottomColor: Colors.light.cardBorder,
   },
   gridMonthText: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 20,
     color: Colors.light.gold,
     letterSpacing: 1,
@@ -1230,7 +1214,7 @@ const styles = StyleSheet.create({
   weekdaysRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.glassBorder,
+    borderBottomColor: Colors.light.cardBorder,
     backgroundColor: 'rgba(212, 175, 37, 0.03)',
   },
   weekdayText: {
@@ -1266,7 +1250,7 @@ const styles = StyleSheet.create({
   gridCellContinuous: {
     flex: 1,
     borderRightWidth: 1,
-    borderRightColor: Colors.light.glassBorder,
+    borderRightColor: Colors.light.cardBorder,
   },
   dateNumberWrap: {
     position: 'absolute',
@@ -1281,7 +1265,6 @@ const styles = StyleSheet.create({
   },
   dateNumberWrapToday: {
     backgroundColor: Colors.light.gold,
-    boxShadow: '0px 0px 8px rgba(212, 175, 55, 0.6)',
   },
   dateNumberText: {
     fontFamily: 'PoppinsSemiBold',
@@ -1308,11 +1291,6 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.7,
-    shadowRadius: 2,
-    elevation: 3,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     boxSizing: 'border-box',
@@ -1323,10 +1301,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.95)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
   },
 
   // Modal styles
@@ -1357,7 +1331,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalTitle: {
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     fontSize: 24,
     color: Colors.light.text,
     marginBottom: 12,

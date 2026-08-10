@@ -3,12 +3,10 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, TextInput, Touchab
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, getDocs, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { sendSmsNotification } from '../utils/smsService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Colors, Shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import CompanyIcon from '../components/CompanyIcon';
 
 function ActionButton({ icon, label, onPress, disabled }) {
@@ -165,6 +163,9 @@ export default function DirectoryScreen() {
         window.open(url, '_self');
         return;
       }
+    } else if (type === 'sms') {
+      const cleanPhone = value.replace(/[^0-9+]/g, '');
+      url = `sms:${cleanPhone}`;
     } else if (type === 'email') {
       url = `mailto:${value.trim()}`;
     } else if (type === 'website') {
@@ -192,7 +193,6 @@ export default function DirectoryScreen() {
       <Pressable
         style={({ hovered }) => [
           styles.tableRow,
-          Shadows.subtle,
           hovered && styles.tableRowHovered,
         ]}
       >
@@ -230,7 +230,7 @@ export default function DirectoryScreen() {
             icon="chatbox-ellipses"
             label="SMS"
             disabled={!item.phone}
-            onPress={() => handleSMS(item.name || item.company, item.phone)}
+            onPress={() => handleLink('sms', item.phone)}
           />
           <ActionButton
             icon="mail"
@@ -260,12 +260,7 @@ export default function DirectoryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['rgba(211, 166, 37, 0.15)', Colors.light.background]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
-      >
+      <View style={styles.headerGradient}>
         <SafeAreaView edges={['top']} style={{ paddingBottom: 0 }}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitleLight}>INDUSTRY</Text>
@@ -301,7 +296,7 @@ export default function DirectoryScreen() {
         </ScrollView>
 
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -355,14 +350,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     marginHorizontal: 20,
     marginBottom: 0,
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 4px 12px rgba(212, 175, 55, 0.1)',
+    borderColor: Colors.light.cardBorder,
   },
   searchIcon: {
     marginRight: 10,
@@ -434,19 +428,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 12,
     marginBottom: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
+    borderColor: Colors.light.cardBorder,
   },
   tableRowHovered: {
     backgroundColor: 'rgba(212, 175, 55, 0.08)',
     borderColor: 'rgba(212, 175, 55, 0.35)',
-    boxShadow: '0px 4px 16px rgba(212, 175, 55, 0.15)',
   },
   rowInfoContainer: {
     flex: 1,
@@ -461,7 +453,7 @@ const styles = StyleSheet.create({
   },
   companyName: {
     fontSize: 16,
-    fontFamily: 'CinzelSemiBold',
+    fontFamily: 'PoppinsSemiBold',
     color: Colors.light.gold,
   },
   typeBadge: {

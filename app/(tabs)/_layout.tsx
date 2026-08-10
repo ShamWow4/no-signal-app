@@ -2,7 +2,8 @@ import React from 'react';
 import { Tabs, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/theme';
-import { Pressable, Platform, View, Text } from 'react-native';
+import { Pressable, Platform, View, Text, StyleSheet } from 'react-native';
+import { GlassView } from 'expo-glass-effect';
 
 // Web Vector Icon component for 100% guaranteed crisp rendering across all browsers
 function TabIcon({ name, focused, color, size = 24 }: { name: string; focused: boolean; color: any; size?: number }) {
@@ -50,13 +51,17 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.light.gold,
         tabBarInactiveTintColor: '#888888',
         tabBarStyle: {
-          backgroundColor: '#121212',
-          borderTopWidth: 1,
-          borderTopColor: '#222222',
-          height: 65,
-          paddingBottom: 8,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          height: Platform.OS === 'ios' ? 85 : 65,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
         },
+        tabBarBackground: () => (
+          <GlassView style={StyleSheet.absoluteFill} />
+        ),
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: 'PoppinsSemiBold',

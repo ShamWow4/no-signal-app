@@ -11,7 +11,7 @@ export default function SavedItemsRoute() {
           headerBackTitle: 'Profile',
           headerStyle: { backgroundColor: '#1A1A1A' },
           headerTintColor: '#D3A625',
-          headerTitleStyle: { fontFamily: 'CinzelSemiBold' }
+          headerTitleStyle: { fontFamily: 'PoppinsSemiBold' }
         }} 
       />
       <SavedItemsScreen />

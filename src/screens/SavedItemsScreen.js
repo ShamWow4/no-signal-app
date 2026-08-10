@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Colors, Shadows } from '../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
 import CompanyIcon from '../components/CompanyIcon';
 
 function parseDate(str) {
@@ -152,15 +151,12 @@ export default function SavedItemsScreen() {
             <Text style={styles.gigCardLocation}>{item['Location']}</Text>
           </View>
         ) : null}
-        <LinearGradient
-          colors={['rgba(212, 175, 55, 0.9)', 'rgba(179, 139, 34, 0.9)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.applyContainer, { marginTop: 16 }]}
+        <View
+          style={[styles.applyContainer, { marginTop: 16, backgroundColor: Colors.light.buttonPrimary }]}
         >
           <Text style={styles.applyText}>View & Apply</Text>
           <Ionicons name="arrow-forward" size={14} color="#000" />
-        </LinearGradient>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -247,18 +243,18 @@ const styles = StyleSheet.create({
   
   // Gig Card Styles
   gigCard: {
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
   },
   gigCardContent: { flex: 1 },
   gigCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   gigTypeContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   gigCardType: { color: Colors.light.gold, fontSize: 11, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
-  gigCardTitle: { color: Colors.light.text, fontSize: 20, fontFamily: 'CinzelSemiBold', marginBottom: 4 },
+  gigCardTitle: { color: Colors.light.text, fontSize: 20, fontFamily: 'PoppinsSemiBold', marginBottom: 4 },
   gigCardCompany: { color: '#FFFFFF', fontSize: 15, fontFamily: 'PoppinsSemiBold', letterSpacing: 0.2, marginTop: 2, marginBottom: 2 },
   gigLocationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   gigCardLocation: { color: Colors.light.textSecondary, fontSize: 13, fontFamily: 'OpenSans' },
@@ -268,18 +264,18 @@ const styles = StyleSheet.create({
   // Event Card Styles
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.glassBackground,
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.light.glassBorder,
+    borderColor: Colors.light.cardBorder,
     marginBottom: 16,
     overflow: 'hidden',
   },
-  cardDateBlock: { width: 80, backgroundColor: 'rgba(212, 175, 55, 0.05)', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRightWidth: 1, borderRightColor: Colors.light.glassBorder },
+  cardDateBlock: { width: 80, backgroundColor: 'rgba(212, 175, 55, 0.05)', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRightWidth: 1, borderRightColor: Colors.light.cardBorder },
   cardMonth: { fontFamily: 'OpenSans', fontSize: 12, fontWeight: 'bold', color: '#D3A625', letterSpacing: 1 },
-  cardDay: { fontFamily: 'CinzelSemiBold', fontSize: 28, color: '#fff', marginVertical: 4 },
+  cardDay: { fontFamily: 'PoppinsSemiBold', fontSize: 28, color: '#fff', marginVertical: 4 },
   cardContent: { flex: 1, padding: 16, justifyContent: 'center' },
-  cardTitle: { fontFamily: 'CinzelSemiBold', fontSize: 18, color: Colors.light.gold, marginBottom: 12, lineHeight: 24 },
+  cardTitle: { fontFamily: 'PoppinsSemiBold', fontSize: 18, color: Colors.light.gold, marginBottom: 12, lineHeight: 24 },
   cardDetailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 6 },
   cardDetailText: { fontFamily: 'OpenSans', fontSize: 12, color: '#aaa' },
   

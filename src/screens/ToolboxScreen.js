@@ -11,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ToolboxScreen() {
   const [activeTab, setActiveTab] = useState('dmx');
@@ -211,7 +210,11 @@ export default function ToolboxScreen() {
   const throwFt = Math.max(1, parseFloat(throwDistFt) || 30);
 
   const angleRad = (bAngle / 2) * (Math.PI / 180);
-  const beamDiameterFt = (2 * throwFt * Math.tan(angleRad)).toFixed(1);
+  const beamDiameterFtNum = 2 * throwFt * Math.tan(angleRad);
+  const beamDiameterFt = beamDiameterFtNum.toFixed(1);
+  const areaSqFt = Math.PI * Math.pow(beamDiameterFtNum / 2, 2);
+  const footCandles = areaSqFt > 0 ? (lumensNum / areaSqFt).toFixed(0) : '0';
+  const lux = areaSqFt > 0 ? ((lumensNum / areaSqFt) * 10.7639).toFixed(0) : '0';
   // ============================================================================
   // 10. RF ISOLATION & IMD CALCULATOR
   // ============================================================================
@@ -359,7 +362,7 @@ export default function ToolboxScreen() {
                 <Text style={styles.fieldLabel}>Ambient Temperature (°F)</Text>
                 <TextInput style={styles.textInput} value={tempF} onChangeText={setTempF} keyboardType="numeric" />
               </View>
-              <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
+              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
                 <Text style={styles.resultLabel}>RECOMMENDED DIGITAL DELAY</Text>
                 <Text style={styles.resultBigVal}>{delayMs.toFixed(2)} <Text style={styles.resultUnit}>ms</Text></Text>
                 <View style={styles.resultDivider} />
@@ -367,7 +370,7 @@ export default function ToolboxScreen() {
                   <View style={styles.resultGridCol}><Text style={styles.resultGridLabel}>Samples @ 48 kHz</Text><Text style={styles.resultGridVal}>{samples48k.toLocaleString()}</Text></View>
                   <View style={styles.resultGridCol}><Text style={styles.resultGridLabel}>Samples @ 96 kHz</Text><Text style={styles.resultGridVal}>{samples96k.toLocaleString()}</Text></View>
                 </View>
-              </LinearGradient>
+              </View>
             </View>
           </Animated.View>
         )}
@@ -403,7 +406,7 @@ export default function ToolboxScreen() {
         {activeTab === 'power' && (
           <Animated.View entering={FadeInDown.duration(300)}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Ohm's Law & Voltage Drop</Text>
+              <Text style={styles.cardTitle}>Ohm&apos;s Law & Voltage Drop</Text>
               <View style={styles.rowInputsContainer}>
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}><Text style={styles.fieldLabel}>Voltage (V)</Text><TextInput style={styles.textInput} value={volts} onChangeText={setVolts} keyboardType="numeric" /></View>
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}><Text style={styles.fieldLabel}>Current (Amps)</Text><TextInput style={styles.textInput} value={amps} onChangeText={setAmps} keyboardType="numeric" /></View>
@@ -486,11 +489,11 @@ export default function ToolboxScreen() {
                   <TouchableOpacity key={f} style={[styles.pitchBtn, fps === f && styles.pitchBtnActive]} onPress={() => setFps(f)}><Text style={[styles.pitchBtnText, fps === f && styles.pitchBtnTextActive]}>{f} FPS</Text></TouchableOpacity>
                 ))}
               </View>
-              <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
+              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
                 <Text style={styles.resultLabel}>RESULTING TIMECODE</Text>
                 <Text style={styles.resultBigVal}>{resultTc}</Text>
                 <Text style={styles.speedNote}>{resultFrames.toLocaleString()} Total Frames ({resultSecs} sec)</Text>
-              </LinearGradient>
+              </View>
             </View>
           </Animated.View>
         )}
@@ -505,7 +508,7 @@ export default function ToolboxScreen() {
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}><Text style={styles.fieldLabel}>Amp Power (Watts)</Text><TextInput style={styles.textInput} value={wattage} onChangeText={setWattage} keyboardType="numeric" /></View>
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}><Text style={styles.fieldLabel}>Distance (Feet)</Text><TextInput style={styles.textInput} value={targetDistFt} onChangeText={setTargetDistFt} keyboardType="numeric" /></View>
               </View>
-              <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
+              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
                 <Text style={styles.resultLabel}>EXPECTED SPL AT {tDistFt} FT</Text>
                 <Text style={styles.resultBigVal}>{splAtTarget} <Text style={styles.resultUnit}>dB SPL</Text></Text>
                 <View style={styles.resultDivider} />
@@ -513,7 +516,7 @@ export default function ToolboxScreen() {
                   <View style={styles.resultGridCol}><Text style={styles.resultGridLabel}>Max SPL @ 1 Meter</Text><Text style={styles.resultGridVal}>{maxSplAt1m.toFixed(1)} dB</Text></View>
                   <View style={styles.resultGridCol}><Text style={styles.resultGridLabel}>Distance Loss (-dB)</Text><Text style={styles.resultGridVal}>-{distLossDb.toFixed(1)} dB</Text></View>
                 </View>
-              </LinearGradient>
+              </View>
             </View>
           </Animated.View>
         )}
@@ -569,13 +572,13 @@ export default function ToolboxScreen() {
                 </View>
               </View>
 
-              <LinearGradient colors={['#2A2616', '#1A180E']} style={styles.resultHero}>
+              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
                 <Text style={styles.resultLabel}>DANGER ZONES (3RD ORDER IMD)</Text>
                 <View style={{ marginVertical: 8, alignItems: 'center' }}>
                   <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
                   <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
                 </View>
-              </LinearGradient>
+              </View>
 
               <View style={[styles.specsContainer, { marginTop: 16 }]}>
                 <Text style={[styles.specVal, { color: Colors.light.gold, fontSize: 14, marginBottom: 12 }]}>
@@ -614,7 +617,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0a0a0a' },
     header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
     headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
-    headerTitle: { color: '#ffffff', fontSize: 20, fontFamily: 'CinzelSemiBold', letterSpacing: 1 },
+    headerTitle: { color: '#ffffff', fontSize: 20, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
     headerSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
     tabBarContainer: { marginBottom: 12 },
     tabBarScroll: { paddingHorizontal: 16 },
@@ -623,8 +626,8 @@ const styles = StyleSheet.create({
     tabButtonText: { color: '#aaa', fontSize: 12, fontWeight: '600', marginLeft: 6 },
     tabButtonTextActive: { color: Colors.light.gold },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
-    card: { backgroundColor: Colors.light.glassBackground, borderColor: Colors.light.glassBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
-    cardTitle: { color: Colors.light.gold, fontSize: 18, fontFamily: 'CinzelSemiBold', marginBottom: 16 },
+    card: { backgroundColor: Colors.light.cardBackground, borderColor: Colors.light.cardBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
+    cardTitle: { color: Colors.light.gold, fontSize: 18, fontFamily: 'PoppinsSemiBold', marginBottom: 16 },
     dmxInputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', marginBottom: 16 },
     dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: Colors.light.gold },
     dmxUniverseText: { color: '#888', fontSize: 20, marginLeft: 8 },

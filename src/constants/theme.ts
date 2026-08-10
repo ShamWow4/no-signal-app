@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#ffffff',
+    text: '#E0E0E0',
     background: '#121212',
     backgroundElement: 'rgba(28, 28, 28, 0.8)',
     backgroundSelected: '#2a2a2a',
@@ -20,9 +20,12 @@ export const Colors = {
     border: 'rgba(212, 175, 55, 0.18)', // Muted gold tint border
     glassBackground: 'rgba(32, 32, 35, 0.65)',
     glassBorder: 'rgba(255, 255, 255, 0.08)',
+    cardBackground: '#1c1c1e',
+    cardBorder: '#333333',
+    buttonPrimary: '#D4AF37',
   },
   dark: {
-    text: '#ffffff',
+    text: '#E0E0E0',
     background: '#121212',
     backgroundElement: 'rgba(28, 28, 28, 0.8)',
     backgroundSelected: '#2a2a2a',
@@ -33,6 +36,9 @@ export const Colors = {
     border: 'rgba(212, 175, 55, 0.18)',
     glassBackground: 'rgba(32, 32, 35, 0.65)',
     glassBorder: 'rgba(255, 255, 255, 0.08)',
+    cardBackground: '#1c1c1e',
+    cardBorder: '#333333',
+    buttonPrimary: '#D4AF37',
   },
 } as const;
 
@@ -76,17 +82,17 @@ export const Spacing = {
 export const Shadows = {
   glow: {
     shadowColor: Colors.light.gold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   subtle: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   }
 } as const;
 
