@@ -9,36 +9,36 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#E0E0E0',
-    background: '#121212',
-    backgroundElement: 'rgba(28, 28, 28, 0.8)',
-    backgroundSelected: '#2a2a2a',
-    textSecondary: 'rgba(255, 255, 255, 0.7)',
+    text: '#121212',
+    background: '#F9F9F9',
+    backgroundElement: 'rgba(240, 240, 240, 0.8)',
+    backgroundSelected: '#EAEAEA',
+    textSecondary: 'rgba(0, 0, 0, 0.6)',
     gold: '#D4AF37',
     goldMuted: '#A88B2A',
     goldBright: '#F3E5AB',
-    border: 'rgba(212, 175, 55, 0.18)', // Muted gold tint border
-    glassBackground: 'rgba(32, 32, 35, 0.65)',
-    glassBorder: 'rgba(255, 255, 255, 0.08)',
-    cardBackground: '#1c1c1e',
-    cardBorder: '#333333',
+    border: 'rgba(212, 175, 55, 0.25)', // slightly more visible gold border on light
+    glassBackground: 'rgba(255, 255, 255, 0.65)',
+    glassBorder: 'rgba(0, 0, 0, 0.05)',
+    cardBackground: '#FFFFFF',
+    cardBorder: '#E0E0E0',
     buttonPrimary: '#D4AF37',
   },
   dark: {
-    text: '#E0E0E0',
-    background: '#121212',
-    backgroundElement: 'rgba(28, 28, 28, 0.8)',
-    backgroundSelected: '#2a2a2a',
-    textSecondary: 'rgba(255, 255, 255, 0.7)',
-    gold: '#D4AF37',
+    text: '#FFFFFF',
+    background: '#000000', // True OLED black
+    backgroundElement: 'rgba(20, 20, 20, 0.8)', // Very dark gray for elements
+    backgroundSelected: '#1a1a1a',
+    textSecondary: 'rgba(255, 255, 255, 0.65)',
+    gold: '#E3C158', // Slightly brighter/neon gold for OLED contrast
     goldMuted: '#A88B2A',
-    goldBright: '#F3E5AB',
-    border: 'rgba(212, 175, 55, 0.18)',
-    glassBackground: 'rgba(32, 32, 35, 0.65)',
-    glassBorder: 'rgba(255, 255, 255, 0.08)',
-    cardBackground: '#1c1c1e',
-    cardBorder: '#333333',
-    buttonPrimary: '#D4AF37',
+    goldBright: '#FDF1B9',
+    border: 'rgba(227, 193, 88, 0.25)', // higher contrast border
+    glassBackground: 'rgba(10, 10, 10, 0.75)', // darker glass for OLED
+    glassBorder: 'rgba(255, 255, 255, 0.12)',
+    cardBackground: '#0a0a0a', // Deepest gray, almost black
+    cardBorder: '#222222',
+    buttonPrimary: '#E3C158',
   },
 } as const;
 
