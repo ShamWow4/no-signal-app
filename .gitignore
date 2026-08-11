@@ -8,6 +8,8 @@ node_modules/
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+*-firebase-*.json
+nola-visual-arts-*.json
 *.local
 no-signal-sms/node_modules/
 
