@@ -1,56 +1,74 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="./assets/images/icon.png" alt="No Signal App Logo" width="120" />
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+  # No Signal! 🎛️
+  
+  **The definitive mobile application for the New Orleans AV Industry, Riggers, and Production Crews.**
 
-## Get started
+  [![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
+  [![Expo](https://img.shields.io/badge/Expo-1B1F23?style=for-the-badge&logo=expo&logoColor=white)](#)
+  [![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)](#)
+</div>
 
-1. Install dependencies
+<br/>
 
-   ```bash
-   npm install
-   ```
+## 📱 About
 
-2. Start the app
+**No Signal!** is a premium, high-performance mobile application designed specifically for audio-visual technicians and event production crews. It features a sleek, OLED-optimized true dark mode aesthetic with neon accents.
 
-   ```bash
-   npx expo start
-   ```
+Built to handle the fast-paced environment of live events, this app serves as a centralized hub for:
+- 📅 **Event Calendar Visualization**: Keep track of upcoming gigs, load-ins, and showtimes.
+- 📇 **Crew Directory**: Instant access to contact information for techs, riggers, and stagehands.
+- 💬 **Integrated Twilio SMS**: Seamless, automated text message dispatching directly from the app via Firebase Cloud Functions.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## ✨ Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **True OLED Dark Mode**: A stunning, glassmorphism-inspired UI designed to look beautiful (and save battery) in dark backstage environments.
+- **Real-Time Data**: Powered by Google Firebase Firestore for instant synchronization across all devices.
+- **Cross-Platform**: Compiles natively to iOS, Android, and Web via Expo.
+- **Secure Architecture**: Serverless 2nd Gen Cloud Functions handle sensitive Twilio API transactions.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 🛠️ Tech Stack
 
+- **Frontend**: React Native, Expo Router, React Navigation
+- **Backend**: Firebase Firestore, Firebase Authentication
+- **Serverless Functions**: Node.js 24 (2nd Gen Cloud Functions)
+- **Integrations**: Twilio SMS API
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or newer)
+- Expo CLI
+- Firebase CLI (for deploying Cloud Functions)
+
+### 1. Install Dependencies
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Set Up Environment Variables
+Create a `.env` file in the root directory for your Expo config, and a separate `.env` inside the `no-signal-sms` folder for the Cloud Function Twilio credentials.
 
-### Other setup steps
+### 3. Start the Development Server
+```bash
+npx expo start
+```
+This will open the Expo developer menu. You can press `i` to open the iOS simulator, `a` for Android, or scan the QR code with the Expo Go app on your physical device.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 4. Deploying Cloud Functions (SMS)
+```bash
+firebase deploy --only functions:no-signal-sms
+```
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+<div align="center">
+  <p>Built with ❤️ for the NOLA production community.</p>
+</div>
