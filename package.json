@@ -51,7 +51,9 @@
     "eslint-config-expo": "~57.0.0",
     "firebase-admin": "^10.3.0",
     "sharp": "^0.35.3",
-    "typescript": "~6.0.3"
+    "testdriverai": "^7.11.47-test",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10"
   },
   "scripts": {
     "start": "expo start",
