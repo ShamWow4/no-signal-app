@@ -11,6 +11,7 @@
     "@expo/vector-icons": "^15.0.2",
     "@mendable/firecrawl-js": "^4.29.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-tvos/config-tv": "^0.1.6",
     "@react-navigation/bottom-tabs": "^7.18.7",
     "@react-navigation/native": "^7.3.7",
     "dotenv": "^17.4.2",
@@ -29,13 +30,13 @@
     "expo-splash-screen": "~57.0.5",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.1",
-    "expo-system-ui": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
     "expo-updates": "~57.0.10",
     "expo-web-browser": "~57.0.2",
     "firebase": "^12.15.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "^0.86.0",
+    "react-native": "npm:react-native-tvos@~0.86.0-0",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -65,5 +66,8 @@
     "clean-techs": "node ./scripts/data_processing/clean_tech_csv.mjs",
     "no-signal-app": "expo run:android"
   },
-  "private": true
+  "private": true,
+  "allowScripts": {
+    "@react-native-tvos/config-tv": true
+  }
 }

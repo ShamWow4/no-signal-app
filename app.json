@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nosignalapp",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.nosignal.app",
@@ -54,6 +54,13 @@
       "expo-image",
       "expo-status-bar",
       "expo-web-browser",
+      [
+        "@react-native-tvos/config-tv",
+        {
+          "isTV": true,
+          "androidTVRequired": false
+        }
+      ],
       [
         "expo-notifications",
         {

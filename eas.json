@@ -15,6 +15,13 @@
       }
     },
     "production": {
+      "android": {
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+      },
+      "env": {
+        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+      },
+      "node": "20.19.4",
       "autoIncrement": true
     }
   },
