@@ -68,6 +68,7 @@
   },
   "private": true,
   "allowScripts": {
+    "expo-system-ui": true,
     "@react-native-tvos/config-tv": true
   }
 }
