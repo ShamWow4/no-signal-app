@@ -16,15 +16,14 @@
     },
     "production": {
       "android": {
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+        "image": "latest"
       },
       "env": {
         "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
         "EXPO_TV": "1"
       },
       "node": "20.15.0",
-      "autoIncrement": true,
-      "image": "latest"
+      "autoIncrement": true
     }
   },
   "submit": {
