@@ -23,7 +23,8 @@
         "EXPO_TV": "1"
       },
       "node": "20.15.0",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "image": "latest"
     }
   },
   "submit": {
