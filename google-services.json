@@ -36,6 +36,35 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:204567994817:android:3440e70bcf11be72bd0f40",
+        "android_client_info": {
+          "package_name": "com.nolavisualarts"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCquh-ly2N1QfGuOFUTlimA95b7LiPW8Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "204567994817-9nl7qg0brth54h37go4n9elghjtvjuc6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:204567994817:android:f900b721cc2cf51bbd0f40",
         "android_client_info": {
           "package_name": "com.nosignal.app"
@@ -48,6 +77,14 @@
           "android_info": {
             "package_name": "com.nosignal.app",
             "certificate_hash": "fea6b3e800c25e8b2f93bdf7e760bfcb8f2d8c6e"
+          }
+        },
+        {
+          "client_id": "204567994817-m64s970bc6rr4pqfu66h859bpm6tdivn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nosignal.app",
+            "certificate_hash": "0e52e5bd585d8274ce3059d87cd0e2fb84b998b2"
           }
         },
         {
