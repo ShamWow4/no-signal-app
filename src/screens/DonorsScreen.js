@@ -56,11 +56,11 @@ export default function DonorsScreen() {
         <Text style={styles.sectionTitle}>Every Dollar at Work</Text>
         <View style={styles.impactGrid}>
           <View style={styles.impactItem}>
-            <Ionicons name="construct-outline" size={24} color={Colors.light.gold} style={styles.impactIcon} />
+            <Ionicons name="construct-outline" size={24} color={'#FFD700'} style={styles.impactIcon} />
             <Text style={styles.impactLabel}>Equipment & Gear</Text>
           </View>
           <View style={styles.impactItem}>
-            <Ionicons name="school-outline" size={24} color={Colors.light.gold} style={styles.impactIcon} />
+            <Ionicons name="school-outline" size={24} color={'#FFD700'} style={styles.impactIcon} />
             <Text style={styles.impactLabel}>Student Scholarships</Text>
           </View>
         </View>
@@ -93,7 +93,7 @@ export default function DonorsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000000',
   },
   header: {
     padding: 20,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   eyebrow: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontSize: 12,
     fontFamily: 'Poppins',
     letterSpacing: 1.5,
@@ -110,20 +110,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.text,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     textAlign: 'center',
     lineHeight: 24,
   },
   impactSection: {
     padding: 20,
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.light.cardBorder,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.text,
+    color: '#FFFFFF',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   impactLabel: {
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Poppins',
     textAlign: 'center',
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   tierCard: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 24,
     marginBottom: 16,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.cardBorder,
   },
   tierCardFeatured: {
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   tierHeader: {
@@ -177,20 +177,20 @@ const styles = StyleSheet.create({
   tierAmount: {
     fontSize: 36,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.text,
+    color: '#FFFFFF',
     marginRight: 12,
   },
   tierName: {
     fontSize: 18,
     fontFamily: 'Poppins',
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     marginBottom: 6,
   },
   tierNameFeatured: {
-    color: Colors.light.gold,
+    color: '#FFD700',
   },
   tierDescription: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     fontSize: 15,
     lineHeight: 22,
@@ -199,20 +199,20 @@ const styles = StyleSheet.create({
   donateButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
   },
   donateButtonFeatured: {
-    backgroundColor: Colors.light.gold,
+    backgroundColor: '#FFD700',
   },
   donateButtonText: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontFamily: 'Poppins',
     fontSize: 16,
   },
   donateButtonTextFeatured: {
-    color: Colors.light.background,
+    color: '#000000',
   },
 });

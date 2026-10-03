@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   statBox: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   formContainer: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 24,
     padding: 24,
     width: '100%',

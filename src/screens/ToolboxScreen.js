@@ -245,7 +245,7 @@ export default function ToolboxScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <Ionicons name="build" size={24} color={Colors.light.gold} style={{ marginRight: 8 }} />
+          <Ionicons name="build" size={24} color={'#FFD700'} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>AV TECH TOOLBOX</Text>
         </View>
         <Text style={styles.headerSubtitle}>10 Offline Physics & Engineering Tools</Text>
@@ -255,52 +255,52 @@ export default function ToolboxScreen() {
       <View style={styles.tabBarContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarScroll}>
           <TouchableOpacity style={[styles.tabButton, activeTab === 'rf' && styles.tabButtonActive]} onPress={() => setActiveTab('rf')}>
-            <Ionicons name="radio-outline" size={16} color={activeTab === 'rf' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="radio-outline" size={16} color={activeTab === 'rf' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'rf' && styles.tabButtonTextActive]}>RF & IMD</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'dmx' && styles.tabButtonActive]} onPress={() => setActiveTab('dmx')}>
-            <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'dmx' && styles.tabButtonTextActive]}>DMX DIP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'delay' && styles.tabButtonActive]} onPress={() => setActiveTab('delay')}>
-            <Ionicons name="volume-high-outline" size={16} color={activeTab === 'delay' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="volume-high-outline" size={16} color={activeTab === 'delay' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'delay' && styles.tabButtonTextActive]}>Audio Delay</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'led' && styles.tabButtonActive]} onPress={() => setActiveTab('led')}>
-            <Ionicons name="tv-outline" size={16} color={activeTab === 'led' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="tv-outline" size={16} color={activeTab === 'led' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'led' && styles.tabButtonTextActive]}>LED Wall</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'power' && styles.tabButtonActive]} onPress={() => setActiveTab('power')}>
-            <Ionicons name="flash-outline" size={16} color={activeTab === 'power' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="flash-outline" size={16} color={activeTab === 'power' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'power' && styles.tabButtonTextActive]}>Ohm / Power</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'projection' && styles.tabButtonActive]} onPress={() => setActiveTab('projection')}>
-            <Ionicons name="videocam-outline" size={16} color={activeTab === 'projection' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="videocam-outline" size={16} color={activeTab === 'projection' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'projection' && styles.tabButtonTextActive]}>Projection</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'pag' && styles.tabButtonActive]} onPress={() => setActiveTab('pag')}>
-            <Ionicons name="mic-outline" size={16} color={activeTab === 'pag' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="mic-outline" size={16} color={activeTab === 'pag' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'pag' && styles.tabButtonTextActive]}>PAG / NAG</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'timecode' && styles.tabButtonActive]} onPress={() => setActiveTab('timecode')}>
-            <Ionicons name="timer-outline" size={16} color={activeTab === 'timecode' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="timer-outline" size={16} color={activeTab === 'timecode' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'timecode' && styles.tabButtonTextActive]}>Timecode</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'spl' && styles.tabButtonActive]} onPress={() => setActiveTab('spl')}>
-            <Ionicons name="pulse-outline" size={16} color={activeTab === 'spl' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="pulse-outline" size={16} color={activeTab === 'spl' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'spl' && styles.tabButtonTextActive]}>SPL Loss</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'photo' && styles.tabButtonActive]} onPress={() => setActiveTab('photo')}>
-            <Ionicons name="sunny-outline" size={16} color={activeTab === 'photo' ? Colors.light.gold : '#aaa'} />
+            <Ionicons name="sunny-outline" size={16} color={activeTab === 'photo' ? '#FFD700' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'photo' && styles.tabButtonTextActive]}>Photometrics</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -362,7 +362,7 @@ export default function ToolboxScreen() {
                 <Text style={styles.fieldLabel}>Ambient Temperature (°F)</Text>
                 <TextInput style={styles.textInput} value={tempF} onChangeText={setTempF} keyboardType="numeric" />
               </View>
-              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
+              <View style={[styles.resultHero, { backgroundColor: '#000000' }]}>
                 <Text style={styles.resultLabel}>RECOMMENDED DIGITAL DELAY</Text>
                 <Text style={styles.resultBigVal}>{delayMs.toFixed(2)} <Text style={styles.resultUnit}>ms</Text></Text>
                 <View style={styles.resultDivider} />
@@ -489,7 +489,7 @@ export default function ToolboxScreen() {
                   <TouchableOpacity key={f} style={[styles.pitchBtn, fps === f && styles.pitchBtnActive]} onPress={() => setFps(f)}><Text style={[styles.pitchBtnText, fps === f && styles.pitchBtnTextActive]}>{f} FPS</Text></TouchableOpacity>
                 ))}
               </View>
-              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
+              <View style={[styles.resultHero, { backgroundColor: '#000000' }]}>
                 <Text style={styles.resultLabel}>RESULTING TIMECODE</Text>
                 <Text style={styles.resultBigVal}>{resultTc}</Text>
                 <Text style={styles.speedNote}>{resultFrames.toLocaleString()} Total Frames ({resultSecs} sec)</Text>
@@ -508,7 +508,7 @@ export default function ToolboxScreen() {
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}><Text style={styles.fieldLabel}>Amp Power (Watts)</Text><TextInput style={styles.textInput} value={wattage} onChangeText={setWattage} keyboardType="numeric" /></View>
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}><Text style={styles.fieldLabel}>Distance (Feet)</Text><TextInput style={styles.textInput} value={targetDistFt} onChangeText={setTargetDistFt} keyboardType="numeric" /></View>
               </View>
-              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
+              <View style={[styles.resultHero, { backgroundColor: '#000000' }]}>
                 <Text style={styles.resultLabel}>EXPECTED SPL AT {tDistFt} FT</Text>
                 <Text style={styles.resultBigVal}>{splAtTarget} <Text style={styles.resultUnit}>dB SPL</Text></Text>
                 <View style={styles.resultDivider} />
@@ -572,16 +572,16 @@ export default function ToolboxScreen() {
                 </View>
               </View>
 
-              <View style={[styles.resultHero, { backgroundColor: Colors.light.cardBackground }]}>
+              <View style={[styles.resultHero, { backgroundColor: '#000000' }]}>
                 <Text style={styles.resultLabel}>DANGER ZONES (3RD ORDER IMD)</Text>
                 <View style={{ marginVertical: 8, alignItems: 'center' }}>
-                  <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
-                  <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: Colors.light.gold, fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
+                  <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
+                  <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
                 </View>
               </View>
 
               <View style={[styles.specsContainer, { marginTop: 16 }]}>
-                <Text style={[styles.specVal, { color: Colors.light.gold, fontSize: 14, marginBottom: 12 }]}>
+                <Text style={[styles.specVal, { color: '#FFD700', fontSize: 14, marginBottom: 12 }]}>
                   ANALYZER SOFTWARE CHEAT SHEET
                 </Text>
 
@@ -622,14 +622,14 @@ const styles = StyleSheet.create({
     tabBarContainer: { marginBottom: 12 },
     tabBarScroll: { paddingHorizontal: 16 },
     tabButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.05)', marginRight: 8 },
-    tabButtonActive: { backgroundColor: '#2A2616', borderColor: Colors.light.gold, borderWidth: 1 },
+    tabButtonActive: { backgroundColor: '#2A2616', borderColor: '#FFD700', borderWidth: 1 },
     tabButtonText: { color: '#aaa', fontSize: 12, fontWeight: '600', marginLeft: 6 },
-    tabButtonTextActive: { color: Colors.light.gold },
+    tabButtonTextActive: { color: '#FFD700' },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
-    card: { backgroundColor: Colors.light.cardBackground, borderColor: Colors.light.cardBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
-    cardTitle: { color: Colors.light.gold, fontSize: 18, fontFamily: 'PoppinsSemiBold', marginBottom: 16 },
+    card: { backgroundColor: '#000000', borderColor: Colors.light.cardBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
+    cardTitle: { color: '#FFD700', fontSize: 18, fontFamily: 'PoppinsSemiBold', marginBottom: 16 },
     dmxInputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', marginBottom: 16 },
-    dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: Colors.light.gold },
+    dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: '#FFD700' },
     dmxUniverseText: { color: '#888', fontSize: 20, marginLeft: 8 },
     stepperRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
     stepperBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 6 },
@@ -638,11 +638,11 @@ const styles = StyleSheet.create({
     dipContainer: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#111', padding: 12, borderRadius: 12, borderColor: '#333', borderWidth: 1 },
     dipCol: { alignItems: 'center' },
     dipStatusText: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 4 },
-    dipStatusOn: { color: Colors.light.gold },
+    dipStatusOn: { color: '#FFD700' },
     dipBox: { width: 22, height: 48, backgroundColor: '#222', borderRadius: 4, borderColor: '#444', borderWidth: 1, justifyContent: 'space-between', padding: 2 },
-    dipBoxOn: { borderColor: Colors.light.gold },
+    dipBoxOn: { borderColor: '#FFD700' },
     dipSwitchThumb: { width: '100%', height: 18, backgroundColor: '#666', borderRadius: 2 },
-    thumbOn: { backgroundColor: Colors.light.gold },
+    thumbOn: { backgroundColor: '#FFD700' },
     thumbOff: { backgroundColor: '#444', marginTop: 'auto' },
     dipValueText: { color: '#fff', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
     dipNumText: { color: '#666', fontSize: 9, marginTop: 2 },
@@ -652,13 +652,13 @@ const styles = StyleSheet.create({
     rowInput: { flexDirection: 'row', alignItems: 'center' },
     unitToggleGroup: { flexDirection: 'row', marginLeft: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: 8, padding: 2 },
     unitBtn: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6 },
-    unitBtnActive: { backgroundColor: Colors.light.gold },
+    unitBtnActive: { backgroundColor: '#FFD700' },
     unitBtnText: { color: '#aaa', fontSize: 12, fontWeight: 'bold' },
     unitBtnTextActive: { color: '#000' },
     resultHero: { borderRadius: 14, padding: 20, alignItems: 'center', borderColor: Colors.light.border, borderWidth: 1, marginTop: 8 },
-    resultLabel: { color: Colors.light.gold, fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+    resultLabel: { color: '#FFD700', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
     resultBigVal: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', marginVertical: 4 },
-    resultUnit: { fontSize: 20, color: Colors.light.gold },
+    resultUnit: { fontSize: 20, color: '#FFD700' },
     resultDivider: { width: '100%', height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 12 },
     resultGrid: { flexDirection: 'row', width: '100%', justifyContent: 'space-around' },
     resultGridCol: { alignItems: 'center' },
@@ -667,12 +667,12 @@ const styles = StyleSheet.create({
     speedNote: { color: '#777', fontSize: 11, marginTop: 14 },
     pitchRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
     pitchBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
-    pitchBtnActive: { backgroundColor: Colors.light.gold },
+    pitchBtnActive: { backgroundColor: '#FFD700' },
     pitchBtnText: { color: '#aaa', fontWeight: 'bold', fontSize: 13 },
     pitchBtnTextActive: { color: '#000' },
     rowInputsContainer: { flexDirection: 'row', marginBottom: 16 },
     specsContainer: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: 12, padding: 14, borderColor: '#333', borderWidth: 1 },
     specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
     specLabel: { color: '#aaa', fontSize: 13 },
-    specVal: { color: Colors.light.gold, fontSize: 13, fontWeight: 'bold' },
+    specVal: { color: '#FFD700', fontSize: 13, fontWeight: 'bold' },
   });

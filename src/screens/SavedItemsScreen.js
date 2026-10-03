@@ -132,7 +132,7 @@ export default function SavedItemsScreen() {
       <View style={styles.gigCardContent}>
         <View style={styles.gigCardHeader}>
           <View style={styles.gigTypeContainer}>
-            <Ionicons name="briefcase-outline" size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+            <Ionicons name="briefcase-outline" size={14} color={'#FFD700'} style={{ marginRight: 6 }} />
             <Text style={styles.gigCardType}>
               {item['Source'] ? item['Source'].toUpperCase() : 'GIG'}
             </Text>
@@ -147,7 +147,7 @@ export default function SavedItemsScreen() {
         ) : null}
         {item['Location'] ? (
           <View style={styles.gigLocationRow}>
-            <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+            <Ionicons name="location-sharp" size={13} color={'#FFD700'} style={{ marginRight: 4 }} />
             <Text style={styles.gigCardLocation}>{item['Location']}</Text>
           </View>
         ) : null}
@@ -181,7 +181,7 @@ export default function SavedItemsScreen() {
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
           <View style={styles.cardDetailRow}>
-            <Ionicons name="location" size={12} color={Colors.light.textSecondary} />
+            <Ionicons name="location" size={12} color={'#FFFFFF'Secondary} />
             <Text style={styles.cardDetailText} numberOfLines={1}>{item.venue}{item.hall ? ` - ${item.hall}` : ''}</Text>
           </View>
           {start && end && (
@@ -215,7 +215,7 @@ export default function SavedItemsScreen() {
        </View>
 
        {loading ? (
-         <ActivityIndicator color={Colors.light.gold} style={{ marginTop: 20 }} />
+         <ActivityIndicator color={'#FFD700'} style={{ marginTop: 20 }} />
        ) : (
          <FlatList
            data={activeTab === 'gigs' ? gigs : events}
@@ -233,17 +233,17 @@ export default function SavedItemsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background },
+  container: { flex: 1, backgroundColor: '#000000' },
   tabContainer: { flexDirection: 'row', padding: 16, borderBottomWidth: 1, borderColor: '#333' },
   tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  tabButtonActive: { borderBottomWidth: 2, borderBottomColor: Colors.light.gold },
+  tabButtonActive: { borderBottomWidth: 2, borderBottomColor: '#FFD700' },
   tabText: { color: '#888', fontFamily: 'PoppinsSemiBold' },
-  tabTextActive: { color: Colors.light.gold },
+  tabTextActive: { color: '#FFD700' },
   listContent: { padding: 16 },
   
   // Gig Card Styles
   gigCard: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -253,18 +253,18 @@ const styles = StyleSheet.create({
   gigCardContent: { flex: 1 },
   gigCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   gigTypeContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(212, 175, 55, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  gigCardType: { color: Colors.light.gold, fontSize: 11, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
-  gigCardTitle: { color: Colors.light.text, fontSize: 20, fontFamily: 'PoppinsSemiBold', marginBottom: 4 },
+  gigCardType: { color: '#FFD700', fontSize: 11, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
+  gigCardTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'PoppinsSemiBold', marginBottom: 4 },
   gigCardCompany: { color: '#FFFFFF', fontSize: 15, fontFamily: 'PoppinsSemiBold', letterSpacing: 0.2, marginTop: 2, marginBottom: 2 },
   gigLocationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  gigCardLocation: { color: Colors.light.textSecondary, fontSize: 13, fontFamily: 'OpenSans' },
+  gigCardLocation: { color: '#FFFFFF'Secondary, fontSize: 13, fontFamily: 'OpenSans' },
   applyContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24, alignSelf: 'flex-start' },
   applyText: { color: '#000', fontSize: 14, fontFamily: 'PoppinsSemiBold', marginRight: 6 },
   
   // Event Card Styles
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   cardMonth: { fontFamily: 'OpenSans', fontSize: 12, fontWeight: 'bold', color: '#D3A625', letterSpacing: 1 },
   cardDay: { fontFamily: 'PoppinsSemiBold', fontSize: 28, color: '#fff', marginVertical: 4 },
   cardContent: { flex: 1, padding: 16, justifyContent: 'center' },
-  cardTitle: { fontFamily: 'PoppinsSemiBold', fontSize: 18, color: Colors.light.gold, marginBottom: 12, lineHeight: 24 },
+  cardTitle: { fontFamily: 'PoppinsSemiBold', fontSize: 18, color: '#FFD700', marginBottom: 12, lineHeight: 24 },
   cardDetailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 6 },
   cardDetailText: { fontFamily: 'OpenSans', fontSize: 12, color: '#aaa' },
   

@@ -147,7 +147,7 @@ export default function GigsScreen() {
                   <Ionicons 
                     name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
                     size={24} 
-                    color={savedGigs.has(item.id) ? "#FF3B30" : Colors.light.gold} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : '#FFD700'} 
                   />
                 </TouchableOpacity>
               )}
@@ -161,11 +161,11 @@ export default function GigsScreen() {
             ) : null}
             {item['Location'] ? (
               <View style={styles.heroLocationRow}>
-                <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Ionicons name="location-sharp" size={13} color={'#FFD700'} style={{ marginRight: 4 }} />
                 <Text style={styles.heroCardLocation}>{item['Location']}</Text>
               </View>
             ) : null}
-            <View style={[styles.applyContainer, { backgroundColor: Colors.light.gold, marginTop: 16 }]}>
+            <View style={[styles.applyContainer, { backgroundColor: '#FFD700', marginTop: 16 }]}>
               <Text style={[styles.applyText, { color: '#000' }]}>Apply Now</Text>
               <Ionicons name="arrow-forward" size={16} color="#000" />
             </View>
@@ -198,7 +198,7 @@ export default function GigsScreen() {
           </ScrollView>
 
           {loading && (
-            <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+            <ActivityIndicator size="small" color={'#FFD700'} style={{ marginVertical: 20 }} />
           )}
         </SafeAreaView>
       </View>
@@ -223,13 +223,13 @@ export default function GigsScreen() {
         >
           <Image 
             source={require('../../assets/images/nola-av-logo.png.png')} 
-            style={[styles.watermarkIcon, { width: 120, height: 120, opacity: 0.04, tintColor: Colors.light.gold }]} 
+            style={[styles.watermarkIcon, { width: 120, height: 120, opacity: 0.04, tintColor: '#FFD700' }]} 
             resizeMode="contain"
           />
           <View style={styles.gigCardContent}>
             <View style={styles.gigCardHeader}>
               <View style={styles.gigTypeContainer}>
-                <Ionicons name="briefcase-outline" size={14} color={Colors.light.gold} style={{ marginRight: 6 }} />
+                <Ionicons name="briefcase-outline" size={14} color={'#FFD700'} style={{ marginRight: 6 }} />
                 <Text style={styles.gigCardType}>
                   {item['Source'] ? item['Source'].toUpperCase() : 'GIG'}
                 </Text>
@@ -239,7 +239,7 @@ export default function GigsScreen() {
                   <Ionicons 
                     name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
                     size={22} 
-                    color={savedGigs.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : '#FFFFFF'Secondary} 
                   />
                 </TouchableOpacity>
               )}
@@ -253,7 +253,7 @@ export default function GigsScreen() {
             ) : null}
             {item['Location'] ? (
               <View style={styles.gigLocationRow}>
-                <Ionicons name="location-sharp" size={13} color={Colors.light.gold} style={{ marginRight: 4 }} />
+                <Ionicons name="location-sharp" size={13} color={'#FFD700'} style={{ marginRight: 4 }} />
                 <Text style={styles.gigCardLocation}>{item['Location']}</Text>
               </View>
             ) : null}
@@ -309,7 +309,7 @@ export default function GigsScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
           }
           ListEmptyComponent={!loading && (
             error ? (
@@ -319,7 +319,7 @@ export default function GigsScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Ionicons name="alert-circle-outline" size={48} color={Colors.light.textSecondary} />
+                <Ionicons name="alert-circle-outline" size={48} color={'#FFFFFF'Secondary} />
                 <Text style={styles.emptyText}>No gigs found right now.{'\n'}Check back later!</Text>
               </View>
             )
@@ -333,7 +333,7 @@ export default function GigsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000000',
   },
   listContent: {
     paddingBottom: 40,
@@ -356,11 +356,11 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
+    color: '#FFD700',
     letterSpacing: 2,
   },
   pageSubtitle: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 16,
     marginLeft: 20,
     marginRight: 20,
@@ -382,11 +382,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   filterPillActive: {
-    backgroundColor: Colors.light.gold,
-    borderColor: Colors.light.gold,
+    backgroundColor: '#FFD700',
+    borderColor: '#FFD700',
   },
   filterPillText: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 13,
     fontFamily: 'PoppinsSemiBold',
   },
@@ -399,9 +399,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     minHeight: 180,
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
   },
   heroGradient: {
     flex: 1,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   heroCardTitle: {
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontSize: 22,
     fontFamily: 'PoppinsSemiBold',
     marginBottom: 4,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   heroCardLocation: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 13,
     fontFamily: 'OpenSans',
   },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-15deg' }],
   },
   gigCard: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 20,
@@ -487,18 +487,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   gigCardType: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
     letterSpacing: 1,
   },
   gigCardDate: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 12,
     fontFamily: 'OpenSans',
   },
   gigCardTitle: {
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontSize: 20,
     fontFamily: 'PoppinsSemiBold',
     marginBottom: 4,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   gigCardLocation: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 13,
     fontFamily: 'OpenSans',
   },
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 16,
     fontFamily: 'OpenSans',
     textAlign: 'center',

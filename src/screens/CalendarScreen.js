@@ -517,7 +517,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
       >
         <Image 
           source={require('../../assets/images/nola-av-logo.png.png')} 
-          style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: Colors.light.gold }]} 
+          style={[{ position: 'absolute', right: -20, bottom: -20, transform: [{ rotate: '-15deg' }], zIndex: 0 }, { width: 140, height: 140, opacity: 0.03, tintColor: '#FFD700' }]} 
           resizeMode="contain"
         />
         
@@ -540,15 +540,15 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
                 <Ionicons 
                   name={isSaved ? "heart" : "heart-outline"} 
                   size={20} 
-                  color={isSaved ? "#FF3B30" : Colors.light.textSecondary} 
+                  color={isSaved ? "#FF3B30" : '#FFFFFF'Secondary} 
                 />
               </TouchableOpacity>
             )}
           </View>
 
           <View style={styles.cardDetailRow}>
-            <Ionicons name="location-sharp" size={14} color={Colors.light.gold} />
-            <Text style={[styles.cardDetailText, { color: Colors.light.text, fontFamily: 'PoppinsSemiBold' }]} numberOfLines={1}>
+            <Ionicons name="location-sharp" size={14} color={'#FFD700'} />
+            <Text style={[styles.cardDetailText, { color: '#FFFFFF', fontFamily: 'PoppinsSemiBold' }]} numberOfLines={1}>
               {locationText}
             </Text>
           </View>
@@ -563,7 +563,7 @@ const EventCard = React.memo(({ item, index, onPress, user, savedEvents, toggleS
 
           {sourceTag ? (
             <View style={[styles.typeTag, { borderColor: 'rgba(212, 175, 55, 0.2)', backgroundColor: 'rgba(212, 175, 55, 0.05)' }]}>
-              <Text style={[styles.typeTagText, { color: Colors.light.gold }]}>{sourceTag}</Text>
+              <Text style={[styles.typeTagText, { color: '#FFD700' }]}>{sourceTag}</Text>
             </View>
           ) : null}
         </View>
@@ -598,7 +598,7 @@ EventCard.displayName = 'EventCard';
         renderItem={renderEventItem}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
         }
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
@@ -666,7 +666,7 @@ EventCard.displayName = 'EventCard';
             style={styles.gridBodyContinuous}
             contentContainerStyle={{ flexGrow: 1 }}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
             }
           >
             {(() => {
@@ -823,7 +823,7 @@ EventCard.displayName = 'EventCard';
     const titleText = selectedEvent.name || selectedEvent.title || selectedEvent.Title || 'Untitled Event';
     const venueText = selectedEvent.venue || selectedEvent.Venue || 'New Orleans, LA';
     const hallText = selectedEvent.hall || selectedEvent['Hall / Room'] || selectedEvent.room || selectedEvent.location || 'Not specified';
-    const venueConfig = dynamicVenues[venueText] || { label: venueText, color: Colors.light.gold };
+    const venueConfig = dynamicVenues[venueText] || { label: venueText, color: '#FFD700' };
 
     const start = parseDate(selectedEvent.loadIn) || parseDate(selectedEvent.loadOut);
     const end = parseDate(selectedEvent.loadOut) || parseDate(selectedEvent.loadIn);
@@ -851,7 +851,7 @@ EventCard.displayName = 'EventCard';
                       <Ionicons 
                         name={savedEvents.has(selectedEvent.id) ? "heart" : "heart-outline"} 
                         size={26} 
-                        color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : Colors.light.gold} 
+                        color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : '#FFD700'} 
                       />
                     </TouchableOpacity>
                   )}
@@ -860,16 +860,16 @@ EventCard.displayName = 'EventCard';
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: (venueConfig.color || Colors.light.gold) + '1a', borderColor: venueConfig.color || Colors.light.gold }]}>
-                <View style={[styles.filterDot, { backgroundColor: venueConfig.color || Colors.light.gold }]} />
-                <Text style={[styles.badgeText, { color: venueConfig.color || Colors.light.gold }]}>{venueConfig.label || venueText}</Text>
+              <View style={[styles.badge, { backgroundColor: (venueConfig.color || '#FFD700') + '1a', borderColor: venueConfig.color || '#FFD700' }]}>
+                <View style={[styles.filterDot, { backgroundColor: venueConfig.color || '#FFD700' }]} />
+                <Text style={[styles.badgeText, { color: venueConfig.color || '#FFD700' }]}>{venueConfig.label || venueText}</Text>
               </View>
             </View>
             
             <View style={styles.modalBody}>
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="business" size={20} color={Colors.light.gold} />
+                  <Ionicons name="business" size={20} color={'#FFD700'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>VENUE</Text>
@@ -879,7 +879,7 @@ EventCard.displayName = 'EventCard';
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="location" size={20} color={Colors.light.gold} />
+                  <Ionicons name="location" size={20} color={'#FFD700'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>HALLS / ROOMS</Text>
@@ -889,7 +889,7 @@ EventCard.displayName = 'EventCard';
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="calendar-outline" size={20} color={Colors.light.gold} />
+                  <Ionicons name="calendar-outline" size={20} color={'#FFD700'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>START DATE</Text>
@@ -899,7 +899,7 @@ EventCard.displayName = 'EventCard';
 
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="time-outline" size={20} color={Colors.light.gold} />
+                  <Ionicons name="time-outline" size={20} color={'#FFD700'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>END DATE</Text>
@@ -917,7 +917,7 @@ EventCard.displayName = 'EventCard';
               )}
               
               <TouchableOpacity style={styles.googleCalBtn} onPress={() => openURL(generateGoogleCalendarLink(selectedEvent))}>
-                <Ionicons name="calendar-outline" size={18} color={Colors.light.gold} />
+                <Ionicons name="calendar-outline" size={18} color={'#FFD700'} />
                 <Text style={styles.googleCalBtnText}>ADD TO CALENDAR</Text>
               </TouchableOpacity>
 
@@ -971,7 +971,7 @@ EventCard.displayName = 'EventCard';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: #000000
   },
   headerGradient: {
     paddingBottom: 10,
@@ -991,12 +991,12 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 42,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
+    color: #FFD700
     letterSpacing: 4,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     letterSpacing: 3,
     textAlign: 'center',
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
   },
   viewToggle: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     borderRadius: 24,
@@ -1036,7 +1036,7 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   viewBtnTextActive: {
-    color: Colors.light.gold,
+    color: '#FFD700',
   },
   filtersScroll: {
     flexDirection: 'row',
@@ -1046,7 +1046,7 @@ const styles = StyleSheet.create({
   filterPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     paddingVertical: 8,
@@ -1056,16 +1056,16 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterPillActive: {
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
   },
   filterPillTextActive: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontWeight: 'bold',
   },
   filterDot: {
@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
@@ -1088,7 +1088,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 45,
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontFamily: 'Poppins',
     fontSize: 14,
   },
@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
   // Event Cards
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 18,
-    color: Colors.light.gold,
+    color: '#FFD700',
     marginBottom: 12,
     lineHeight: 24,
   },
@@ -1186,7 +1186,7 @@ const styles = StyleSheet.create({
   // Grid Month Styles
   gridWrapper: {
     flex: 1,
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     borderRadius: 16,
@@ -1205,7 +1205,7 @@ const styles = StyleSheet.create({
   gridMonthText: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 20,
-    color: Colors.light.gold,
+    color: '#FFD700',
     letterSpacing: 1,
   },
   gridNavBtn: {
@@ -1264,7 +1264,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   dateNumberWrapToday: {
-    backgroundColor: Colors.light.gold,
+    backgroundColor: '#FFD700',
   },
   dateNumberText: {
     fontFamily: 'PoppinsSemiBold',
@@ -1333,7 +1333,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 24,
-    color: Colors.light.text,
+    color: '#FFFFFF',
     marginBottom: 12,
     lineHeight: 32,
   },
@@ -1386,14 +1386,14 @@ const styles = StyleSheet.create({
   modalValue: {
     fontFamily: 'OpenSans',
     fontSize: 14,
-    color: Colors.light.text,
+    color: '#FFFFFF',
     lineHeight: 20,
   },
   modalActions: {
     gap: 12,
   },
   websiteBtn: {
-    backgroundColor: Colors.light.gold,
+    backgroundColor: '#FFD700',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1424,7 +1424,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
     letterSpacing: 1,
-    color: Colors.light.gold,
+    color: '#FFD700',
   },
   modalCloseIconBtn: {
     padding: 6,

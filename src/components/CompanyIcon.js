@@ -44,7 +44,7 @@ export default function CompanyIcon({ name, website, size = 14, fallbackIcon = '
     <Ionicons 
       name={fallbackIcon} 
       size={size} 
-      color={Colors.light.gold} 
+      color={'#FFD700'} 
       style={style} 
     />
   );

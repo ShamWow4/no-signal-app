@@ -160,13 +160,13 @@ export default function EducationScreen() {
           >
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
-              style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: Colors.light.gold, right: -40, bottom: -40 }]} 
+              style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: '#FFD700', right: -40, bottom: -40 }]} 
               resizeMode="contain"
             />
             <View style={styles.cardHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                 <View style={[styles.categoryBadge, { backgroundColor: 'rgba(211, 166, 37, 0.2)' }]}>
-                  <Text style={[styles.categoryText, { color: Colors.light.gold, fontWeight: 'bold' }]}>FEATURED</Text>
+                  <Text style={[styles.categoryText, { color: '#FFD700', fontWeight: 'bold' }]}>FEATURED</Text>
                 </View>
                 <View style={[styles.categoryBadge, { backgroundColor: isFree ? 'rgba(76, 217, 100, 0.2)' : 'rgba(255, 149, 0, 0.2)', borderColor: isFree ? '#4CD964' : '#FF9500' }]}>
                   <Text style={[styles.categoryText, { color: isFree ? '#4CD964' : '#FF9500', fontWeight: 'bold' }]}>{costText.toUpperCase()}</Text>
@@ -246,7 +246,7 @@ export default function EducationScreen() {
           <View style={[styles.card, { overflow: 'hidden' }]}>
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
-              style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: Colors.light.gold }]} 
+              style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: '#FFD700' }]} 
               resizeMode="contain"
             />
             <View style={styles.cardHeader}>
@@ -263,7 +263,7 @@ export default function EducationScreen() {
                   <Ionicons 
                     name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
                     size={24} 
-                    color={savedCourses.has(item.id) ? "#FF3B30" : Colors.light.textSecondary} 
+                    color={savedCourses.has(item.id) ? "#FF3B30" : '#FFFFFF'Secondary} 
                   />
                 </TouchableOpacity>
               )}
@@ -278,7 +278,7 @@ export default function EducationScreen() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="time-outline" size={14} color="#888" style={{ marginRight: 4 }} />
-                <Text style={{ color: Colors.light.textSecondary, fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
+                <Text style={{ color: '#FFFFFF'Secondary, fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
               </View>
             </View>
 
@@ -352,11 +352,11 @@ export default function EducationScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="school-outline" size={48} color={Colors.light.textSecondary} />
+              <Ionicons name="school-outline" size={48} color={'#FFFFFF'Secondary} />
               <Text style={styles.emptyText}>No courses match your search.</Text>
             </View>
           }
@@ -397,7 +397,7 @@ export default function EducationScreen() {
                     <Text style={styles.modalMetaText}>{selectedCourse['Platform/Instructor'] || selectedCourse['Provider'] || 'AV Industry'}</Text>
                   </View>
                   <View style={styles.modalMetaItem}>
-                    <Ionicons name="time-outline" size={16} color={Colors.light.gold} />
+                    <Ionicons name="time-outline" size={16} color={'#FFD700'} />
                     <Text style={styles.modalMetaText}>{selectedCourse['Duration'] || selectedCourse.duration || 'Self-Paced'}</Text>
                   </View>
                 </View>
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.gold,
+    color: '#FFD700',
     marginBottom: 12,
   },
   modalMetaRow: {
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   modalSectionTitle: {
     fontSize: 14,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000000',
   },
   listContent: {
     padding: 20,
@@ -522,11 +522,11 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
+    color: '#FFD700',
     letterSpacing: 2,
   },
   headerSubtitle: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 16,
     marginLeft: 20,
     marginRight: 20,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   card: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(211, 166, 37, 0.3)',
   },
   categoryText: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontSize: 10,
     fontFamily: 'Poppins',
     letterSpacing: 1,
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   courseTitle: {
     fontSize: 20,
     fontFamily: 'PoppinsSemiBold',
-    color: Colors.light.text,
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   instructorRow: {
@@ -588,13 +588,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   instructorText: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     fontSize: 14,
     marginLeft: 6,
   },
   courseDescription: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     fontSize: 14,
     lineHeight: 22,
@@ -603,20 +603,20 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   actionButtonText: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontFamily: 'Poppins',
     fontSize: 14,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     marginHorizontal: 20,
     marginBottom: 16,
     borderRadius: 16,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 50,
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontFamily: 'Poppins',
     fontSize: 15,
   },
@@ -647,22 +647,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     marginRight: 8,
   },
   filterPillActive: {
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
   },
   filterPillTextActive: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontWeight: 'bold',
   },
   emptyContainer: {
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Poppins',
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
   },
   cardActionsRight: {
     flexDirection: 'row',
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   secondaryCtaText: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontFamily: 'PoppinsSemiBold',
     fontSize: 13,
   },

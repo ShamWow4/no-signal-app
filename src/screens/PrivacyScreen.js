@@ -17,7 +17,7 @@ export default function PrivacyScreen() {
               style={styles.backButton}
               accessibilityLabel="Go back"
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.light.gold} />
+              <Ionicons name="arrow-back" size={24} color={'#FFD700'} />
             </TouchableOpacity>
             <View style={styles.headerTitleContainer}>
               <Text style={styles.headerTitleLight}>PRIVACY</Text>
@@ -40,7 +40,7 @@ export default function PrivacyScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Ionicons name="shield-checkmark" size={18} color={Colors.light.gold} style={{ marginRight: 8 }} />
+              <Ionicons name="shield-checkmark" size={18} color={'#FFD700'} style={{ marginRight: 8 }} />
               <Text style={styles.sectionTitle}>1. Information We Collect</Text>
             </View>
             <Text style={styles.paragraph}>
@@ -53,7 +53,7 @@ export default function PrivacyScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Ionicons name="lock-closed" size={18} color={Colors.light.gold} style={{ marginRight: 8 }} />
+              <Ionicons name="lock-closed" size={18} color={'#FFD700'} style={{ marginRight: 8 }} />
               <Text style={styles.sectionTitle}>2. How We Use Your Data</Text>
             </View>
             <Text style={styles.paragraph}>
@@ -76,7 +76,7 @@ export default function PrivacyScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Ionicons name="cloud-upload-outline" size={18} color={Colors.light.gold} style={{ marginRight: 8 }} />
+              <Ionicons name="cloud-upload-outline" size={18} color={'#FFD700'} style={{ marginRight: 8 }} />
               <Text style={styles.sectionTitle}>4. Data Storage & Security</Text>
             </View>
             <Text style={styles.paragraph}>
@@ -86,7 +86,7 @@ export default function PrivacyScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Ionicons name="mail" size={18} color={Colors.light.gold} style={{ marginRight: 8 }} />
+              <Ionicons name="mail" size={18} color={'#FFD700'} style={{ marginRight: 8 }} />
               <Text style={styles.sectionTitle}>5. Contact Us</Text>
             </View>
             <Text style={styles.paragraph}>
@@ -112,7 +112,7 @@ export default function PrivacyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000000',
   },
   headerGradient: {
     paddingBottom: 16,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 26,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
+    color: '#FFD700',
     letterSpacing: 2,
   },
   scrollContent: {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   effectiveDate: {
     fontFamily: 'OpenSans',
     fontSize: 12,
-    color: Colors.light.gold,
+    color: '#FFD700',
     marginBottom: 16,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -166,12 +166,12 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: 'OpenSans',
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     lineHeight: 22,
     marginBottom: 12,
   },
   boldText: {
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontFamily: 'PoppinsSemiBold',
   },
   section: {
@@ -195,12 +195,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 16,
-    color: Colors.light.gold,
+    color: '#FFD700',
   },
   bulletPoint: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     lineHeight: 20,
     marginLeft: 8,
     marginBottom: 4,

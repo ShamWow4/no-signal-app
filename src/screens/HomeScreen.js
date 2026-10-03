@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+fimport React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -108,7 +108,7 @@ export default function HomeScreen() {
         </ScrollView>
         
         {loading && (
-          <ActivityIndicator size="small" color={Colors.light.gold} style={{ marginVertical: 20 }} />
+          <ActivityIndicator size="small" color={'#FFD700'} style={{ marginVertical: 20 }} />
         )}
       </SafeAreaView>
     </View>
@@ -142,7 +142,7 @@ export default function HomeScreen() {
             <Text style={styles.heroCardExcerpt} numberOfLines={4}>{item.Summary}</Text>
             <View style={styles.readMoreRow}>
               <Text style={styles.readMoreText}>Read Full Story</Text>
-              <Ionicons name="arrow-forward" size={16} color={Colors.light.gold} />
+              <Ionicons name="arrow-forward" size={16} color={'#FFD700'} />
             </View>
           </View>
         </TouchableOpacity>
@@ -217,12 +217,12 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.gold} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
         }
         ListEmptyComponent={
           loading ? null : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="newspaper-outline" size={48} color={Colors.light.textSecondary} />
+              <Ionicons name="newspaper-outline" size={48} color={'#FFFFFF'Secondary} />
               <Text style={styles.emptyText}>No news matches this filter.</Text>
             </View>
           )
@@ -235,7 +235,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000000'
   },
   listContent: {
     paddingBottom: 40,
@@ -255,15 +255,15 @@ const styles = StyleSheet.create({
     letterSpacing: 4,
     marginBottom: -8,
   },
-  headerTitleBold: {
+  '#FFD700'headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.gold,
+    color: '#FFD700'
     letterSpacing: 2,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontFamily: 'OpenSans',
     letterSpacing: 3,
     marginLeft: 20,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   feedHeader: {
     fontSize: 18,
     fontFamily: 'CinzelSemiBold',
-    color: Colors.light.text,
+    color: '#FFFFFF',
     marginLeft: 20,
     marginBottom: 10,
     letterSpacing: 1,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   feedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 20,
     marginHorizontal: 20,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.light.gold,
+    borderLeftColor: '#FFD700',
   },
   feedCardContent: {
     flex: 1,
@@ -307,24 +307,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feedCardType: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontSize: 11,
     fontFamily: 'Poppins',
     letterSpacing: 1,
   },
   feedCardDate: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 12,
     fontFamily: 'OpenSans',
   },
   feedCardTitle: {
-    color: Colors.light.text,
+    color: '#FFFFFF',
     fontSize: 18,
     fontFamily: 'CinzelSemiBold',
     marginBottom: 6,
   },
   feedCardExcerpt: {
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
     fontSize: 14,
     fontFamily: 'OpenSans',
     lineHeight: 20,
@@ -340,22 +340,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     marginRight: 8,
   },
   filterPillActive: {
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderColor: Colors.light.gold,
+    borderColor: '#FFD700',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
   },
   filterPillTextActive: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontWeight: 'bold',
   },
   heroCard: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: Colors.light.cardBackground,
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
   },
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans',
   },
   heroCardTitle: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontSize: 26,
     fontFamily: 'CinzelSemiBold',
     marginBottom: 10,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   readMoreText: {
-    color: Colors.light.gold,
+    color: '#FFD700',
     fontFamily: 'PoppinsSemiBold',
     fontSize: 13,
     marginRight: 6,
@@ -424,6 +424,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Poppins',
-    color: Colors.light.textSecondary,
+    color: '#FFFFFF'Secondary,
   },
 });
