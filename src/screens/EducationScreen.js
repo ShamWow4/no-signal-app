@@ -263,7 +263,7 @@ export default function EducationScreen() {
                   <Ionicons 
                     name={savedCourses.has(item.id) ? "heart" : "heart-outline"} 
                     size={24} 
-                    color={savedCourses.has(item.id) ? "#FF3B30" : '#FFFFFF'Secondary} 
+                    color={savedCourses.has(item.id) ? "#FF3B30" : '#FFFFFF'} 
                   />
                 </TouchableOpacity>
               )}
@@ -278,7 +278,7 @@ export default function EducationScreen() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="time-outline" size={14} color="#888" style={{ marginRight: 4 }} />
-                <Text style={{ color: '#FFFFFF'Secondary, fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: 13, fontFamily: 'OpenSans' }}>{durationText}</Text>
               </View>
             </View>
 
@@ -356,7 +356,7 @@ export default function EducationScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="school-outline" size={48} color={'#FFFFFF'Secondary} />
+              <Ionicons name="school-outline" size={48} color={'#FFFFFF'} />
               <Text style={styles.emptyText}>No courses match your search.</Text>
             </View>
           }
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   modalSectionTitle: {
     fontSize: 14,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   headerSubtitle: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 16,
     marginLeft: 20,
     marginRight: 20,
@@ -588,13 +588,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   instructorText: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontFamily: 'OpenSans',
     fontSize: 14,
     marginLeft: 6,
   },
   courseDescription: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontFamily: 'OpenSans',
     fontSize: 14,
     lineHeight: 22,
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
   filterPillTextActive: {
     color: '#FFD700',
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Poppins',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
   cardActionsRight: {
     flexDirection: 'row',

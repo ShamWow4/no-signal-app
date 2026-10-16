@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: 'OpenSans',
     fontSize: 14,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   bulletPoint: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     lineHeight: 20,
     marginLeft: 8,
     marginBottom: 4,

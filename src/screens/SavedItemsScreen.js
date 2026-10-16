@@ -181,7 +181,7 @@ export default function SavedItemsScreen() {
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
           <View style={styles.cardDetailRow}>
-            <Ionicons name="location" size={12} color={'#FFFFFF'Secondary} />
+            <Ionicons name="location" size={12} color={'#FFFFFF'} />
             <Text style={styles.cardDetailText} numberOfLines={1}>{item.venue}{item.hall ? ` - ${item.hall}` : ''}</Text>
           </View>
           {start && end && (
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   gigCardTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'PoppinsSemiBold', marginBottom: 4 },
   gigCardCompany: { color: '#FFFFFF', fontSize: 15, fontFamily: 'PoppinsSemiBold', letterSpacing: 0.2, marginTop: 2, marginBottom: 2 },
   gigLocationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  gigCardLocation: { color: '#FFFFFF'Secondary, fontSize: 13, fontFamily: 'OpenSans' },
+  gigCardLocation: { color: '#FFFFFF', fontSize: 13, fontFamily: 'OpenSans' },
   applyContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24, alignSelf: 'flex-start' },
   applyText: { color: '#000', fontSize: 14, fontFamily: 'PoppinsSemiBold', marginRight: 6 },
   

@@ -51,21 +51,22 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.light.gold,
         tabBarInactiveTintColor: '#888888',
         tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
-          elevation: 0,
-          height: Platform.OS === 'ios' ? 85 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-          paddingTop: 8,
-        },
+        backgroundColor: "#080808",
+        borderTopColor: "rgba(212, 175, 55, 0.2)",
+        borderTopWidth: 1,
+        height: 68,
+        paddingBottom: 10,
+        paddingTop: 6,
+      },
         tabBarBackground: () => (
           <GlassView style={StyleSheet.absoluteFill} />
         ),
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: 'PoppinsSemiBold',
-        },
+        fontSize: 10,
+        lineHeight: 14,
+        fontFamily: "PoppinsSemiBold",
+        marginTop: 2,
+      },
       }}
     >
       <Tabs.Screen

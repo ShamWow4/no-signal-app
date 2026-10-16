@@ -76,7 +76,7 @@ export default function DirectoryScreen() {
         const uniqueCompanies = [];
 
         for (const comp of companyList) {
-          const normName = (comp.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const normName = (comp.name || '').toLowerCase().replace(/[^a-z0-9]/g, "");
           if (normName && !seenCompanies.has(normName)) {
             seenCompanies.add(normName);
             uniqueCompanies.push(comp);
@@ -198,7 +198,7 @@ export default function DirectoryScreen() {
       >
         <View style={styles.rowInfoContainer}>
           <View style={styles.rowTitleCategory}>
-            <CompanyIcon name={item.name} website={item.website} size={20} fallbackIcon="business-outline" style={{ marginRight: 8 }} />
+            <CompanyIcon name={item.name} website={item.website} size={38} fallbackIcon="business-outline" style={{ marginRight: 8 }} />
             <Text style={styles.companyName} numberOfLines={1}>{item.name}</Text>
             <View style={styles.typeBadge}>
               <Text style={styles.companyType}>{item.type}</Text>
@@ -248,8 +248,8 @@ export default function DirectoryScreen() {
             <TouchableOpacity onPress={() => toggleSaveCompany(item.id)} style={styles.heartButton}>
               <Ionicons 
                 name={savedCompanies.has(item.id) ? "heart" : "heart-outline"} 
-                size={20} 
-                color={savedCompanies.has(item.id) ? "#FF3B30" : '#FFFFFF'Secondary} 
+                size={44} 
+                color={savedCompanies.has(item.id) ? "#FF3B30" : '#FFFFFF'} 
               />
             </TouchableOpacity>
           )}
@@ -268,17 +268,17 @@ export default function DirectoryScreen() {
           </View>
         
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={'#FFFFFF'Secondary} style={styles.searchIcon} />
+          <Ionicons name="search" size={44} color={'#FFFFFF'} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search companies or types..."
-            placeholderTextColor={'#FFFFFF'Secondary}
+            placeholderTextColor={'#FFFFFF'}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color={'#FFFFFF'Secondary} />
+              <Ionicons name="close-circle" size={44} color={'#FFFFFF'} />
             </TouchableOpacity>
           )}
         </View>
@@ -306,12 +306,12 @@ export default function DirectoryScreen() {
         <FlatList
           data={filteredCompanies}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderTableHeader}
+          
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="folder-open-outline" size={48} color={'#FFFFFF'Secondary} />
+              <Ionicons name="folder-open-outline" size={48} color={'#FFFFFF'} />
               <Text style={styles.emptyText}>No companies found.</Text>
             </View>
           }
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
   },
   filterPillText: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'PoppinsSemiBold',
   },
@@ -414,27 +414,24 @@ const styles = StyleSheet.create({
   tableHeaderLabel: {
     fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     letterSpacing: 1.5,
   },
   tableHeaderActionsLabel: {
     fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     letterSpacing: 1.5,
     marginRight: 50,
   },
   tableRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#000000',
+    flexDirection: "column",
+    backgroundColor: "#0d0d0d",
     borderRadius: 12,
-    marginBottom: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 14,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.light.cardBorder,
+    borderColor: "#262626",
   },
   tableRowHovered: {
     backgroundColor: 'rgba(212, 175, 55, 0.08)',
@@ -452,9 +449,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   companyName: {
+    color: "#FFD700",
     fontSize: 16,
-    fontFamily: 'PoppinsSemiBold',
-    color: '#FFD700',
+    fontWeight: "bold",
+    flexShrink: 1,
+    marginRight: 8,
   },
   typeBadge: {
     backgroundColor: 'rgba(212, 175, 55, 0.12)',
@@ -467,7 +466,7 @@ const styles = StyleSheet.create({
   companyType: {
     fontSize: 10,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFD700'Bright,
+    color: '#FFD700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -477,7 +476,7 @@ const styles = StyleSheet.create({
   contactDetails: {
     fontSize: 12,
     fontFamily: 'Poppins',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
   descriptionSnippet: {
     fontSize: 12,
@@ -503,7 +502,7 @@ const styles = StyleSheet.create({
   },
   actionButtonHovered: {
     backgroundColor: '#FFD700',
-    borderColor: '#FFD700'Bright,
+    borderColor: '#FFD700',
   },
   actionButtonDisabled: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -537,7 +536,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Poppins',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
 });
 

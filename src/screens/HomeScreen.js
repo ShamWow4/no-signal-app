@@ -1,4 +1,4 @@
-fimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Animated, RefreshControl, ScrollView, Linking, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -222,7 +222,7 @@ export default function HomeScreen() {
         ListEmptyComponent={
           loading ? null : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="newspaper-outline" size={48} color={'#FFFFFF'Secondary} />
+              <Ionicons name="newspaper-outline" size={48} color={'#FFFFFF'} />
               <Text style={styles.emptyText}>No news matches this filter.</Text>
             </View>
           )
@@ -255,15 +255,15 @@ const styles = StyleSheet.create({
     letterSpacing: 4,
     marginBottom: -8,
   },
-  '#FFD700'headerTitleBold: {
+  headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700'
+    color: '#FFD700',
     letterSpacing: 2,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontFamily: 'OpenSans',
     letterSpacing: 3,
     marginLeft: 20,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   feedCardDate: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 12,
     fontFamily: 'OpenSans',
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   feedCardExcerpt: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'OpenSans',
     lineHeight: 20,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   filterPillText: {
     fontFamily: 'OpenSans',
     fontSize: 13,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
   filterPillTextActive: {
     color: '#FFD700',
@@ -424,6 +424,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Poppins',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
   },
 });

@@ -239,7 +239,7 @@ export default function GigsScreen() {
                   <Ionicons 
                     name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
                     size={22} 
-                    color={savedGigs.has(item.id) ? "#FF3B30" : '#FFFFFF'Secondary} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : '#FFFFFF'} 
                   />
                 </TouchableOpacity>
               )}
@@ -319,7 +319,7 @@ export default function GigsScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Ionicons name="alert-circle-outline" size={48} color={'#FFFFFF'Secondary} />
+                <Ionicons name="alert-circle-outline" size={48} color={'#FFFFFF'} />
                 <Text style={styles.emptyText}>No gigs found right now.{'\n'}Check back later!</Text>
               </View>
             )
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   pageSubtitle: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 16,
     marginLeft: 20,
     marginRight: 20,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
   },
   filterPillText: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'PoppinsSemiBold',
   },
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   heroCardLocation: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'OpenSans',
   },
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   gigCardDate: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 12,
     fontFamily: 'OpenSans',
   },
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   gigCardLocation: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'OpenSans',
   },
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'OpenSans',
     textAlign: 'center',

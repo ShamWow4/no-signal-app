@@ -18,8 +18,8 @@ export const Colors = {
     goldMuted: '#A88B2A',
     goldBright: '#F3E5AB',
     border: 'rgba(212, 175, 55, 0.25)', // slightly more visible gold border on light
-    glassBackground: 'rgba(255, 255, 255, 0.65)',
-    glassBorder: 'rgba(0, 0, 0, 0.05)',
+    glassBackground: "#0B0B0B",
+    glassBorder: "rgba(255, 215, 0, 0.35)",
     cardBackground: '#FFFFFF',
     cardBorder: '#E0E0E0',
     buttonPrimary: '#D4AF37',
@@ -34,8 +34,8 @@ export const Colors = {
     goldMuted: '#A88B2A',
     goldBright: '#FDF1B9',
     border: 'rgba(227, 193, 88, 0.25)', // higher contrast border
-    glassBackground: 'rgba(10, 10, 10, 0.75)', // darker glass for OLED
-    glassBorder: 'rgba(255, 255, 255, 0.12)',
+    glassBackground: "#0B0B0B", // darker glass for OLED
+    glassBorder: "rgba(255, 215, 0, 0.35)",
     cardBackground: '#0a0a0a', // Deepest gray, almost black
     cardBorder: '#222222',
     buttonPrimary: '#E3C158',

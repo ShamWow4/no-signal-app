@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontFamily: 'OpenSans',
     textAlign: 'center',
     lineHeight: 24,
@@ -183,14 +183,14 @@ const styles = StyleSheet.create({
   tierName: {
     fontSize: 18,
     fontFamily: 'Poppins',
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     marginBottom: 6,
   },
   tierNameFeatured: {
     color: '#FFD700',
   },
   tierDescription: {
-    color: '#FFFFFF'Secondary,
+    color: '#FFFFFF',
     fontFamily: 'OpenSans',
     fontSize: 15,
     lineHeight: 22,
