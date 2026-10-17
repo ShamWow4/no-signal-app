@@ -1,3 +1,4 @@
+import CompanyLogo from "../components/CompanyLogo";
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, ScrollView, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -186,7 +187,7 @@ export default function GigsScreen() {
           <Text style={styles.pageSubtitle}>Latest AV, lighting, and video opportunities in New Orleans.</Text>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-            {['All', 'Saved', 'Full-Time', 'Freelance'].map(cat => (
+            {['All',  'Full-Time', 'Freelance'].map(cat => (
               <TouchableOpacity 
                 key={cat}
                 style={[styles.filterPill, activeCategory === cat && styles.filterPillActive]} 
@@ -276,7 +277,7 @@ export default function GigsScreen() {
   };
 
   const filteredGigs = gigsData.filter(gig => {
-    if (activeCategory === 'Saved') return savedGigs.has(gig.id);
+    
     if (activeCategory === 'Full-Time') {
       const title = (gig['Job Title'] || '').toLowerCase();
       return title.includes('full-time') || title.includes('full time');

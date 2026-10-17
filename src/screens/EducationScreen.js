@@ -131,7 +131,7 @@ export default function EducationScreen() {
 
 
   const dynamicCategories = Array.from(new Set(courses.map(c => c['Type']).filter(t => t))).sort();
-  const categories = ['All', 'Saved', ...dynamicCategories];
+  const categories = ['All', ...dynamicCategories];
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = (course['Course Title'] || '').toLowerCase().includes(searchQuery.toLowerCase()) || 

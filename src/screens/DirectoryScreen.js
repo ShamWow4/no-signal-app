@@ -137,15 +137,13 @@ export default function DirectoryScreen() {
   };
 
   const dynamicCategories = Array.from(new Set(companies.map(c => c.type).filter(t => t))).sort();
-  const categories = ['All', 'Saved', ...dynamicCategories];
+  const categories = ['All',  ...dynamicCategories];
 
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           company.type?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    if (activeCategory === 'Saved') {
-      return savedCompanies.has(company.id) && matchesSearch;
-    }
+    
     if (activeCategory !== 'All') {
       return company.type === activeCategory && matchesSearch;
     }

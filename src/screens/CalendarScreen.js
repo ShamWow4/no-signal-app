@@ -366,12 +366,7 @@ AGENDA</Text>
         >
           <Text style={[styles.filterPillText, activeVenue === 'all' && styles.filterPillTextActive]}>All Venues</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.filterPill, activeVenue === 'saved' && styles.filterPillActive]} 
-          onPress={() => setActiveVenue('saved')}
-        >
-          <Text style={[styles.filterPillText, activeVenue === 'saved' && styles.filterPillTextActive]}>Saved</Text>
-        </TouchableOpacity>
+        
         {Object.entries(dynamicVenues).map(([key, config]) => (
           <TouchableOpacity 
             key={key}
