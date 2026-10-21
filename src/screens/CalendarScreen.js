@@ -13,30 +13,36 @@ import EventCard from '../components/EventCard';
 
 function parseDate(str) {
   if (!str) return null;
-  if (str instanceof Date) return isNaN(str.getTime()) ? null : str;
-
-  // Handle Firestore Timestamps
-  if (typeof str === 'object') {
-    if (typeof str.toDate === 'function') {
+  if (str instanceof Date) return isNaN(str.getTime()) ? null : new Date(str.getFullYear(), str.getMonth(), str.getDate(), 0, 0, 0, 0);
+  if (typeof str === "object") {
+    if (typeof str.toDate === "function") {
       const d = str.toDate();
-      return isNaN(d.getTime()) ? null : d;
+      return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
     }
-    if (str.seconds !== undefined) return new Date(str.seconds * 1000);
-    if (str._seconds !== undefined) return new Date(str._seconds * 1000);
+    if (str.seconds !== undefined) {
+      const d = new Date(str.seconds * 1000);
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
+    if (str._seconds !== undefined) {
+      const d = new Date(str._seconds * 1000);
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
   }
-
-  // Handle number timestamps (milliseconds vs seconds)
-  if (typeof str === 'number') {
-    return new Date(str > 1e11 ? str : str * 1000);
+  if (typeof str === "number") {
+    const d = new Date(str > 1e11 ? str : str * 1000);
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
   }
-
-  // Handle string timestamps (native JS Date handles ISO and YYYY-MM-DD natively)
-  if (typeof str === 'string') {
-    const cleanStr = str.replace(/^"|"$/g, '').trim();
+  if (typeof str === "string") {
+    const cleanStr = str.replace(/^"|"$/g, "").trim();
+    const m = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0, 0);
     const d = new Date(cleanStr);
-    return isNaN(d.getTime()) ? null : d;
+    if (isNaN(d.getTime())) return null;
+    if (cleanStr.includes("T") || cleanStr.includes("Z")) {
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
   }
-
   return null;
 }
 
@@ -136,7 +142,7 @@ export default function CalendarScreen() {
       today.setHours(0, 0, 0, 0);
 
       const twoWeeksAgo = new Date(today);
-      twoWeeksAgo.setDate(today.getDate() - 14);
+      twoWeeksAgo.setDate(1);
 
       querySnapshot.forEach((doc) => {
         const d = doc.data();
@@ -253,7 +259,7 @@ export default function CalendarScreen() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchEvents();
+    fetchEvents(true);
     
     let unsubDoc = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -539,7 +545,7 @@ AGENDA</Text>
                 
                 eventLayouts.forEach(layout => {
                   let level = 0;
-                  while (level < 4) { // Maximum 4 visible levels per week row to show more events while preventing overflow
+                  while (level < 15) { // Maximum 4 visible levels per week row to show more events while preventing overflow
                     let hasOverlap = false;
                     for (let c = layout.startCol; c < layout.startCol + layout.duration; c++) {
                       if (occupiedLevels[`${level}-${c}`]) {
@@ -558,12 +564,14 @@ AGENDA</Text>
                     level++;
                   }
                 });
-                return { week, weekStart, weekEnd, visibleLayouts };
+                const maxLvl = visibleLayouts.reduce((max, l) => Math.max(max, l.level + 1), 0);
+  const rowHeight = Math.max(116, maxLvl * 20 + 32);
+  return { week, weekStart, weekEnd, visibleLayouts, rowHeight };
               });
 
-              return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts }, wIndex) => (
-                <View key={wIndex} style={styles.weekRowContinuous}>
-                  <View style={styles.weekCellsRow}>
+              return weeksData.map(({ week, weekStart, weekEnd, visibleLayouts, rowHeight }, wIndex) => (
+                <View key={wIndex} style={[styles.weekRowContinuous, { height: rowHeight }]}>
+                  <View style={[styles.weekCellsRow, { height: rowHeight }]}>
                     {week.map((dateObj, dIndex) => {
                       const isCurrentMonth = dateObj.getMonth() === month;
                       const isToday = dateObj.toDateString() === new Date().toDateString();
@@ -580,7 +588,7 @@ AGENDA</Text>
                     })}
                   </View>
                   
-                  <View style={styles.weekEventsLayer}>
+                  <View style={[styles.weekEventsLayer, { height: rowHeight }]}>
                     {visibleLayouts.map(layout => {
                       const venueConfig = dynamicVenues[layout.event.venue] || { color: '#888' };
                       const leftPct = layout.startCol * (100 / 7);

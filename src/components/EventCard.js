@@ -2,10 +2,43 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+function parseDate(str) {
+  if (!str) return null;
+  if (str instanceof Date) return isNaN(str.getTime()) ? null : new Date(str.getFullYear(), str.getMonth(), str.getDate(), 0, 0, 0, 0);
+  if (typeof str === "object") {
+    if (typeof str.toDate === "function") {
+      const d = str.toDate();
+      return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    }
+    if (str.seconds !== undefined) {
+      const d = new Date(str.seconds * 1000);
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
+    if (str._seconds !== undefined) {
+      const d = new Date(str._seconds * 1000);
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
+  }
+  if (typeof str === "number") {
+    const d = new Date(str > 1e11 ? str : str * 1000);
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+  }
+  if (typeof str === "string") {
+    const cleanStr = str.replace(/^"|"$/g, "").trim();
+    const m = cleanStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0, 0);
+    const d = new Date(cleanStr);
+    if (isNaN(d.getTime())) return null;
+    if (cleanStr.includes("T") || cleanStr.includes("Z")) {
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+    }
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  }
+  return null;
+}
 const formatShortDate = (val) => {
-  if (!val) return "";
-  const d = val?.toDate ? val.toDate() : new Date(val);
-  if (isNaN(d.getTime())) return String(val);
+  const d = parseDate(val);
+  if (!d) return val ? String(val) : "";
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
 

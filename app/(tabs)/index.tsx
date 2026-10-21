@@ -6,8 +6,8 @@ export default function CalendarTab() {
   return (
     <>
       <Head>
-        <title>Nola Visual Arts | Professional AV Services</title>
-        <meta name="description" content="Nola Visual Arts provides professional audiovisual services, event production, and technical support in New Orleans." />
+        <title>The Nola AV Newsletter</title>
+        <meta name="description" content="A 501(c)(3) non-profit organization in New Orleans providing hands-on audiovisual workforce training, technical education, and industry career pathways." />
       </Head>
       <CalendarScreen />
     </>
