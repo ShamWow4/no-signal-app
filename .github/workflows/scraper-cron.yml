@@ -1,7 +1,7 @@
 name: Weekly AV Data Scraper
 
 on:
-  # schedule:
+  schedule:
     # Runs at 08:00 UTC (3:00 AM Central Time) every Sunday
     # - cron: '0 8 * * 0'
   # Allows you to run this workflow manually from the Actions tab
