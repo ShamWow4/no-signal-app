@@ -235,7 +235,29 @@ async function updateSheets() {
         }
     }
 
-    // 1. Push Master Combined Calendar
+    
+  // 2b. Process IATSE Local 39 Events
+  const iatseFile = resolveFile("iatse_events.tsv");
+  if (iatseFile) {
+    const rawIatse = fs.readFileSync(iatseFile, "utf-8").trim().split("\n").map(r => r.split("\t")).filter(r => r.length > 1);
+    if (rawIatse.length > 0 && rawIatse[0][0] === "Title") rawIatse.shift();
+    for (const row of rawIatse) {
+      const title = row[0] || "";
+      const key = normalizeKey(title);
+      if (key && !seenEvents.has(key)) {
+        seenEvents.add(key);
+        const venue = row[1] || "IATSE Local 39";
+        const loadIn = parseToISODate(row[2] || "");
+        const loadOut = parseToISODate(row[3] || row[2] || "");
+        const city = row[4] || "NEW ORLEANS, LA";
+        const hall = row[5] || "Union Call";
+        const eventRow = [title, venue, hall, loadIn, loadOut, city, "IATSE Local 39"];
+        masterRows.push(eventRow);
+      }
+    }
+  }
+
+  // 1. Push Master Combined Calendar
     await pushRowsToSheet(sheets, ['calendar_events', 'Master Calendar', 'Master calendar'], masterRows);
 
     // 2. Push NOMCC Sub-View Tab

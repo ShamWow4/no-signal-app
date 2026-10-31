@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const parallelScrapers = [
     { name: '0. Scraping NOLA Hotel Events', command: 'node scrape_all_encore_nola.mjs' },
     { name: '1. Scraping MCCNO Events', command: 'node scrape_mccno_json.mjs' },
+  { name: '1b. Scraping IATSE Local 39 Events', command: 'node scrape_iatse_events.mjs' },
     { name: '2. Scraping AV News', command: 'node scrape_av_news.mjs' },
     { name: '3. Scraping AV Gigs', command: 'node scrape_av_gigs.mjs' },
     { name: '4. Scraping AV Training', command: 'node scrape_av_training.mjs' }
