@@ -23,7 +23,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nolavisualarts",
+      "package": "com.nosignal.app",
       "versionCode": 6
     },
     "web": {
