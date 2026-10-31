@@ -2,7 +2,7 @@
   "expo": {
     "name": "No Signal!",
     "slug": "no-signal-app",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nosignalapp",
@@ -24,7 +24,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.nolavisualarts",
-      "versionCode": 5
+      "versionCode": 6
     },
     "web": {
       "output": "static",
@@ -87,4 +87,3 @@
     }
   }
 }
-
