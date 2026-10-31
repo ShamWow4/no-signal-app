@@ -1,166 +1,91 @@
 import fs from 'fs';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const API_KEY = process.env.FIRECRAWL_API_KEY || "fc-5308d0d6ba954d18adae9c4996e1ab94";
-
-const AV_KEYWORDS = [
-  'audio', 'visual', 'av', 'sound', 'speaker', 'mic', 'microphone', 'display', 'led', 'screen',
-  'video', 'projector', 'lighting', 'stage', 'staging', 'rigging', 'event', 'convention', 
-  'hospitality', 'broadcast', 'streaming', 'dante', 'q-sys', 'shure', 'avixa', 'cts', 
-  'integration', 'integrator', 'pro av', 'signage', 'acoustic', 'new orleans', 'nola', 'mccno',
-  'morial', 'arena', 'theater', 'production', 'venue', 'tech'
-];
-
-function isRelevantToAV(title, summary, isMccno) {
-  if (isMccno) return true; // Always include MCCNO news
-  const text = `${title} ${summary}`.toLowerCase();
-  return AV_KEYWORDS.some(kw => text.includes(kw));
-}
-
-function parseRSS(xmlText, sourceUrl, feedName) {
-    const items = [];
-    const itemRegex = /<item[\s\S]*?<\/item>/gi;
-    let match;
-    const isMccno = feedName.toLowerCase().includes('mccno');
-    
-    while ((match = itemRegex.exec(xmlText)) !== null) {
-        const itemXml = match[0];
-        const titleMatch = itemXml.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
-        const linkMatch = itemXml.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
-        const dateMatch = itemXml.match(/<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/i);
-        const descMatch = itemXml.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
-        
-        const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
-        const link = linkMatch ? linkMatch[1].trim() : '';
-        const date = dateMatch && !isNaN(new Date(dateMatch[1])) ? new Date(dateMatch[1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-        let summary = descMatch ? descMatch[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
-        if (summary.length > 200) summary = summary.substring(0, 197) + '...';
-        
-        if (title && link && isRelevantToAV(title, summary, isMccno)) {
-            items.push({ title, date, summary, link, source: sourceUrl });
-        }
-    }
-    return items;
-}
-
-async function fetchRSS(feedUrl, feedName) {
-    try {
-        const response = await fetch(feedUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-        });
-        if (!response.ok) return [];
-        const xml = await response.text();
-        return parseRSS(xml, feedUrl, feedName);
-    } catch (e) {
-        console.error(`RSS fetch error for ${feedUrl}:`, e.message);
-        return [];
-    }
-}
-
-async function scrapeWithFirecrawl(url, prompt, schema) {
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-            url: url,
-            formats: ['extract'],
-            extract: { prompt, schema }
-        })
-    });
-    return response.json();
-}
 
 async function scrapeNews() {
-    console.log("Fetching AV News...");
-    const rssFeeds = [
-        { name: 'MCCNO News', url: 'https://mccno.com/feed/' },
-        { name: 'Commercial Integrator', url: 'https://www.commercialintegrator.com/feed/' },
-        { name: 'AV Network', url: 'https://www.avnetwork.com/feeds/all' }
-    ];
+  console.log('🔍 Fetching multi-source AV and New Orleans industry news...');
+  
+  const rawArticles = [];
 
-    let allNews = [];
-
-    // 1. First try RSS Feeds with industry relevance filtering
-    for (const feed of rssFeeds) {
-        console.log(`Fetching RSS feed: ${feed.name}...`);
-        const articles = await fetchRSS(feed.url, feed.name);
-        if (articles.length > 0) {
-            console.log(`Found ${articles.length} AV-relevant articles from ${feed.name}`);
-            allNews.push(...articles.slice(0, 10));
-        }
+  // 1. Fetch AVNetwork RSS / Feed
+  try {
+    const res = await fetch('https://www.avnetwork.com/rss');
+    const text = await res.text();
+    // Simple regex parser for RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+    let match;
+    while ((match = itemRegex.exec(text)) !== null) {
+      const itemContent = match[1];
+      const titleMatch = itemContent.match(/<title>([\s\S]*?)<\/title>/);
+      const linkMatch = itemContent.match(/<link>([\s\S]*?)<\/link>/);
+      const dateMatch = itemContent.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+      
+      if (titleMatch && linkMatch) {
+        rawArticles.push({
+          title: titleMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim(),
+          url: linkMatch[1].trim(),
+          source: 'AV Network',
+          date: dateMatch ? new Date(dateMatch[1]).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        });
+      }
     }
+  } catch (err) {
+    console.error('⚠️ AVNetwork fetch skipped:', err.message);
+  }
 
-    // 2. If RSS didn't get enough news, try Firecrawl
-    if (allNews.length < 5) {
-        const urls = [
-            'https://mccno.com/news/',
-            'https://www.commercialintegrator.com/',
-            'https://www.avnetwork.com/'
-        ];
-        
-        const schema = {
-            type: 'object',
-            properties: {
-                articles: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            title: { type: 'string' },
-                            date: { type: 'string' },
-                            link: { type: 'string' },
-                            summary: { type: 'string' }
-                        },
-                        required: ['title', 'date', 'link', 'summary']
-                    }
-                }
-            }
-        };
-
-        for (const url of urls) {
-            console.log(`Scraping news via Firecrawl: ${url}...`);
-            try {
-                const data = await scrapeWithFirecrawl(url, 'Extract top 5 latest AV industry news articles with title, date, link, summary.', schema);
-                if (data && data.success && data.data && data.data.extract && data.data.extract.articles) {
-                    const isMccno = url.includes('mccno');
-                    const articles = data.data.extract.articles
-                        .filter(a => isRelevantToAV(a.title, a.summary, isMccno))
-                        .map(a => ({...a, source: url}));
-                    allNews.push(...articles);
-                }
-            } catch(e) {
-                console.error(`Firecrawl error for ${url}:`, e.message);
-            }
-        }
+  // 2. Fetch Live Design Online Feed
+  try {
+    const res = await fetch('https://www.livedesignonline.com/rss');
+    const text = await res.text();
+    const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+    let match;
+    while ((match = itemRegex.exec(text)) !== null) {
+      const itemContent = match[1];
+      const titleMatch = itemContent.match(/<title>([\s\S]*?)<\/title>/);
+      const linkMatch = itemContent.match(/<link>([\s\S]*?)<\/link>/);
+      const dateMatch = itemContent.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+      
+      if (titleMatch && linkMatch) {
+        rawArticles.push({
+          title: titleMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim(),
+          url: linkMatch[1].trim(),
+          source: 'Live Design Online',
+          date: dateMatch ? new Date(dateMatch[1]).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        });
+      }
     }
+  } catch (err) {
+    console.error('⚠️ Live Design fetch skipped:', err.message);
+  }
 
-    // Deduplicate by title
-    const seenTitles = new Set();
-    const uniqueNews = [];
-    for (const item of allNews) {
-        const normTitle = (item.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (normTitle && !seenTitles.has(normTitle)) {
-            seenTitles.add(normTitle);
-            uniqueNews.push(item);
-        }
-    }
+  console.log(`✅ Fetched ${rawArticles.length} total raw articles across feeds.`);
 
-    const header = ['Title', 'Date', 'Summary', 'Link', 'Source'].join('\t') + '\n';
-    const rows = uniqueNews.map(n => {
-        const title = (n.title || '').replace(/\t|\n/g, ' ');
-        const date = (n.date || '').replace(/\t|\n/g, ' ');
-        const summary = (n.summary || '').replace(/\t|\n/g, ' ');
-        const link = (n.link || '').replace(/\t|\n/g, ' ');
-        return `${title}\t${date}\t${summary}\t${link}\t${n.source}`;
-    }).join('\n');
+  // 3. Filter for Relevance (AV technology, live production, or New Orleans local context)
+  const avKeywords = [
+    'av', 'audio', 'video', 'sound', 'lighting', 'projection', 'stage', 'conventions', 
+    'switch', 'display', 'signage', 'concert', 'theater', 'production', 'technician', 'union', 'iatse', 'mccno'
+  ];
+  
+  const nolaKeywords = ['new orleans', 'nola', 'louisiana', 'convention center', 'mccno', 'saenger', 'jazz fest', 'mardi gras'];
+
+  const filteredArticles = rawArticles.filter(art => {
+    const t = art.title.toLowerCase();
+    const hasAv = avKeywords.some(kw => t.includes(kw));
+    const hasNola = nolaKeywords.some(kw => t.includes(kw));
     
-    fs.writeFileSync('av_news.tsv', header + rows);
-    console.log(`✅ Saved ${uniqueNews.length} AV-relevant news articles to av_news.tsv`);
+    // Keep if it's general high-level AV tech news OR specifically tied to New Orleans
+    return hasAv || hasNola;
+  });
+
+  console.log(`🎯 Filtered down to ${filteredArticles.length} relevant industry/local articles.`);
+  if (filteredArticles.length > 0) {
+    console.table(filteredArticles.slice(0, 10));
+  }
+
+  // 4. Save to av_news.tsv for Google Sheets & Firebase Pipeline
+  // Expected columns matching your pipeline: Title, Source, Date, URL
+  const header = ['Title', 'Source', 'Date', 'URL'].join('\t') + '\n';
+  const rows = filteredArticles.map(a => `${a.title}\t${a.source}\t${a.date}\t${a.url}`).join('\n');
+  fs.writeFileSync('av_news.tsv', header + rows);
+  console.log('💾 Saved structured data to av_news.tsv');
 }
 
 scrapeNews();
