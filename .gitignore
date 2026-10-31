@@ -69,3 +69,12 @@ gradle-9.2.0-bin*
 data/skills/
 
 no-signal-sms/.env
+# Generated Scraper TSV Caches
+scraper/mccno_events.tsv
+scraper/iatse_events.tsv
+scraper/av_news.tsv
+scraper/av_training.tsv
+
+# Service Account & API Credentials
+*credentials*.json
+*serviceAccountKey*.json
