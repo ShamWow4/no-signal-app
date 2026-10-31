@@ -4,7 +4,7 @@ async function scrapeIATSE() {
   console.log('🔍 Fetching IATSE Local 39 Calendar (4-Month Rolling Window)...');
   
   const now = new Date();
-  const monthsToFetch = 4; // Current month + next 3 months
+  const monthsToFetch = 4;
   const rawEvents = [];
 
   for (let i = 0; i < monthsToFetch; i++) {
@@ -23,14 +23,18 @@ async function scrapeIATSE() {
       });
       const html = await res.text();
       
-      // Match each table row/entry containing the event link and the date div below it
-      const entryRegex = /<a[^>]+href="[^"]*view_calendar\.cfm[^"]*"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<div>\s*([A-Za-z]+\s+\d{1,2},\s+\d{4})\s*<\/div>/gi;
+      // Flexible regex: capture anchor text and look anywhere nearby for a Month Day, Year date string
+      const linkRegex = /<a[^>]+href="[^"]*view_calendar\.cfm[^"]*"[^>]*>([\s\S]*?)<\/a>/gi;
       let match;
-      while ((match = entryRegex.exec(html)) !== null) {
+      while ((match = linkRegex.exec(html)) !== null) {
         const text = match[1].replace(/<[^>]+>/g, '').trim();
-        const dateStr = match[2].trim(); // e.g., "Oct 02, 2026"
         
-        if (text && !text.match(/^\d+$/) && dateStr) {
+        // Grab a 300-character window after the link to find the date text
+        const snippet = html.slice(match.index, match.index + 400);
+        const dateMatch = snippet.match(/([A-Za-z]{3}\s+\d{1,2},\s+\d{4})/);
+        
+        if (text && !text.match(/^\d+$/) && dateMatch) {
+          const dateStr = dateMatch[1];
           const parsedDate = new Date(dateStr);
           if (!isNaN(parsedDate.getTime())) {
             const y = parsedDate.getFullYear();
@@ -46,7 +50,6 @@ async function scrapeIATSE() {
     }
   }
 
-  // Group multi-day calls into Load-In and Load-Out date ranges
   const grouped = new Map();
   for (const ev of rawEvents) {
     const cleanTitle = ev.title.replace(/\s+/g, ' ').trim();
