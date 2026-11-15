@@ -1,89 +1,52 @@
-import React from 'react';
-import { Tabs, Link } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/theme';
-import { Pressable, Platform, View, Text, StyleSheet } from 'react-native';
-import { GlassView } from 'expo-glass-effect';
-
-// Web Vector Icon component for 100% guaranteed crisp rendering across all browsers
-function TabIcon({ name, focused, color, size = 24 }: { name: string; focused: boolean; color: any; size?: number }) {
-  if (Platform.OS === 'web') {
-    // Provide clean, high-resolution SVG/Emoji iconography fallback on Web
-    const webIcons: Record<string, string> = {
-      calendar: '📅',
-      directory: '👥',
-      gigs: '⚡',
-      toolbox: '🛠️',
-      education: '🛟',
-      news: '📰',
-      profile: '👤',
-    };
-    const iconSymbol = webIcons[name] || '📌';
-    return (
-      <View style={{ alignItems: 'center', justifyContent: 'center', height: size + 4 }}>
-        <Text style={{ fontSize: size - 2, opacity: focused ? 1 : 0.65 }}>{iconSymbol}</Text>
-      </View>
-    );
-  }
-
-  // Native iOS / Android standard Ionicons
-  const iconNames: Record<string, { active: any; inactive: any }> = {
-    calendar: { active: 'calendar', inactive: 'calendar-outline' },
-    directory: { active: 'people', inactive: 'people-outline' },
-    gigs: { active: 'flash', inactive: 'flash-outline' },
-    toolbox: { active: 'construct', inactive: 'construct-outline' },
-    education: { active: 'help-buoy', inactive: 'help-buoy-outline' },
-    news: { active: 'newspaper', inactive: 'newspaper-outline' },
-    profile: { active: 'person-circle', inactive: 'person-circle-outline' },
-  };
-
-  const currentIcon = iconNames[name] || { active: 'star', inactive: 'star-outline' };
-  const iconName = focused ? currentIcon.active : currentIcon.inactive;
-
-  return <Ionicons name={iconName} size={size + 4} color={color} />;
-}
+import { Platform } from 'react-native';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.light.gold,
-        tabBarInactiveTintColor: '#888888',
         tabBarStyle: {
-        backgroundColor: "#080808",
-        borderTopColor: "rgba(212, 175, 55, 0.2)",
-        borderTopWidth: 1,
-        height: 68,
-        paddingBottom: 10,
-        paddingTop: 6,
-      },
-        tabBarBackground: () => (
-          <GlassView style={StyleSheet.absoluteFill} />
-        ),
+          backgroundColor: '#0A0A0A',
+          borderTopColor: '#222',
+          borderTopWidth: 1,
+          height: Platform.OS === 'android' ? 64 : 85,
+          paddingBottom: Platform.OS === 'android' ? 8 : 28,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: '#D4AF37',
+        tabBarInactiveTintColor: '#666',
         tabBarLabelStyle: {
-        fontSize: 10,
-        lineHeight: 14,
-        fontFamily: "PoppinsSemiBold",
-        marginTop: 2,
-      },
+          fontSize: 10,
+          fontWeight: '600',
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Calendar',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="calendar" focused={focused} color={color} size={size} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="directory"
+        name="cheatsheets"
         options={{
-          title: 'Directory',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="directory" focused={focused} color={color} size={size} />
+          title: 'Cheat Sheets',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calculator"
+        options={{
+          title: 'Calculator',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calculator-outline" size={size} color={color} />
           ),
         }}
       />
@@ -91,54 +54,18 @@ export default function TabLayout() {
         name="gigs"
         options={{
           title: 'Gigs',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="gigs" focused={focused} color={color} size={size} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flash-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="toolbox"
+        name="support"
         options={{
-          title: 'Toolbox',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="toolbox" focused={focused} color={color} size={size} />
+          title: 'Support',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="construct-outline" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="education"
-        options={{
-          title: 'Tech Support',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="education" focused={focused} color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="news"
-        options={{
-          title: 'AV News',
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon name="news" focused={focused} color={color} size={size} />
-          ),
-        }}
-      />
-      
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="donors"
-        options={{
-          title: 'Donors',
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="rf-coordination"
-        options={{
-          title: 'RF Coordination',
-          href: null,
         }}
       />
     </Tabs>
