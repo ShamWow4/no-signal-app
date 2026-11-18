@@ -51,7 +51,7 @@ export default function OfflineBanner() {
 
   return (
     <Animated.View entering={FadeIn.duration(400)} exiting={FadeOut.duration(400)} style={styles.container}>
-      <Ionicons name="cellular-outline" size={16} color="#D4AF37" style={styles.icon} />
+      <Ionicons name="cellular-outline" size={16} color="#E6C587" style={styles.icon} />
       <Text style={styles.text}>NO SIGNAL MODE • Saved to Offline Cache</Text>
     </Animated.View>
   );
@@ -60,7 +60,7 @@ export default function OfflineBanner() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#1E1E1E',
-    borderColor: '#D4AF37',
+    borderColor: '#E6C587',
     borderWidth: 1,
     borderRadius: 8,
     paddingVertical: 6,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   text: {
-    color: '#D4AF37',
+    color: '#E6C587',
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.5,

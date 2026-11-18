@@ -25,7 +25,7 @@ function ActionButton({ icon, label, onPress, disabled }) {
           <Ionicons
             name={icon}
             size={13}
-            color={disabled ? 'rgba(255, 255, 255, 0.2)' : (hovered ? '#000000' : '#FFD700')}
+            color={disabled ? 'rgba(255, 255, 255, 0.2)' : (hovered ? '#000000' : '#E6C587')}
             style={{ marginRight: 4 }}
           />
           <Text
@@ -207,7 +207,7 @@ export default function DirectoryScreen() {
             <View style={styles.rowSubContainer}>
               {item.contact ? (
                 <Text style={styles.contactDetails} numberOfLines={1}>
-                  <Ionicons name="person-outline" size={12} color={'#FFD700'} /> {item.contact}
+                  <Ionicons name="person-outline" size={12} color={'#E6C587'} /> {item.contact}
                   {item.position ? ` • ${item.position}` : ''}
                 </Text>
               ) : item.description ? (
@@ -298,7 +298,7 @@ export default function DirectoryScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={'#FFD700'} />
+          <ActivityIndicator size="large" color={'#E6C587'} />
         </View>
       ) : (
         <FlatList
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 2,
   },
   searchContainer: {
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   filterPillActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#E6C587',
+    borderColor: '#E6C587',
   },
   filterPillText: {
     color: '#FFFFFF',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   companyName: {
-    color: "#FFD700",
+    color: "#E6C587",
     fontSize: 16,
     fontWeight: "bold",
     flexShrink: 1,
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   companyType: {
     fontSize: 10,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -499,8 +499,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(212, 175, 55, 0.3)',
   },
   actionButtonHovered: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#E6C587',
+    borderColor: '#E6C587',
   },
   actionButtonDisabled: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 12,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
   },
   actionTextHovered: {
     color: '#000000',

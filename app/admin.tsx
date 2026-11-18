@@ -117,7 +117,7 @@ export default function AdminBroadcastScreen() {
               style={[styles.channelTab, channel === 'push' && styles.channelTabActive]}
               onPress={() => setChannel('push')}
             >
-              <Ionicons name="notifications" size={18} color={channel === 'push' ? '#D4AF37' : '#888'} />
+              <Ionicons name="notifications" size={18} color={channel === 'push' ? '#E6C587' : '#888'} />
               <Text style={[styles.channelTabText, channel === 'push' && styles.channelTabTextActive]}>
                 Push Notification
               </Text>
@@ -127,7 +127,7 @@ export default function AdminBroadcastScreen() {
               style={[styles.channelTab, channel === 'sms' && styles.channelTabActive]}
               onPress={() => setChannel('sms')}
             >
-              <Ionicons name="chatbox-ellipses" size={18} color={channel === 'sms' ? '#D4AF37' : '#888'} />
+              <Ionicons name="chatbox-ellipses" size={18} color={channel === 'sms' ? '#E6C587' : '#888'} />
               <Text style={[styles.channelTabText, channel === 'sms' && styles.channelTabTextActive]}>
                 SMS Dispatch (Twilio)
               </Text>
@@ -149,7 +149,7 @@ export default function AdminBroadcastScreen() {
                 <Text style={styles.sectionTitle}>Target Audience</Text>
                 <View style={styles.targetRow}>
                   {renderTargetOption('all', 'All Users', 'people', '#FFF')}
-                  {renderTargetOption('gigs', 'Gig Alerts', 'musical-notes', '#D4AF37')}
+                  {renderTargetOption('gigs', 'Gig Alerts', 'musical-notes', '#E6C587')}
                   {renderTargetOption('calendar', 'Calendar', 'calendar', '#00C4B4')}
                 </View>
 
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 20,
-    color: '#D4AF37',
+    color: '#E6C587',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   },
   channelTabActive: {
     backgroundColor: '#1E1E1E',
-    borderColor: '#D4AF37',
+    borderColor: '#E6C587',
     borderWidth: 1,
   },
   channelTabText: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   channelTabTextActive: {
-    color: '#D4AF37',
+    color: '#E6C587',
   },
   warningBox: {
     flexDirection: 'row',
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     flexDirection: 'row',
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#E6C587',
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',

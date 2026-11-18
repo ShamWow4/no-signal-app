@@ -160,13 +160,13 @@ export default function EducationScreen() {
           >
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
-              style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: '#FFD700', right: -40, bottom: -40 }]} 
+              style={[styles.watermarkIcon, { width: 220, height: 220, opacity: 0.05, tintColor: '#E6C587', right: -40, bottom: -40 }]} 
               resizeMode="contain"
             />
             <View style={styles.cardHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                 <View style={[styles.categoryBadge, { backgroundColor: 'rgba(211, 166, 37, 0.2)' }]}>
-                  <Text style={[styles.categoryText, { color: '#FFD700', fontWeight: 'bold' }]}>FEATURED</Text>
+                  <Text style={[styles.categoryText, { color: '#E6C587', fontWeight: 'bold' }]}>FEATURED</Text>
                 </View>
                 <View style={[styles.categoryBadge, { backgroundColor: isFree ? 'rgba(76, 217, 100, 0.2)' : 'rgba(255, 149, 0, 0.2)', borderColor: isFree ? '#4CD964' : '#FF9500' }]}>
                   <Text style={[styles.categoryText, { color: isFree ? '#4CD964' : '#FF9500', fontWeight: 'bold' }]}>{costText.toUpperCase()}</Text>
@@ -246,7 +246,7 @@ export default function EducationScreen() {
           <View style={[styles.card, { overflow: 'hidden' }]}>
             <Image 
               source={require('../../assets/images/nola-av-logo.png.png')} 
-              style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: '#FFD700' }]} 
+              style={[styles.watermarkIcon, { width: 150, height: 150, opacity: 0.03, tintColor: '#E6C587' }]} 
               resizeMode="contain"
             />
             <View style={styles.cardHeader}>
@@ -352,7 +352,7 @@ export default function EducationScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#E6C587'} />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -397,7 +397,7 @@ export default function EducationScreen() {
                     <Text style={styles.modalMetaText}>{selectedCourse['Platform/Instructor'] || selectedCourse['Provider'] || 'AV Industry'}</Text>
                   </View>
                   <View style={styles.modalMetaItem}>
-                    <Ionicons name="time-outline" size={16} color={'#FFD700'} />
+                    <Ionicons name="time-outline" size={16} color={'#E6C587'} />
                     <Text style={styles.modalMetaText}>{selectedCourse['Duration'] || selectedCourse.duration || 'Self-Paced'}</Text>
                   </View>
                 </View>
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontFamily: 'PoppinsSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     marginBottom: 12,
   },
   modalMetaRow: {
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 2,
   },
   headerSubtitle: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(211, 166, 37, 0.3)',
   },
   categoryText: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontSize: 10,
     fontFamily: 'Poppins',
     letterSpacing: 1,
@@ -603,13 +603,13 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   actionButtonText: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontFamily: 'Poppins',
     fontSize: 14,
   },
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
   },
   filterPillActive: {
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   filterPillTextActive: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontWeight: 'bold',
   },
   emptyContainer: {
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   secondaryCtaText: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontFamily: 'PoppinsSemiBold',
     fontSize: 13,
   },

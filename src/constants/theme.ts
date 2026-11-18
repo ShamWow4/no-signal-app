@@ -9,12 +9,12 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#121212',
+    text: '#090806',
     background: '#F9F9F9',
     backgroundElement: 'rgba(240, 240, 240, 0.8)',
     backgroundSelected: '#EAEAEA',
     textSecondary: 'rgba(0, 0, 0, 0.6)',
-    gold: '#D4AF37',
+    gold: '#E6C587',
     goldMuted: '#A88B2A',
     goldBright: '#F3E5AB',
     border: 'rgba(212, 175, 55, 0.25)', // slightly more visible gold border on light
@@ -22,7 +22,7 @@ export const Colors = {
     glassBorder: "rgba(255, 215, 0, 0.35)",
     cardBackground: '#FFFFFF',
     cardBorder: '#E0E0E0',
-    buttonPrimary: '#D4AF37',
+    buttonPrimary: '#E6C587',
   },
   dark: {
     text: '#FFFFFF',
@@ -36,7 +36,7 @@ export const Colors = {
     border: 'rgba(227, 193, 88, 0.25)', // higher contrast border
     glassBackground: "#0B0B0B", // darker glass for OLED
     glassBorder: "rgba(255, 215, 0, 0.35)",
-    cardBackground: '#0a0a0a', // Deepest gray, almost black
+    cardBackground: '#000000', // Deepest gray, almost black
     cardBorder: '#222222',
     buttonPrimary: '#E3C158',
   },

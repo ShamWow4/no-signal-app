@@ -413,7 +413,7 @@ AGENDA</Text>
         renderItem={renderEventItem}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#E6C587'} />
         }
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
@@ -481,7 +481,7 @@ AGENDA</Text>
             style={styles.gridBodyContinuous}
             contentContainerStyle={{ flexGrow: 1 }}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#E6C587'} />
             }
           >
             {(() => {
@@ -640,7 +640,7 @@ AGENDA</Text>
     const titleText = selectedEvent.name || selectedEvent.title || selectedEvent.Title || 'Untitled Event';
     const venueText = selectedEvent.venue || selectedEvent.Venue || 'New Orleans, LA';
     const hallText = selectedEvent.hall || selectedEvent['Hall / Room'] || selectedEvent.room || selectedEvent.location || 'Not specified';
-    const venueConfig = dynamicVenues[venueText] || { label: venueText, color: '#FFD700' };
+    const venueConfig = dynamicVenues[venueText] || { label: venueText, color: '#E6C587' };
 
     const start = parseDate(selectedEvent.loadIn) || parseDate(selectedEvent.loadOut);
     const end = parseDate(selectedEvent.loadOut) || parseDate(selectedEvent.loadIn);
@@ -668,25 +668,25 @@ AGENDA</Text>
                       <Ionicons 
                         name={savedEvents.has(selectedEvent.id) ? "heart" : "heart-outline"} 
                         size={26} 
-                        color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : '#FFD700'} 
+                        color={savedEvents.has(selectedEvent.id) ? "#FF3B30" : '#E6C587'} 
                       />
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity onPress={() => setSelectedEvent(null)} style={styles.modalCloseIconBtn} activeOpacity={0.7}>
-                    <Ionicons name="close" size={22} color="#FFD700" />
+                    <Ionicons name="close" size={22} color="#E6C587" />
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={[styles.badge, { backgroundColor: (venueConfig.color || '#FFD700') + '1a', borderColor: venueConfig.color || '#FFD700' }]}>
-                <View style={[styles.filterDot, { backgroundColor: venueConfig.color || '#FFD700' }]} />
-                <Text style={[styles.badgeText, { color: venueConfig.color || '#FFD700' }]}>{venueConfig.label || venueText}</Text>
+              <View style={[styles.badge, { backgroundColor: (venueConfig.color || '#E6C587') + '1a', borderColor: venueConfig.color || '#E6C587' }]}>
+                <View style={[styles.filterDot, { backgroundColor: venueConfig.color || '#E6C587' }]} />
+                <Text style={[styles.badgeText, { color: venueConfig.color || '#E6C587' }]}>{venueConfig.label || venueText}</Text>
               </View>
             </View>
             
             <View style={styles.modalBody}>
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="business" size={20} color={'#FFD700'} />
+                  <Ionicons name="business" size={20} color={'#E6C587'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>VENUE</Text>
@@ -696,7 +696,7 @@ AGENDA</Text>
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="location" size={20} color={'#FFD700'} />
+                  <Ionicons name="location" size={20} color={'#E6C587'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>HALLS / ROOMS</Text>
@@ -706,7 +706,7 @@ AGENDA</Text>
               
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="calendar-outline" size={20} color={'#FFD700'} />
+                  <Ionicons name="calendar-outline" size={20} color={'#E6C587'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>START DATE</Text>
@@ -716,7 +716,7 @@ AGENDA</Text>
 
               <View style={styles.modalInfoRow}>
                 <View style={styles.modalIconBox}>
-                  <Ionicons name="time-outline" size={20} color={'#FFD700'} />
+                  <Ionicons name="time-outline" size={20} color={'#E6C587'} />
                 </View>
                 <View style={styles.modalInfoContent}>
                   <Text style={styles.modalLabel}>END DATE</Text>
@@ -734,7 +734,7 @@ AGENDA</Text>
               )}
               
               <TouchableOpacity style={styles.googleCalBtn} onPress={() => openURL(generateGoogleCalendarLink(selectedEvent))}>
-                <Ionicons name="calendar-outline" size={18} color={'#FFD700'} />
+                <Ionicons name="calendar-outline" size={18} color={'#E6C587'} />
                 <Text style={styles.googleCalBtnText}>ADD TO CALENDAR</Text>
               </TouchableOpacity>
 
@@ -758,7 +758,7 @@ AGENDA</Text>
             <Text style={styles.headerTitleLight}>NO</Text>
             <Text style={styles.headerTitleBold}>SIGNAL!</Text>
           </View>
-          <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
+          <Text style={styles.heroSubtitle}>The NOLA AV Newsletter</Text>
           {renderFilters()}
         </SafeAreaView>
       </View>
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 42,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 4,
   },
   heroSubtitle: {
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   viewBtnTextActive: {
-    color: '#FFD700',
+    color: '#E6C587',
   },
   filtersScroll: {
     flexDirection: 'row',
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterPillActive: {
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   filterPillText: {
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   filterPillTextActive: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontWeight: 'bold',
   },
   filterDot: {
@@ -959,7 +959,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 18,
-    color: '#FFD700',
+    color: '#E6C587',
     marginBottom: 12,
     lineHeight: 24,
   },
@@ -1022,7 +1022,7 @@ const styles = StyleSheet.create({
   gridMonthText: {
     fontFamily: 'PoppinsSemiBold',
     fontSize: 20,
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 1,
   },
   gridNavBtn: {
@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   dateNumberWrapToday: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#E6C587',
   },
   dateNumberText: {
     fontFamily: 'PoppinsSemiBold',
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: "#FFD700",
+    borderColor: "#E6C587",
     elevation: 20,
   },
   modalDragHandle: {
@@ -1156,7 +1156,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: "PoppinsSemiBold",
     fontSize: 22,
-    color: "#FFD700",
+    color: "#E6C587",
     marginBottom: 10,
     lineHeight: 30,
   },
@@ -1212,7 +1212,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans",
     fontSize: 11,
     fontWeight: "bold",
-    color: "#FFD700",
+    color: "#E6C587",
     letterSpacing: 1.2,
     marginBottom: 3,
     opacity: 0.85,
@@ -1229,7 +1229,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFD700",
+    backgroundColor: "#E6C587",
     paddingVertical: 14,
     borderRadius: 14,
     gap: 8,
@@ -1246,7 +1246,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#161204",
     borderWidth: 1.5,
-    borderColor: "#FFD700",
+    borderColor: "#E6C587",
     paddingVertical: 14,
     borderRadius: 14,
     gap: 8,
@@ -1254,14 +1254,14 @@ const styles = StyleSheet.create({
   googleCalBtnText: {
     fontFamily: "PoppinsSemiBold",
     fontSize: 14,
-    color: "#FFD700",
+    color: "#E6C587",
     letterSpacing: 1,
   },
   modalCloseBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#141414",
+    backgroundColor: "#090806",
     borderWidth: 1,
     borderColor: "#2A2A2A",
     paddingVertical: 12,

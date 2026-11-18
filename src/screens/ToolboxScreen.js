@@ -95,7 +95,7 @@ export default function ToolboxScreen() {
 
   const getDropStatusColor = (pct) => {
     if (pct < 3) return '#4E9F3D';
-    if (pct <= 5) return '#D4AF37';
+    if (pct <= 5) return '#E6C587';
     return '#E53935';
   };
 
@@ -138,7 +138,7 @@ export default function ToolboxScreen() {
 
   const getPagStatusColor = (margin) => {
     if (margin >= 6) return '#4E9F3D'; // Stable
-    if (margin >= 0) return '#D4AF37'; // Marginal
+    if (margin >= 0) return '#E6C587'; // Marginal
     return '#E53935'; // High feedback risk
   };
 
@@ -245,7 +245,7 @@ export default function ToolboxScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <Ionicons name="build" size={24} color={'#FFD700'} style={{ marginRight: 8 }} />
+          <Ionicons name="build" size={24} color={'#E6C587'} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>AV TECH TOOLBOX</Text>
         </View>
         <Text style={styles.headerSubtitle}>10 Offline Physics & Engineering Tools</Text>
@@ -255,52 +255,52 @@ export default function ToolboxScreen() {
       <View style={styles.tabBarContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarScroll}>
           <TouchableOpacity style={[styles.tabButton, activeTab === 'rf' && styles.tabButtonActive]} onPress={() => setActiveTab('rf')}>
-            <Ionicons name="radio-outline" size={16} color={activeTab === 'rf' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="radio-outline" size={16} color={activeTab === 'rf' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'rf' && styles.tabButtonTextActive]}>RF & IMD</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'dmx' && styles.tabButtonActive]} onPress={() => setActiveTab('dmx')}>
-            <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="options-outline" size={16} color={activeTab === 'dmx' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'dmx' && styles.tabButtonTextActive]}>DMX DIP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'delay' && styles.tabButtonActive]} onPress={() => setActiveTab('delay')}>
-            <Ionicons name="volume-high-outline" size={16} color={activeTab === 'delay' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="volume-high-outline" size={16} color={activeTab === 'delay' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'delay' && styles.tabButtonTextActive]}>Audio Delay</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'led' && styles.tabButtonActive]} onPress={() => setActiveTab('led')}>
-            <Ionicons name="tv-outline" size={16} color={activeTab === 'led' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="tv-outline" size={16} color={activeTab === 'led' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'led' && styles.tabButtonTextActive]}>LED Wall</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'power' && styles.tabButtonActive]} onPress={() => setActiveTab('power')}>
-            <Ionicons name="flash-outline" size={16} color={activeTab === 'power' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="flash-outline" size={16} color={activeTab === 'power' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'power' && styles.tabButtonTextActive]}>Ohm / Power</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'projection' && styles.tabButtonActive]} onPress={() => setActiveTab('projection')}>
-            <Ionicons name="videocam-outline" size={16} color={activeTab === 'projection' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="videocam-outline" size={16} color={activeTab === 'projection' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'projection' && styles.tabButtonTextActive]}>Projection</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'pag' && styles.tabButtonActive]} onPress={() => setActiveTab('pag')}>
-            <Ionicons name="mic-outline" size={16} color={activeTab === 'pag' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="mic-outline" size={16} color={activeTab === 'pag' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'pag' && styles.tabButtonTextActive]}>PAG / NAG</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'timecode' && styles.tabButtonActive]} onPress={() => setActiveTab('timecode')}>
-            <Ionicons name="timer-outline" size={16} color={activeTab === 'timecode' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="timer-outline" size={16} color={activeTab === 'timecode' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'timecode' && styles.tabButtonTextActive]}>Timecode</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'spl' && styles.tabButtonActive]} onPress={() => setActiveTab('spl')}>
-            <Ionicons name="pulse-outline" size={16} color={activeTab === 'spl' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="pulse-outline" size={16} color={activeTab === 'spl' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'spl' && styles.tabButtonTextActive]}>SPL Loss</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.tabButton, activeTab === 'photo' && styles.tabButtonActive]} onPress={() => setActiveTab('photo')}>
-            <Ionicons name="sunny-outline" size={16} color={activeTab === 'photo' ? '#FFD700' : '#aaa'} />
+            <Ionicons name="sunny-outline" size={16} color={activeTab === 'photo' ? '#E6C587' : '#aaa'} />
             <Text style={[styles.tabButtonText, activeTab === 'photo' && styles.tabButtonTextActive]}>Photometrics</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -575,13 +575,13 @@ export default function ToolboxScreen() {
               <View style={[styles.resultHero, { backgroundColor: '#000000' }]}>
                 <Text style={styles.resultLabel}>DANGER ZONES (3RD ORDER IMD)</Text>
                 <View style={{ marginVertical: 8, alignItems: 'center' }}>
-                  <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
-                  <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
+                  <Text style={styles.resultGridLabel}>Hit 1: <Text style={{ color: '#E6C587', fontWeight: 'bold', fontSize: 18 }}>{imd1} MHz</Text></Text>
+                  <Text style={[styles.resultGridLabel, { marginTop: 6 }]}>Hit 2: <Text style={{ color: '#E6C587', fontWeight: 'bold', fontSize: 18 }}>{imd2} MHz</Text></Text>
                 </View>
               </View>
 
               <View style={[styles.specsContainer, { marginTop: 16 }]}>
-                <Text style={[styles.specVal, { color: '#FFD700', fontSize: 14, marginBottom: 12 }]}>
+                <Text style={[styles.specVal, { color: '#E6C587', fontSize: 14, marginBottom: 12 }]}>
                   ANALYZER SOFTWARE CHEAT SHEET
                 </Text>
 
@@ -614,7 +614,7 @@ export default function ToolboxScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0a0a0a' },
+    container: { flex: 1, backgroundColor: '#000000' },
     header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
     headerTitleRow: { flexDirection: 'row', alignItems: 'center' },
     headerTitle: { color: '#ffffff', fontSize: 20, fontFamily: 'PoppinsSemiBold', letterSpacing: 1 },
@@ -622,14 +622,14 @@ const styles = StyleSheet.create({
     tabBarContainer: { marginBottom: 12 },
     tabBarScroll: { paddingHorizontal: 16 },
     tabButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.05)', marginRight: 8 },
-    tabButtonActive: { backgroundColor: '#2A2616', borderColor: '#FFD700', borderWidth: 1 },
+    tabButtonActive: { backgroundColor: '#2A2616', borderColor: '#E6C587', borderWidth: 1 },
     tabButtonText: { color: '#aaa', fontSize: 12, fontWeight: '600', marginLeft: 6 },
-    tabButtonTextActive: { color: '#FFD700' },
+    tabButtonTextActive: { color: '#E6C587' },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
     card: { backgroundColor: '#000000', borderColor: Colors.light.cardBorder, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 16 },
-    cardTitle: { color: '#FFD700', fontSize: 18, fontFamily: 'PoppinsSemiBold', marginBottom: 16 },
+    cardTitle: { color: '#E6C587', fontSize: 18, fontFamily: 'PoppinsSemiBold', marginBottom: 16 },
     dmxInputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', marginBottom: 16 },
-    dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: '#FFD700' },
+    dmxTextInput: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', textAlign: 'center', minWidth: 100, borderBottomWidth: 2, borderBottomColor: '#E6C587' },
     dmxUniverseText: { color: '#888', fontSize: 20, marginLeft: 8 },
     stepperRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
     stepperBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 6 },
@@ -638,11 +638,11 @@ const styles = StyleSheet.create({
     dipContainer: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#111', padding: 12, borderRadius: 12, borderColor: '#333', borderWidth: 1 },
     dipCol: { alignItems: 'center' },
     dipStatusText: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 4 },
-    dipStatusOn: { color: '#FFD700' },
+    dipStatusOn: { color: '#E6C587' },
     dipBox: { width: 22, height: 48, backgroundColor: '#222', borderRadius: 4, borderColor: '#444', borderWidth: 1, justifyContent: 'space-between', padding: 2 },
-    dipBoxOn: { borderColor: '#FFD700' },
+    dipBoxOn: { borderColor: '#E6C587' },
     dipSwitchThumb: { width: '100%', height: 18, backgroundColor: '#666', borderRadius: 2 },
-    thumbOn: { backgroundColor: '#FFD700' },
+    thumbOn: { backgroundColor: '#E6C587' },
     thumbOff: { backgroundColor: '#444', marginTop: 'auto' },
     dipValueText: { color: '#fff', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
     dipNumText: { color: '#666', fontSize: 9, marginTop: 2 },
@@ -652,13 +652,13 @@ const styles = StyleSheet.create({
     rowInput: { flexDirection: 'row', alignItems: 'center' },
     unitToggleGroup: { flexDirection: 'row', marginLeft: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: 8, padding: 2 },
     unitBtn: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6 },
-    unitBtnActive: { backgroundColor: '#FFD700' },
+    unitBtnActive: { backgroundColor: '#E6C587' },
     unitBtnText: { color: '#aaa', fontSize: 12, fontWeight: 'bold' },
     unitBtnTextActive: { color: '#000' },
     resultHero: { borderRadius: 14, padding: 20, alignItems: 'center', borderColor: Colors.light.border, borderWidth: 1, marginTop: 8 },
-    resultLabel: { color: '#FFD700', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+    resultLabel: { color: '#E6C587', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
     resultBigVal: { color: '#ffffff', fontSize: 42, fontWeight: 'bold', marginVertical: 4 },
-    resultUnit: { fontSize: 20, color: '#FFD700' },
+    resultUnit: { fontSize: 20, color: '#E6C587' },
     resultDivider: { width: '100%', height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 12 },
     resultGrid: { flexDirection: 'row', width: '100%', justifyContent: 'space-around' },
     resultGridCol: { alignItems: 'center' },
@@ -667,12 +667,12 @@ const styles = StyleSheet.create({
     speedNote: { color: '#777', fontSize: 11, marginTop: 14 },
     pitchRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
     pitchBtn: { backgroundColor: 'rgba(255, 255, 255, 0.08)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
-    pitchBtnActive: { backgroundColor: '#FFD700' },
+    pitchBtnActive: { backgroundColor: '#E6C587' },
     pitchBtnText: { color: '#aaa', fontWeight: 'bold', fontSize: 13 },
     pitchBtnTextActive: { color: '#000' },
     rowInputsContainer: { flexDirection: 'row', marginBottom: 16 },
     specsContainer: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: 12, padding: 14, borderColor: '#333', borderWidth: 1 },
     specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
     specLabel: { color: '#aaa', fontSize: 13 },
-    specVal: { color: '#FFD700', fontSize: 13, fontWeight: 'bold' },
+    specVal: { color: '#E6C587', fontSize: 13, fontWeight: 'bold' },
   });

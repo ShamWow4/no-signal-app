@@ -148,7 +148,7 @@ export default function GigsScreen() {
                   <Ionicons 
                     name={savedGigs.has(item.id) ? "heart" : "heart-outline"} 
                     size={24} 
-                    color={savedGigs.has(item.id) ? "#FF3B30" : '#FFD700'} 
+                    color={savedGigs.has(item.id) ? "#FF3B30" : '#E6C587'} 
                   />
                 </TouchableOpacity>
               )}
@@ -162,11 +162,11 @@ export default function GigsScreen() {
             ) : null}
             {item['Location'] ? (
               <View style={styles.heroLocationRow}>
-                <Ionicons name="location-sharp" size={13} color={'#FFD700'} style={{ marginRight: 4 }} />
+                <Ionicons name="location-sharp" size={13} color={'#E6C587'} style={{ marginRight: 4 }} />
                 <Text style={styles.heroCardLocation}>{item['Location']}</Text>
               </View>
             ) : null}
-            <View style={[styles.applyContainer, { backgroundColor: '#FFD700', marginTop: 16 }]}>
+            <View style={[styles.applyContainer, { backgroundColor: '#E6C587', marginTop: 16 }]}>
               <Text style={[styles.applyText, { color: '#000' }]}>Apply Now</Text>
               <Ionicons name="arrow-forward" size={16} color="#000" />
             </View>
@@ -199,7 +199,7 @@ export default function GigsScreen() {
           </ScrollView>
 
           {loading && (
-            <ActivityIndicator size="small" color={'#FFD700'} style={{ marginVertical: 20 }} />
+            <ActivityIndicator size="small" color={'#E6C587'} style={{ marginVertical: 20 }} />
           )}
         </SafeAreaView>
       </View>
@@ -224,13 +224,13 @@ export default function GigsScreen() {
         >
           <Image 
             source={require('../../assets/images/nola-av-logo.png.png')} 
-            style={[styles.watermarkIcon, { width: 120, height: 120, opacity: 0.04, tintColor: '#FFD700' }]} 
+            style={[styles.watermarkIcon, { width: 120, height: 120, opacity: 0.04, tintColor: '#E6C587' }]} 
             resizeMode="contain"
           />
           <View style={styles.gigCardContent}>
             <View style={styles.gigCardHeader}>
               <View style={styles.gigTypeContainer}>
-                <Ionicons name="briefcase-outline" size={14} color={'#FFD700'} style={{ marginRight: 6 }} />
+                <Ionicons name="briefcase-outline" size={14} color={'#E6C587'} style={{ marginRight: 6 }} />
                 <Text style={styles.gigCardType}>
                   {item['Source'] ? item['Source'].toUpperCase() : 'GIG'}
                 </Text>
@@ -254,7 +254,7 @@ export default function GigsScreen() {
             ) : null}
             {item['Location'] ? (
               <View style={styles.gigLocationRow}>
-                <Ionicons name="location-sharp" size={13} color={'#FFD700'} style={{ marginRight: 4 }} />
+                <Ionicons name="location-sharp" size={13} color={'#E6C587'} style={{ marginRight: 4 }} />
                 <Text style={styles.gigCardLocation}>{item['Location']}</Text>
               </View>
             ) : null}
@@ -310,7 +310,7 @@ export default function GigsScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#E6C587'} />
           }
           ListEmptyComponent={!loading && (
             error ? (
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 2,
   },
   pageSubtitle: {
@@ -383,8 +383,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   filterPillActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#E6C587',
+    borderColor: '#E6C587',
   },
   filterPillText: {
     color: '#FFFFFF',
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     minHeight: 180,
     backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
   },
   heroGradient: {
     flex: 1,
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   gigCardType: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontSize: 11,
     fontFamily: 'PoppinsSemiBold',
     letterSpacing: 1,

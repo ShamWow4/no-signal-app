@@ -73,14 +73,14 @@ export default function EventCard({ item, onPress, user, savedEvents, toggleSave
             <Ionicons
               name={isSaved ? "bookmark" : "bookmark-outline"}
               size={20}
-              color="#FFD700"
+              color="#E6C587"
             />
           </TouchableOpacity>
         ) : null}
       </View>
 
       <View style={styles.metaRow}>
-        <Ionicons name="calendar-outline" size={14} color="#FFD700" style={styles.icon} />
+        <Ionicons name="calendar-outline" size={14} color="#E6C587" style={styles.icon} />
         <Text style={styles.dateText}>{dateDisplay}</Text>
       </View>
 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     marginHorizontal: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#FFD700",
+    borderLeftColor: "#E6C587",
     borderWidth: 1,
     borderColor: "#222222",
   },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    color: "#FFD700",
+    color: "#E6C587",
     fontSize: 16,
     fontWeight: "bold",
     flex: 1,

@@ -56,11 +56,11 @@ export default function DonorsScreen() {
         <Text style={styles.sectionTitle}>Every Dollar at Work</Text>
         <View style={styles.impactGrid}>
           <View style={styles.impactItem}>
-            <Ionicons name="construct-outline" size={24} color={'#FFD700'} style={styles.impactIcon} />
+            <Ionicons name="construct-outline" size={24} color={'#E6C587'} style={styles.impactIcon} />
             <Text style={styles.impactLabel}>Equipment & Gear</Text>
           </View>
           <View style={styles.impactItem}>
-            <Ionicons name="school-outline" size={24} color={'#FFD700'} style={styles.impactIcon} />
+            <Ionicons name="school-outline" size={24} color={'#E6C587'} style={styles.impactIcon} />
             <Text style={styles.impactLabel}>Student Scholarships</Text>
           </View>
         </View>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   eyebrow: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontSize: 12,
     fontFamily: 'Poppins',
     letterSpacing: 1.5,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.cardBorder,
   },
   tierCardFeatured: {
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
   },
   tierHeader: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   tierNameFeatured: {
-    color: '#FFD700',
+    color: '#E6C587',
   },
   tierDescription: {
     color: '#FFFFFF',
@@ -199,16 +199,16 @@ const styles = StyleSheet.create({
   donateButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
   },
   donateButtonFeatured: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#E6C587',
   },
   donateButtonText: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontFamily: 'Poppins',
     fontSize: 16,
   },

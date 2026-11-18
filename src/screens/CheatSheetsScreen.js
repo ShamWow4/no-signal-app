@@ -6,7 +6,8 @@ import {
   ScrollView, 
   TextInput, 
   TouchableOpacity, 
-  SafeAreaView 
+  SafeAreaView,
+  Platform 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -78,7 +79,7 @@ export default function CheatSheetsScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={18} color="#D4AF37" style={styles.searchIcon} />
+        <Ionicons name="search" size={18} color="#E6C587" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search Dante, DMX, EDID, Pinouts..."
@@ -130,7 +131,7 @@ export default function CheatSheetsScreen() {
                 <Text style={styles.offlineTag}>
                   <Ionicons name="cloud-done" size={12} color="#4CD964" /> Cached Offline
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
+                <Ionicons name="chevron-forward" size={16} color="#E6C587" />
               </View>
             </TouchableOpacity>
           ))
@@ -143,7 +144,7 @@ export default function CheatSheetsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#D4AF37',
+    color: '#E6C587',
     letterSpacing: 1,
   },
   headerSubtitle: {
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#161616',
+    backgroundColor: '#12100B',
     margin: 16,
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: '#121212',
+    backgroundColor: '#090806',
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   },
   cardCategory: {
     fontSize: 11,
-    color: '#D4AF37',
+    color: '#E6C587',
     backgroundColor: '#221D0A',
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     color: '#4CD964',
   },
   detailCard: {
-    backgroundColor: '#121212',
+    backgroundColor: '#090806',
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#E6C587',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   badgeText: {
-    color: '#D4AF37',
+    color: '#E6C587',
     fontSize: 11,
     fontWeight: 'bold',
   },

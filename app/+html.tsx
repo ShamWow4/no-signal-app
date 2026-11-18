@@ -63,7 +63,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Base Fallback CSS to prevent raw unstyled image overflow on slow networks */}
         <style dangerouslySetInnerHTML={{ __html: `
           body {
-            background-color: #121212;
+            background-color: #090806;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -84,7 +84,7 @@ export default function Root({ children }: PropsWithChildren) {
             height: 8px;
           }
           ::-webkit-scrollbar-track {
-            background: #121212;
+            background: #090806;
           }
           ::-webkit-scrollbar-thumb {
             background: rgba(211, 166, 37, 0.4);
@@ -98,7 +98,7 @@ export default function Root({ children }: PropsWithChildren) {
           /* Firefox & Standard Scrollbar Styling */
           * {
             scrollbar-width: thin;
-            scrollbar-color: rgba(211, 166, 37, 0.4) #121212;
+            scrollbar-color: rgba(211, 166, 37, 0.4) #090806;
           }
         ` }} />
 

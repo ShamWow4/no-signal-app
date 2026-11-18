@@ -92,7 +92,7 @@ export default function HomeScreen() {
           <Text style={styles.headerTitleLight}>NO</Text>
           <Text style={styles.headerTitleBold}>SIGNAL!</Text>
         </View>
-        <Text style={styles.heroSubtitle}>Nola AV Newsletter</Text>
+        <Text style={styles.heroSubtitle}>The NOLA AV Newsletter</Text>
         <Text style={styles.feedHeader}>Latest Transmissions</Text>
         
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
@@ -108,7 +108,7 @@ export default function HomeScreen() {
         </ScrollView>
         
         {loading && (
-          <ActivityIndicator size="small" color={'#FFD700'} style={{ marginVertical: 20 }} />
+          <ActivityIndicator size="small" color={'#E6C587'} style={{ marginVertical: 20 }} />
         )}
       </SafeAreaView>
     </View>
@@ -142,7 +142,7 @@ export default function HomeScreen() {
             <Text style={styles.heroCardExcerpt} numberOfLines={4}>{item.Summary}</Text>
             <View style={styles.readMoreRow}>
               <Text style={styles.readMoreText}>Read Full Story</Text>
-              <Ionicons name="arrow-forward" size={16} color={'#FFD700'} />
+              <Ionicons name="arrow-forward" size={16} color={'#E6C587'} />
             </View>
           </View>
         </TouchableOpacity>
@@ -217,7 +217,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#FFD700'} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={'#E6C587'} />
         }
         ListEmptyComponent={
           loading ? null : (
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   headerTitleBold: {
     fontSize: 34,
     fontFamily: 'CinzelSemiBold',
-    color: '#FFD700',
+    color: '#E6C587',
     letterSpacing: 2,
   },
   heroSubtitle: {
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.cardBorder,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFD700',
+    borderLeftColor: '#E6C587',
   },
   feedCardContent: {
     flex: 1,
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feedCardType: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontSize: 11,
     fontFamily: 'Poppins',
     letterSpacing: 1,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   filterPillActive: {
     backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderColor: '#FFD700',
+    borderColor: '#E6C587',
   },
   filterPillText: {
     fontFamily: 'OpenSans',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   filterPillTextActive: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontWeight: 'bold',
   },
   heroCard: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans',
   },
   heroCardTitle: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontSize: 26,
     fontFamily: 'CinzelSemiBold',
     marginBottom: 10,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   readMoreText: {
-    color: '#FFD700',
+    color: '#E6C587',
     fontFamily: 'PoppinsSemiBold',
     fontSize: 13,
     marginRight: 6,
